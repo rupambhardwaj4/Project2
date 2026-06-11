@@ -1,0 +1,52 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{% block title %}{{ company.short_name|default:"QT Consultancy" }}{% endblock %}</title>
+  <script>
+    (function() {
+      const primaryColor = "{{ company.primary_color|default:'#88BDF2' }}";
+      const darkColor = "{{ company.sidebar_color|default:'#384959' }}";
+      document.documentElement.style.setProperty('--qt-primary', primaryColor);
+      document.documentElement.style.setProperty('--qt-dark', darkColor);
+      document.documentElement.style.setProperty('--primary', primaryColor);
+      document.documentElement.style.setProperty('--bg-sidebar', darkColor);
+      window.qtTheme = { primaryColor, darkColor };
+    })();
+  </script>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            qt: {
+              light: '#BDDDFC',
+              medium: '#6A89A7',
+              primary: 'var(--qt-primary)',
+              dark: 'var(--qt-dark)',
+              darker: '#26323d'
+            }
+          },
+          fontFamily: {
+            sans: ['Poppins', 'Inter', 'sans-serif']
+          }
+        }
+      }
+    }
+  </script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="{% static 'prototype/styles.css' %}">
+  <link rel="stylesheet" href="{% static 'prototype/app.css' %}">
+  <script defer src="{% static 'prototype/app.js' %}"></script>
+  {% block head %}{% endblock %}
+</head>
+<body class="bg-slate-50 font-sans text-qt-dark antialiased">
+  {{ company_json|json_script:"company-settings-json" }}
+  {% block body %}{% endblock %}
+</body>
+</html>

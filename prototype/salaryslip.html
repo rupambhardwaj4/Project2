@@ -1,0 +1,1637 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>QT Consultancy - Salary Slip</title>
+    
+    <!-- Synchronous theme loader from localStorage -->
+    <script>
+      (function() {
+          const cached = localStorage.getItem("qt_consultancy_state");
+          let primaryColor = '#88BDF2';
+          let darkColor = '#384959';
+          if (cached) {
+              try {
+                  const state = JSON.parse(cached);
+                  const settings = state.companySettings || state.settings;
+                  if (settings) {
+                      primaryColor = settings.primaryColor || settings.themeColor || primaryColor;
+                      darkColor = settings.sidebarColor || settings.themeColorDark || darkColor;
+                  }
+              } catch(e) {}
+          }
+          document.documentElement.style.setProperty('--qt-primary', primaryColor);
+          document.documentElement.style.setProperty('--qt-dark', darkColor);
+          document.documentElement.style.setProperty('--primary', primaryColor);
+          document.documentElement.style.setProperty('--bg-sidebar', darkColor);
+          window.qtTheme = { primaryColor, darkColor };
+      })();
+    </script>
+
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+      tailwind.config = {
+        theme: {
+          extend: {
+            colors: {
+              qt: {
+                light: '#BDDDFC',    // Very Light Pastel Blue
+                medium: '#6A89A7',   // Muted Steel/Blue-grey
+                primary: 'var(--qt-primary)',  // Dynamic
+                dark: 'var(--qt-dark)',     // Dynamic
+                darker: '#26323d'    // Slightly darker Charcoal
+              }
+            },
+            fontFamily: {
+              sans: ['Poppins', 'Inter', 'sans-serif']
+            }
+          }
+        }
+      }
+    </script>
+
+    <!-- Google Fonts Poppins & Inter -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    
+    <link rel="stylesheet" href="styles.css"> <!-- Helper classes and custom styles -->
+    
+    <style>
+        @media print {
+            aside, header, .no-print, button, .back-btn, #slip-top-actions, #employee-selection-panel, #payslip-preview-panel > .no-print {
+                display: none !important;
+            }
+            main {
+                margin: 0 !important;
+                padding: 0 !important;
+                width: 100% !important;
+                min-height: auto !important;
+                background: white !important;
+                overflow: visible !important;
+            }
+            body {
+                background: white !important;
+                color: black !important;
+                overflow: visible !important;
+            }
+            .print-card {
+                border: none !important;
+                box-shadow: none !important;
+                padding: 0px !important;
+                margin: 0 !important;
+                max-width: 100% !important;
+                width: 100% !important;
+                page-break-inside: avoid !important;
+                break-inside: avoid !important;
+                overflow: visible !important;
+            }
+            #payslip-content {
+                gap: 12px !important;
+                overflow: visible !important;
+            }
+            #payslip-content table td {
+                padding: 4px 6px !important;
+            }
+            #payslip-content .no-print-section {
+                margin-top: 12px !important;
+            }
+            #payslip-content .mt-12 {
+                margin-top: 16px !important;
+            }
+        }
+
+        /* Mobile Drawer Styling for Selection Panel */
+        @media (max-width: 767px) {
+            #employee-selection-panel {
+                position: fixed;
+                top: 0;
+                left: -100% !important;
+                width: 290px;
+                height: 100vh;
+                z-index: 100;
+                border-radius: 0;
+                box-shadow: 10px 0 30px rgba(0,0,0,0.15);
+                transition: left 0.3s ease-in-out;
+            }
+            #employee-selection-panel.mobile-open {
+                left: 0 !important;
+            }
+            #employee-drawer-backdrop {
+                display: none;
+                position: fixed;
+                inset: 0;
+                background-color: rgba(15, 23, 42, 0.4);
+                backdrop-filter: blur(2px);
+                z-index: 90;
+            }
+            #employee-drawer-backdrop.mobile-open {
+                display: block;
+            }
+        }
+        
+        /* Glassmorphism search input styling */
+        .glass-search {
+            background: rgba(248, 250, 252, 0.8);
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+        }
+
+        /* Zebra table styling for preview card */
+        .zebra-table tbody tr:nth-child(even) td {
+            background-color: #f8fafc !important;
+        }
+        .zebra-table tbody tr:nth-child(even) td:nth-child(3) {
+            background-color: #d1dff0 !important;
+        }
+        .zebra-table tbody tr:hover td {
+            background-color: #f1f5f9 !important;
+        }
+        .zebra-table tbody tr td {
+            padding: 6px 8px !important;
+        }
+
+        /* Bulk print styles */
+        #bulk-print-container {
+            display: none;
+        }
+
+        @media print {
+            body.bulk-print-active #payslip-preview-panel,
+            body.bulk-print-active #payslip-content,
+            body.bulk-print-active #employee-selection-panel,
+            body.bulk-print-active aside,
+            body.bulk-print-active header,
+            body.bulk-print-active #slip-top-actions {
+                display: none !important;
+            }
+            body.bulk-print-active #bulk-print-container {
+                display: block !important;
+                visibility: visible !important;
+                position: static !important;
+                width: 100% !important;
+                background: white !important;
+            }
+            body.bulk-print-active #bulk-print-container .bulk-slip-page {
+                page-break-after: always;
+                break-after: page;
+                margin: 0 !important;
+                padding: 10mm !important;
+                background: white !important;
+                visibility: visible !important;
+            }
+            body.bulk-print-active #bulk-print-container .bulk-slip-page:last-child {
+                page-break-after: avoid;
+                break-after: avoid;
+            }
+        }
+    </style>
+</head>
+<body class="bg-slate-50 font-sans text-qt-dark antialiased">
+
+    <div class="flex min-h-screen w-full">
+        
+        <!-- Left Sidebar component (Hidden on Print) -->
+        <aside class="w-64 bg-qt-dark text-white flex flex-col justify-between p-6 flex-shrink-0 z-30 sticky top-0 h-screen no-print">
+            <div>
+                <!-- Brand logo -->
+                <div class="flex items-center gap-2.5 mb-8">
+                    <div class="w-8 h-8 bg-qt-medium rounded-lg flex items-center justify-center text-white font-extrabold text-sm" data-company="logo">
+                        QT
+                    </div>
+                    <span class="text-white font-bold text-base leading-none tracking-tight" data-company="shortName">QT Consultancy</span>
+                </div>
+                
+                <!-- Menu -->
+                <ul class="flex flex-col gap-1 list-none">
+                    <li class="rounded-xl overflow-hidden text-slate-400 hover:text-white hover:bg-slate-800/50">
+                        <a href="dashboard.html" class="flex items-center gap-3 px-4 py-3 text-slate-400 font-medium text-sm transition-colors duration-200">
+                            <span>📊</span> Dashboard
+                        </a>
+                    </li>
+                    <li class="rounded-xl overflow-hidden text-slate-400 hover:text-white hover:bg-slate-800/50">
+                        <a href="directory.html" class="flex items-center gap-3 px-4 py-3 text-slate-400 hover:text-white font-medium text-sm transition-colors duration-200">
+                            <span>👥</span> Staff Directory
+                        </a>
+                    </li>
+                    
+                    <li class="rounded-xl overflow-hidden text-slate-400 hover:text-white hover:bg-slate-800/50">
+                        <a href="payroll.html" class="flex items-center gap-3 px-4 py-3 text-slate-400 hover:text-white font-medium text-sm transition-colors duration-200">
+                            <span>💰</span> Payroll Engine
+                        </a>
+                    </li>
+                    <li class="rounded-xl overflow-hidden text-slate-400 hover:text-white hover:bg-slate-800/50">
+                        <a href="invoices.html" class="flex items-center gap-3 px-4 py-3 text-slate-400 hover:text-white font-medium text-sm transition-colors duration-200">
+                            <span>📄</span> Refrens Invoices
+                        </a>
+                    </li>
+                    <li class="rounded-xl overflow-hidden bg-qt-primary">
+                        <a href="salaryslip.html" class="flex items-center gap-3 px-4 py-3 text-white font-medium text-sm transition-colors duration-200">
+                            <span>🧾</span> Salary Slips
+                        </a>
+                    </li>
+                    <li class="rounded-xl overflow-hidden text-slate-400 hover:text-white hover:bg-slate-800/50">
+                        <a href="settings.html" class="flex items-center gap-3 px-4 py-3 text-slate-400 hover:text-white font-medium text-sm transition-colors duration-200">
+                            <span>⚙️</span> Settings
+                        </a>
+                    </li>
+                </ul>
+            </div>
+            
+            <!-- User avatar on bottom -->
+            <div class="border-t border-slate-800 pt-5 flex flex-col gap-4">
+                <div class="flex items-center gap-3 px-2">
+                    <div id="header-user-avatar" class="w-9 h-9 rounded-full bg-qt-primary flex items-center justify-center font-bold text-sm text-white">AD</div>
+                    <div class="flex flex-col">
+                        <span id="header-user-name" class="text-xs font-bold text-white leading-none">Admin User</span>
+                        <span class="text-[0.62rem] text-slate-500 font-semibold uppercase tracking-wider mt-1">HR & Finance Admin</span>
+                    </div>
+                </div>
+                <button id="btn-logout-sidebar" class="flex items-center justify-center gap-2 py-2.5 rounded-xl bg-slate-800 hover:bg-red-600 border border-slate-700 hover:border-red-600 text-white font-semibold text-xs tracking-wide transition-all duration-200">
+                    <span>🚪</span> Sign Out
+                </button>
+            </div>
+        </aside>
+
+        <!-- Main Workspace -->
+        <main class="flex-1 flex flex-col min-h-screen overflow-x-hidden">
+            
+            <!-- Header (Hidden on Print) -->
+            <header class="h-[70px] bg-white border-b border-slate-200 px-8 flex items-center justify-between sticky top-0 z-25 no-print">
+                <div class="header-title">
+                    <h2 class="text-lg font-bold text-qt-dark tracking-tight">Salary Slip Viewer</h2>
+                </div>
+                <div class="flex items-center gap-5">
+                    <div class="bg-qt-light text-qt-primary text-xs font-bold px-4 py-1.5 rounded-full border border-blue-200 flex items-center gap-2">
+                        <span class="w-1.5 h-1.5 bg-qt-primary rounded-full animate-pulse"></span>
+                        Active Period: June 2026
+                    </div>
+                    <div id="nav-system-time" class="text-xs font-medium text-slate-400">02/06/2026 | 15:30</div>
+                </div>
+            </header>
+
+            <!-- Workspace View -->
+            <div class="p-4 md:p-8 flex-1 flex flex-col gap-6">
+                
+                <!-- Back Link & Mobile Drawer Toggle -->
+                <div class="flex justify-between items-center no-print" id="slip-top-actions">
+                    <a href="dashboard.html" class="flex items-center gap-2 text-xs font-bold text-slate-400 hover:text-qt-dark transition-colors cursor-pointer">
+                        <span>←</span> Back to Dashboard
+                    </a>
+                    
+                    <button id="btn-toggle-employee-drawer" class="md:hidden px-4 py-2 bg-qt-primary hover:bg-qt-dark text-white rounded-xl font-bold text-xs flex items-center gap-2 shadow-md cursor-pointer transition-all duration-200">
+                        <span>👥</span> Select Staff
+                    </button>
+                </div>
+
+                <!-- Backdrop for mobile drawer selection panel -->
+                <div id="employee-drawer-backdrop" class="no-print"></div>
+
+                <!-- Two-Panel Workspace Grid Layout -->
+                <div class="flex flex-col md:flex-row gap-6 items-stretch flex-1 min-h-[calc(100vh-180px)]">
+                    
+                    <!-- Left Panel: Employee Selection Sidebar -->
+                    <aside id="employee-selection-panel" class="w-full md:w-[40%] lg:w-[35%] bg-white border border-slate-200 rounded-2xl shadow-sm flex flex-col p-5 gap-4 no-print select-none transition-all duration-300 md:sticky md:top-[90px] md:h-[calc(100vh-120px)]">
+                        <!-- Header & Title -->
+                        <div class="border-b border-slate-100 pb-3 flex justify-between items-center">
+                            <div>
+                                <h3 class="text-xs font-bold text-qt-dark uppercase tracking-wider">Select Consultant Salary Slip</h3>
+                                <p class="text-[10px] text-slate-400 mt-0.5">Select a staff member to display slip</p>
+                            </div>
+                            <!-- Close button for mobile drawer -->
+                            <button id="btn-close-employee-drawer" class="md:hidden text-slate-400 hover:text-slate-650 font-bold text-sm p-1">✕</button>
+                        </div>
+
+                        <!-- Search Box: Glassmorphism style -->
+                        <div class="relative p-0.5 border border-slate-200/60 rounded-xl bg-slate-50/50 glass-search">
+                            <input type="text" id="slip-search-input" placeholder="Search by name, code, location..." class="w-full pl-9 pr-4 py-2.5 rounded-lg focus:outline-none focus:bg-white text-xs bg-transparent border-0 font-medium">
+                            <span class="absolute left-3.5 top-3.5 text-slate-400">🔍</span>
+                        </div>
+
+                        <!-- Scrollable list of employee cards -->
+                        <div id="employee-list-container" class="flex-1 overflow-y-auto pr-1 flex flex-col gap-3 max-h-[calc(100vh-270px)] md:max-h-none">
+                            <!-- Injected dynamically via JS as cards -->
+                        </div>
+                    </aside>
+                    
+                    <!-- Right Panel: Salary Slip Preview -->
+                    <section id="payslip-preview-panel" class="flex-1 flex flex-col gap-4 min-w-0">
+                        
+                        <!-- Sticky Action Bar at the top -->
+                        <div class="bg-white border border-slate-200 rounded-2xl p-4 shadow-sm flex items-center justify-between no-print sticky top-[70px] z-20">
+                            <div class="flex flex-col">
+                                <span class="text-[10px] font-bold text-slate-450 uppercase tracking-wider">Active Statement Preview</span>
+                                <h4 id="preview-active-name" class="text-xs font-bold text-qt-dark mt-0.5">Select a consultant...</h4>
+                            </div>
+                            <div class="flex items-center gap-2">
+                                <button id="btn-share-slip" class="px-3 py-2 border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 rounded-xl font-bold text-xs transition-all flex items-center gap-1.5 cursor-pointer shadow-sm">
+                                    <span>🔗</span> Share Link
+                                </button>
+                                <button id="btn-download-pdf" class="px-3 py-2 border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 rounded-xl font-bold text-xs transition-all flex items-center gap-1.5 cursor-pointer shadow-sm">
+                                    <span>📥</span> Export PDF
+                                </button>
+                                <button onclick="window.print()" class="px-4 py-2 bg-qt-primary hover:bg-qt-dark text-white rounded-xl font-bold text-xs shadow-md shadow-qt-primary/10 transition-all flex items-center gap-1.5 cursor-pointer">
+                                    <span>🖨️</span> Print Slip
+                                </button>
+                                <button id="btn-bulk-pdf" class="px-4 py-2 bg-slate-900 hover:bg-slate-800 text-white rounded-xl font-bold text-xs shadow-md transition-all flex items-center gap-1.5 cursor-pointer">
+                                    <span>📚</span> Bulk PDF
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Content wrapper (loading/error/content) -->
+                        <div class="flex-1 flex flex-col min-w-0">
+                            <!-- Loading State -->
+                            <div id="payslip-loading" class="bg-white border border-slate-200 rounded-2xl shadow-sm p-16 text-center text-slate-400 font-medium text-sm flex-1 flex flex-col items-center justify-center min-h-[300px]">
+                                <div class="animate-spin inline-block w-8 h-8 border-4 border-qt-primary border-t-transparent rounded-full mb-4"></div>
+                                <p>Locating employee registry record...</p>
+                            </div>
+
+                            <!-- Error State (Hidden) -->
+                            <div id="payslip-error" class="hidden bg-white border border-slate-200 rounded-2xl shadow-sm p-16 text-center text-slate-400 space-y-4 flex-1 flex-col items-center justify-center min-h-[300px]">
+                                <span class="text-5xl block">⚠️</span>
+                                <h3 class="text-lg font-bold text-qt-dark">Employee Record Not Found</h3>
+                                <p class="text-xs max-w-md mx-auto leading-relaxed">Please select a staff member from the left panel to load and display their payslip sheet.</p>
+                            </div>
+
+                            <!-- Printable A4 Card Preview -->
+                            <!-- Printable A4 Card Preview -->
+                            <div id="payslip-content" class="hidden bg-white border border-slate-200 rounded-2xl shadow-md p-8 md:p-12 print-card flex-col gap-6 font-mono text-black min-w-0 overflow-x-auto">
+                                
+                                <!-- GST-style Outer Border Frame -->
+                                <div class="border-2 border-black flex flex-col flex-1 w-full h-full rounded-none p-0 bg-white">
+                                    
+                                    <!-- Header / Corporate Identity -->
+                                    <div class="flex items-center justify-between p-4 border-b border-black relative">
+                                        <!-- Branded Logo Container -->
+                                        <div class="flex items-center">
+                                            <div id="slip-logo-wrapper" class="mr-3 shrink-0 flex items-center justify-center">
+                                                <svg width="55" height="55" viewBox="0 0 60 60" class="shrink-0">
+                                                    <path d="M 30 5 C 42 5, 50 12, 50 25 C 50 38, 40 48, 30 55 C 20 48, 10 38, 10 25 C 10 12, 18 5, 30 5 Z" fill="#0d2440" />
+                                                    <path id="slip-logo-svg-fill" d="M 30 8 C 39 8, 46 14, 46 25 C 46 35, 38 44, 30 50 C 22 44, 14 35, 14 25 C 14 14, 21 8, 30 8 Z" fill="#88BDF2" />
+                                                    <circle cx="30" cy="24" r="7" fill="none" stroke="#FFFFFF" stroke-width="3" />
+                                                    <line x1="33" y1="28" x2="39" y2="34" stroke="#FFFFFF" stroke-width="3" stroke-linecap="round" />
+                                                </svg>
+                                            </div>
+                                            <div class="flex flex-col hidden">
+                                                <h1 id="slip-company-short-name" class="text-md font-black tracking-tight text-[#0D357A] leading-none uppercase">[Company Short Name]</h1>
+                                                <span class="text-[0.45rem] font-bold text-slate-400 mt-1 uppercase tracking-widest">Partner in human resources</span>
+                                            </div>
+                                        </div>
+                                        
+                                        <!-- Company Details Centered -->
+                                        <div class="flex-1 text-center pr-16 text-slate-700">
+                                            <h2 id="slip-company-full-name" class="text-md font-extrabold tracking-tight uppercase leading-snug text-slate-900 whitespace-nowrap">[Company Legal Name]</h2>
+                                            <div id="slip-company-address-block" class="text-[10px] text-slate-600 font-bold leading-normal">
+                                                [Company Head Office Address]
+                                            </div>
+                                            <p id="slip-company-contact" class="text-[9px] text-[#0D357A] font-bold leading-normal underline">[Company Contact Details]</p>
+                                        </div>
+                                    </div>
+
+                                    <!-- Statement Period Callout -->
+                                    <div class="border-b border-black py-1.5 text-center font-bold text-[11px] text-black tracking-wide bg-slate-50/50">
+                                        * Salary Slip For The Month of <span id="slip-month-header">June-2026</span>
+                                    </div>
+
+                                    <!-- Employee Info Table Grid -->
+                                    <div class="overflow-x-auto border-b border-black">
+                                        <table class="w-full border-collapse text-[11px] font-bold text-black">
+                                            <tbody>
+                                                <tr>
+                                                    <td class="border border-black p-1.5 w-[20%]">Emp. Code</td>
+                                                    <td class="border border-black p-1.5 w-[30%] font-normal" id="lbl-emp-code">—</td>
+                                                    <td class="border border-black p-1.5 w-[20%]">Company Month</td>
+                                                    <td class="border border-black p-1.5 w-[30%] font-normal" id="lbl-company-month">[Company Short Name]</td>
+                                                </tr>
+                                                <tr>
+                                                    <td class="border border-black p-1.5">Name</td>
+                                                    <td class="border border-black p-1.5 font-normal" id="lbl-emp-name">—</td>
+                                                    <td class="border border-black p-1.5">Month</td>
+                                                    <td class="border border-black p-1.5 font-normal" id="lbl-month">—</td>
+                                                </tr>
+                                                <tr>
+                                                    <td class="border border-black p-1.5">Designation</td>
+                                                    <td class="border border-black p-1.5 font-normal" id="lbl-designation">—</td>
+                                                    <td class="border border-black p-1.5">Working Day</td>
+                                                    <td class="border border-black p-1.5 font-normal" id="lbl-working-days">—</td>
+                                                </tr>
+                                                <tr>
+                                                    <td class="border border-black p-1.5">UAN No.</td>
+                                                    <td class="border border-black p-1.5 font-normal font-mono" id="lbl-uan-no">101458016658</td>
+                                                    <td class="border border-black p-1.5">Account no.</td>
+                                                    <td class="border border-black p-1.5 font-normal font-mono" id="lbl-account-no">—</td>
+                                                </tr>
+                                                <tr>
+                                                    <td class="border border-black p-1.5">STATE</td>
+                                                    <td class="border border-black p-1.5 font-normal uppercase" id="lbl-state">—</td>
+                                                    <td class="border border-black p-1.5">Work Location</td>
+                                                    <td class="border border-black p-1.5 font-normal" id="lbl-work-location">—</td>
+                                                </tr>
+                                                <tr>
+                                                    <td class="border border-black p-1.5">ESIC No</td>
+                                                    <td class="border border-black p-1.5 font-normal font-mono" id="lbl-esic-no">2019712124</td>
+                                                    <td class="border border-black p-1.5"></td>
+                                                    <td class="border border-black p-1.5 font-normal"></td>
+                                                </tr>
+                                            </tbody>
+                                        </table>
+                                    </div>
+
+                                    <!-- Earnings & Deductions Calculations Table -->
+                                    <div class="overflow-x-auto border-b border-black">
+                                        <table class="w-full border-collapse text-[11px] font-bold text-black zebra-table">
+                                            <thead>
+                                                <tr class="border-b border-black bg-slate-50">
+                                                    <th class="border-r border-black p-1.5 text-left w-[30%]">Total Salary</th>
+                                                    <th class="border-r border-black p-1.5 text-right w-[15%]">Earning</th>
+                                                    <th class="border-r border-black p-1.5 text-left w-[30%]">Deductions</th>
+                                                    <th class="border-r border-black p-1.5 text-right w-[15%]"></th>
+                                                    <th class="p-1.5 text-center w-[10%] font-extrabold">Net Pay</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody class="font-normal text-slate-800 divide-y divide-black/10">
+                                                <!-- Row 1: Basic Pay & ESI -->
+                                                <tr class="border-b border-black/30">
+                                                    <td class="border-r border-black p-1 bg-white font-bold text-black">Basic Pay</td>
+                                                    <td class="border-r border-black p-1 text-right" id="val-basic-pay">0</td>
+                                                    <td class="border-r border-black p-1 bg-[#DCE6F1] font-bold text-black">E.S.I.</td>
+                                                    <td class="border-r border-black p-1 text-right" id="val-esi">0</td>
+                                                    <td class="p-1"></td>
+                                                </tr>
+                                                <!-- Row 2: HRA & PF -->
+                                                <tr class="border-b border-black/30">
+                                                    <td class="border-r border-black p-1 bg-white font-bold text-black">H.R.A.</td>
+                                                    <td class="border-r border-black p-1 text-right" id="val-hra">0</td>
+                                                    <td class="border-r border-black p-1 bg-[#DCE6F1] font-bold text-black">P.F.</td>
+                                                    <td class="border-r border-black p-1 text-right" id="val-pf">0</td>
+                                                    <td class="p-1"></td>
+                                                </tr>
+                                                <!-- Row 3: Other Allowance & LWF -->
+                                                <tr class="border-b border-black/30">
+                                                    <td class="border-r border-black p-1 bg-white font-bold text-black" id="lbl-other-allowance">Other Allowance</td>
+                                                    <td class="border-r border-black p-1 text-right" id="val-other-allowance">0</td>
+                                                    <td class="border-r border-black p-1 bg-[#DCE6F1] font-bold text-black">LWF</td>
+                                                    <td class="border-r border-black p-1 text-right" id="val-lwf">0</td>
+                                                    <td class="p-1"></td>
+                                                </tr>
+                                                <!-- Row 4: Stat Bonus & Meal Debit -->
+                                                <tr class="border-b border-black/30">
+                                                    <td class="border-r border-black p-1 bg-white font-bold text-black">Stat Bonus</td>
+                                                    <td class="border-r border-black p-1 text-right" id="val-stat-bonus">0</td>
+                                                    <td class="border-r border-black p-1 bg-[#DCE6F1] font-bold text-black">Meal Debit</td>
+                                                    <td class="border-r border-black p-1 text-right" id="val-meal-debit">0</td>
+                                                    <td class="p-1"></td>
+                                                </tr>
+                                                <!-- Row 5: Attendance Bonus & Refyne Debit -->
+                                                <tr class="border-b border-black/30">
+                                                    <td class="border-r border-black p-1 bg-white font-bold text-black">Attendance bonus</td>
+                                                    <td class="border-r border-black p-1 text-right" id="val-attendance-bonus">0</td>
+                                                    <td class="border-r border-black p-1 bg-[#DCE6F1] font-bold text-black">Refyne Debit</td>
+                                                    <td class="border-r border-black p-1 text-right" id="val-refyne-debit">0</td>
+                                                    <td class="p-1"></td>
+                                                </tr>
+                                                <!-- Row 6: Leave Encashment & Advance salary -->
+                                                <tr class="border-b border-black/30">
+                                                    <td class="border-r border-black p-1 bg-white font-bold text-black">Leave Encashment</td>
+                                                    <td class="border-r border-black p-1 text-right" id="val-leave-encashment">0</td>
+                                                    <td class="border-r border-black p-1 bg-[#DCE6F1] font-bold text-black">Advance salary</td>
+                                                    <td class="border-r border-black p-1 text-right" id="val-advance-salary">0</td>
+                                                    <td class="p-1"></td>
+                                                </tr>
+                                                <!-- Row 7: Performance incentive & PT -->
+                                                <tr class="border-b border-black/30">
+                                                    <td class="border-r border-black p-1 bg-white font-bold text-black">Performance incentive</td>
+                                                    <td class="border-r border-black p-1 text-right" id="val-performance-incentive">0</td>
+                                                    <td class="border-r border-black p-1 bg-[#DCE6F1] font-bold text-black" id="lbl-pt-deduction">PT</td>
+                                                    <td class="border-r border-black p-1 text-right" id="val-pt">0</td>
+                                                    <td class="p-1"></td>
+                                                </tr>
+                                                <!-- Row 8: Extra Payment & E-Bike Debit -->
+                                                <tr class="border-b border-black/30">
+                                                    <td class="border-r border-black p-1 bg-white font-bold text-black">Extra Payment</td>
+                                                    <td class="border-r border-black p-1 text-right" id="val-extra-payment">0</td>
+                                                    <td class="border-r border-black p-1 bg-[#DCE6F1] font-bold text-black">E-Bike Debit</td>
+                                                    <td class="border-r border-black p-1 text-right" id="val-ebike-debit">0</td>
+                                                    <td class="p-1"></td>
+                                                </tr>
+                                                <!-- Row 9: Shipment Incentive & Advance Payments in Weeks -->
+                                                <tr class="border-b border-black/30">
+                                                    <td class="border-r border-black p-1 bg-white font-bold text-black">Shipment Incentive</td>
+                                                    <td class="border-r border-black p-1 text-right" id="val-shipment-incentive">0</td>
+                                                    <td class="border-r border-black p-1 bg-[#DCE6F1] font-bold text-black">Advance Payments In Weeks</td>
+                                                    <td class="border-r border-black p-1 text-right" id="val-advance-weeks">0</td>
+                                                    <td class="p-1"></td>
+                                                </tr>
+                                                <!-- Row 10: Mobile allowance & Shipment Debit -->
+                                                <tr class="border-b border-black/30">
+                                                    <td class="border-r border-black p-1 bg-white font-bold text-black">Mobile allowance</td>
+                                                    <td class="border-r border-black p-1 text-right" id="val-mobile-allowance">0</td>
+                                                    <td class="border-r border-black p-1 bg-[#DCE6F1] font-bold text-black">Shipment Debit</td>
+                                                    <td class="border-r border-black p-1 text-right" id="val-shipment-debit">0</td>
+                                                    <td class="p-1"></td>
+                                                </tr>
+                                                <!-- Row 11: Meal Incentive & Accommodation Recovery -->
+                                                <tr class="border-b border-black/30">
+                                                    <td class="border-r border-black p-1 bg-white font-bold text-black">Meal Incentive</td>
+                                                    <td class="border-r border-black p-1 text-right" id="val-meal-incentive">0</td>
+                                                    <td class="border-r border-black p-1 bg-[#DCE6F1] font-bold text-black">Accmmodation Recovery</td>
+                                                    <td class="border-r border-black p-1 text-right" id="val-accommodation">0</td>
+                                                    <td class="p-1"></td>
+                                                </tr>
+                                                <!-- Row 12: Group Incentive & Notice Period Deduction -->
+                                                <tr class="border-b border-black/30">
+                                                    <td class="border-r border-black p-1 bg-white font-bold text-black">Group Incentive</td>
+                                                    <td class="border-r border-black p-1 text-right" id="val-group-incentive">0</td>
+                                                    <td class="border-r border-black p-1 bg-[#DCE6F1] font-bold text-black">Notice Period Deduction</td>
+                                                    <td class="border-r border-black p-1 text-right" id="val-notice-period">0</td>
+                                                    <td class="p-1"></td>
+                                                </tr>
+                                                <!-- Row 13: Night Allowance & COD Loss -->
+                                                <tr class="border-b border-black/30">
+                                                    <td class="border-r border-black p-1 bg-white font-bold text-black">Night Allowance</td>
+                                                    <td class="border-r border-black p-1 text-right" id="val-night-allowance">0</td>
+                                                    <td class="border-r border-black p-1 bg-[#DCE6F1] font-bold text-black">COD Loss</td>
+                                                    <td class="border-r border-black p-1 text-right" id="val-cod-loss">0</td>
+                                                    <td class="p-1"></td>
+                                                </tr>
+                                                <!-- Row 14: National Holiday Pay & Tshirt Recovery -->
+                                                <tr class="border-b border-black/30">
+                                                    <td class="border-r border-black p-1 bg-white font-bold text-black">National Holiday Pay</td>
+                                                    <td class="border-r border-black p-1 text-right" id="val-holiday-pay">0</td>
+                                                    <td class="border-r border-black p-1 bg-[#DCE6F1] font-bold text-black">Tshirt Recovery</td>
+                                                    <td class="border-r border-black p-1 text-right" id="val-tshirt-recovery">0</td>
+                                                    <td class="p-1"></td>
+                                                </tr>
+                                                <!-- Row 15: Retention Bonus & EWF Deduction -->
+                                                <tr class="border-b border-black/30">
+                                                    <td class="border-r border-black p-1 bg-white font-bold text-black">Retention Bonus</td>
+                                                    <td class="border-r border-black p-1 text-right" id="val-retention-bonus">0</td>
+                                                    <td class="border-r border-black p-1 bg-[#DCE6F1] font-bold text-black">EWF Deduction</td>
+                                                    <td class="border-r border-black p-1 text-right" id="val-ewf-deduction">0</td>
+                                                    <td class="p-1"></td>
+                                                </tr>
+                                                <!-- Row 16: Arrear Payment & TDS (1%) / Tax -->
+                                                <tr class="border-b border-black">
+                                                    <td class="border-r border-black p-1 bg-white font-bold text-black">Arrear Payment</td>
+                                                    <td class="border-r border-black p-1 text-right" id="val-arrear-payment">0</td>
+                                                    <td class="border-r border-black p-1 bg-[#DCE6F1] font-bold text-black" id="lbl-tds-tax">TDS (1%)</td>
+                                                    <td class="border-r border-black p-1 text-right" id="val-tds">0</td>
+                                                    <td class="p-1"></td>
+                                                </tr>
+                                                
+                                                <!-- Summary Green Footer Row -->
+                                                <tr class="bg-[#92D050] font-bold text-black border-t border-black text-[11px] leading-relaxed">
+                                                    <td class="border-r border-black p-2 uppercase">Net Gross Total</td>
+                                                    <td class="border-r border-black p-2 text-right" id="lbl-net-gross">0</td>
+                                                    <td class="border-r border-black p-2 uppercase">Total Deduction</td>
+                                                    <td class="border-r border-black p-2 text-right" id="lbl-total-deductions">0</td>
+                                                    <td class="p-2 text-center text-black font-extrabold border-l border-black" id="lbl-net-pay">0</td>
+                                                </tr>
+                                            </tbody>
+                                        </table>
+                                    </div>
+
+                                    <!-- Footer Signatures & Print Button -->
+                                    <div class="flex justify-between items-end p-4 md:p-6 no-print-section bg-white">
+                                        <!-- Employee Signature and Stamp -->
+                                        <div class="flex flex-col items-start gap-1 relative min-h-[95px] justify-end">
+                                            <div id="slip-signature-img-container" class="h-10 w-28 hidden mb-1 z-10">
+                                                <img id="slip-signature-img" src="" class="h-full w-full object-contain">
+                                            </div>
+                                            <span class="font-bold text-xs border-t border-black pt-1 w-28 text-center z-10">Employee Signature</span>
+                                            
+                                            <!-- Curved Stamp SVG / Image -->
+                                            <div id="slip-stamp-container" class="absolute left-10 bottom-2 select-none opacity-85" style="transform: rotate(-8deg);">
+                                                <svg id="slip-stamp-svg" width="105" height="105" viewBox="0 0 100 100" class="text-blue-700">
+                                                    <!-- Outer circles -->
+                                                    <circle cx="50" cy="50" r="46" fill="none" stroke="currentColor" stroke-width="1.5" stroke-dasharray="3.5 1" />
+                                                    <circle cx="50" cy="50" r="43" fill="none" stroke="currentColor" stroke-width="1" />
+                                                    <circle cx="50" cy="50" r="29" fill="none" stroke="currentColor" stroke-width="1" />
+                                                    
+                                                    <!-- Arc Text Paths -->
+                                                    <path id="seal-text-path-top" d="M 14 50 A 36 36 0 0 1 86 50" fill="none" />
+                                                    <path id="seal-text-path-bottom" d="M 86 50 A 36 36 0 0 1 14 50" fill="none" />
+                                                    
+                                                    <!-- Text -->
+                                                    <text font-size="6.2" font-weight="900" fill="currentColor" letter-spacing="0.5">
+                                                        <textPath href="#seal-text-path-top" startOffset="50%" text-anchor="middle" id="slip-stamp-text-top">
+                                                            QT CONSULTANCY PRIVATE LIMITED
+                                                        </textPath>
+                                                    </text>
+                                                    <text font-size="6.5" font-weight="900" fill="currentColor" letter-spacing="1.5">
+                                                        <textPath href="#seal-text-path-bottom" startOffset="50%" text-anchor="middle" id="slip-stamp-text-bottom">
+                                                            * GURGAON *
+                                                        </textPath>
+                                                    </text>
+                                                    
+                                                    <!-- Center Q shield emblem -->
+                                                    <g transform="translate(50, 50) scale(0.55)" fill="none" stroke="currentColor" stroke-width="1.5">
+                                                        <path d="M -10 -15 C 0 -15, 10 -18, 10 -18 C 10 -18, 10 5, 0 15 C -10 5, -10 -18, -10 -18 Z" />
+                                                        <circle cx="0" cy="-2" r="4" fill="none" stroke="currentColor" stroke-width="1.5" />
+                                                        <line x1="2" y1="0" x2="6" y2="4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" />
+                                                    </g>
+                                                </svg>
+                                                <img id="slip-stamp-img" class="w-[105px] h-[105px] object-contain hidden" style="max-width: 105px; max-height: 105px;">
+                                            </div>
+                                        </div>
+
+                                        <!-- PRINT Action Button exactly matching screenshot -->
+                                        <div class="no-print hidden">
+                                            <button onclick="window.print()" class="px-7 py-1.5 border border-slate-700 bg-white hover:bg-slate-50 text-black font-bold text-xs tracking-wider transition-all duration-200 cursor-pointer shadow-sm">
+                                                PRINT
+                                            </button>
+                                        </div>
+                                    </div>
+
+                                </div> <!-- End of GST-style Outer Border Frame -->
+
+                                <!-- System Generated Tag -->
+                                <div class="text-center text-[10px] text-slate-700 font-bold mt-4 tracking-wide leading-none">
+                                    This is a system generated pay slip.
+                                </div>
+
+                            </div>
+                        </div>
+
+                    </section>
+                </div>
+            </div>
+
+        </main>
+    </div>
+
+    <!-- Toast container -->
+    <div id="toast-container" class="fixed bottom-6 right-6 z-[200] flex flex-col gap-3 max-w-sm pointer-events-none"></div>
+
+    <script src="app.js"></script>
+    <script>
+        // Go back function determines history or landing page
+        function goBack() {
+            window.history.back();
+        }
+
+        function selectEmployee(id) {
+            const url = new URL(window.location);
+            url.searchParams.set("id", id);
+            window.history.pushState(null, "", url);
+            
+            renderSelectionList();
+            loadPayslipPreview(id);
+            
+            const drawer = document.getElementById("employee-selection-panel");
+            const backdrop = document.getElementById("employee-drawer-backdrop");
+            if (drawer) drawer.classList.remove("mobile-open");
+            if (backdrop) backdrop.classList.remove("mobile-open");
+        }
+
+        function loadPayslipPreview(employeeId) {
+            const loadingEl = document.getElementById("payslip-loading");
+            const errorEl = document.getElementById("payslip-error");
+            const contentEl = document.getElementById("payslip-content");
+            const activeNameEl = document.getElementById("preview-active-name");
+
+            if (!employeeId) {
+                if (loadingEl) loadingEl.style.display = "none";
+                if (contentEl) contentEl.style.display = "none";
+                if (errorEl) errorEl.style.display = "flex";
+                if (activeNameEl) activeNameEl.textContent = "No employee selected";
+                return;
+            }
+
+            if (loadingEl) loadingEl.style.display = "flex";
+            if (contentEl) contentEl.style.display = "none";
+            if (errorEl) errorEl.style.display = "none";
+
+            const emp = state.employees.find(e => e.id === employeeId);
+
+            if (!emp) {
+                if (loadingEl) loadingEl.style.display = "none";
+                if (contentEl) contentEl.style.display = "none";
+                if (errorEl) errorEl.style.display = "flex";
+                if (activeNameEl) activeNameEl.textContent = "Record not found";
+                return;
+            }
+
+            if (activeNameEl) activeNameEl.textContent = emp.name + " (" + emp.id + ")";
+
+            const financials = FinanceCalculator.calculate(emp);
+
+            const settings = state.companySettings || DEFAULT_COMPANY_SETTINGS;
+
+            // Apply Company Text Details
+            document.getElementById("slip-company-short-name").textContent = settings.shortName || "Company Short Name";
+            document.getElementById("slip-company-full-name").textContent = settings.fullLegalName || "Company Legal Name";
+            document.getElementById("slip-company-address-block").textContent = (settings.headOfficeAddress || "Company Head Office Address").replace(/\n/g, ', ');
+            document.getElementById("slip-company-contact").textContent = `${settings.supportEmail || 'support@company.com'}, M.No-${settings.contactPhone || 'Contact Phone'}`;
+
+            if (settings.primaryColor) {
+                document.getElementById("slip-company-contact").style.color = settings.primaryColor;
+                document.getElementById("slip-company-short-name").style.color = settings.primaryColor;
+            }
+
+            const logoWrapper = document.getElementById("slip-logo-wrapper");
+            if (logoWrapper) {
+                if (settings.logoImage) {
+                    logoWrapper.innerHTML = `<img src="${settings.logoImage}" class="w-12 h-12 rounded-lg object-cover">`;
+                } else if (settings.logoInitials && settings.logoInitials !== "QT") {
+                    logoWrapper.innerHTML = `
+                        <div class="w-12 h-12 bg-qt-primary text-white rounded-lg flex items-center justify-center font-extrabold text-lg shrink-0">
+                            ${settings.logoInitials}
+                        </div>
+                    `;
+                } else {
+                    logoWrapper.innerHTML = `
+                        <svg width="55" height="55" viewBox="0 0 60 60" class="shrink-0">
+                            <path d="M 30 5 C 42 5, 50 12, 50 25 C 50 38, 40 48, 30 55 C 20 48, 10 38, 10 25 C 10 12, 18 5, 30 5 Z" fill="#0d2440" />
+                            <path id="slip-logo-svg-fill" d="M 30 8 C 39 8, 46 14, 46 25 C 46 35, 38 44, 30 50 C 22 44, 14 35, 14 25 C 14 14, 21 8, 30 8 Z" fill="${settings.primaryColor || '#88BDF2'}" />
+                            <circle cx="30" cy="24" r="7" fill="none" stroke="#FFFFFF" stroke-width="3" />
+                            <line x1="33" y1="28" x2="39" y2="34" stroke="#FFFFFF" stroke-width="3" stroke-linecap="round" />
+                        </svg>
+                    `;
+                }
+            }
+
+            const sigContainer = document.getElementById("slip-signature-img-container");
+            const sigImg = document.getElementById("slip-signature-img");
+            if (settings.signatureImage) {
+                if (sigContainer) sigContainer.style.display = "block";
+                if (sigImg) sigImg.src = settings.signatureImage;
+            } else {
+                if (sigContainer) sigContainer.style.display = "none";
+            }
+
+            const stampSvg = document.getElementById("slip-stamp-svg");
+            const stampImg = document.getElementById("slip-stamp-img");
+            if (settings.sealImage) {
+                if (stampSvg) stampSvg.style.display = "none";
+                if (stampImg) {
+                    stampImg.src = settings.sealImage;
+                    stampImg.style.display = "block";
+                }
+            } else {
+                if (stampSvg) {
+                    stampSvg.style.display = "block";
+                    if (settings.primaryColor) {
+                        stampSvg.style.color = settings.primaryColor;
+                    }
+                    const topText = document.getElementById("slip-stamp-text-top");
+                    if (topText) {
+                        topText.textContent = settings.fullLegalName ? settings.fullLegalName.toUpperCase() : "COMPANY LEGAL NAME";
+                    }
+                    const bottomText = document.getElementById("slip-stamp-text-bottom");
+                    if (bottomText) {
+                        const city = settings.headOfficeAddress ? settings.headOfficeAddress.split('\n').pop().split(',')[0].trim().toUpperCase() : "CITY";
+                        bottomText.textContent = `* ${city} *`;
+                    }
+                }
+                if (stampImg) stampImg.style.display = "none";
+            }
+
+            const fullMonth = emp.month || "June 2026";
+            document.getElementById("slip-month-header").textContent = fullMonth;
+            
+            let shortMonthStr = fullMonth;
+            const monthMatch = fullMonth.match(/^([A-Za-z]+)\s*(\d{4})$/);
+            if (monthMatch) {
+                const mName = monthMatch[1].substring(0, 3);
+                const yearShort = monthMatch[2].substring(2);
+                shortMonthStr = `${mName}-${yearShort}`;
+            }
+            
+            document.getElementById("lbl-emp-code").textContent = emp.id;
+            document.getElementById("lbl-company-month").textContent = settings.shortName || "Company Short Name";
+            document.getElementById("lbl-emp-name").textContent = emp.name;
+            document.getElementById("lbl-month").textContent = shortMonthStr;
+            document.getElementById("lbl-designation").textContent = emp.department || "Consultant";
+            
+            const workingDaysVal = emp.isVendorStaff ? (parseFloat(emp.workingDays) || 0) : ((parseFloat(emp.hoursWorked) || 0) / 8);
+            document.getElementById("lbl-working-days").textContent = workingDaysVal.toFixed(0);
+            
+            let uniqueUan = "101458016658";
+            if (emp.id) {
+                const numericPart = emp.id.replace(/\D/g, "");
+                if (numericPart) {
+                    uniqueUan = "10145" + String(numericPart).padStart(7, "0");
+                }
+            }
+            document.getElementById("lbl-uan-no").textContent = uniqueUan;
+            document.getElementById("lbl-account-no").textContent = emp.accountNumber || "—";
+            document.getElementById("lbl-state").textContent = emp.state || emp.location || "DELHI";
+            document.getElementById("lbl-work-location").textContent = emp.location || emp.centre || "Gurgaon";
+            
+            let uniqueEsic = "2019712124";
+            if (emp.id) {
+                const numericPart = emp.id.replace(/\D/g, "");
+                if (numericPart) {
+                    uniqueEsic = "2019" + String(numericPart).padStart(6, "0");
+                }
+            }
+            document.getElementById("lbl-esic-no").textContent = uniqueEsic;
+
+            resetFormCells();
+
+            let grossTotal = 0;
+            let deductionTotal = 0;
+            let netPayValue = 0;
+
+            if (emp.isVendorStaff) {
+                const basicWages = workingDaysVal * (parseFloat(emp.perDayPayment) || 0);
+                const incentive = parseFloat(emp.incentive) || 0;
+                const candidatePayout = basicWages + incentive;
+                const tds = parseFloat(emp.tds) || (candidatePayout * 0.01);
+                const netCandidate = candidatePayout - tds;
+
+                document.getElementById("val-basic-pay").textContent = Math.round(basicWages);
+                document.getElementById("val-performance-incentive").textContent = Math.round(incentive);
+                document.getElementById("lbl-tds-tax").textContent = "TDS (1%)";
+                document.getElementById("val-tds").textContent = Math.round(tds);
+
+                grossTotal = candidatePayout;
+                deductionTotal = tds;
+                netPayValue = netCandidate;
+            } else {
+                const baseSal = parseFloat(emp.baseSalary) || 0;
+                const hourlyRate = parseFloat(emp.hourlyRate) || 0;
+                const hoursWorkedVal = parseFloat(emp.hoursWorked) || 0;
+                
+                let overtimePay = 0;
+                if (emp.status === "Active" && emp.timesheetStatus === "Uploaded" && hoursWorkedVal > 160) {
+                    const overtimeHours = hoursWorkedVal - 160;
+                    overtimePay = overtimeHours * (hourlyRate * 1.5);
+                }
+                
+                const allowance = parseFloat(emp.allowance) || 0;
+                const grossPay = baseSal + overtimePay + allowance;
+                const taxAmount = emp.status === "Active" ? grossPay * 0.15 : 0;
+                const deductions = parseFloat(emp.deductions) || 0;
+                const netPay = grossPay - taxAmount - deductions;
+
+                document.getElementById("val-basic-pay").textContent = Math.round(baseSal);
+                document.getElementById("lbl-other-allowance").textContent = "Other Allowance / OT";
+                document.getElementById("val-other-allowance").textContent = Math.round(overtimePay);
+                document.getElementById("val-performance-incentive").textContent = Math.round(allowance);
+
+                document.getElementById("lbl-pt-deduction").textContent = "PT / Admin Ded";
+                document.getElementById("val-pt").textContent = Math.round(deductions);
+                document.getElementById("lbl-tds-tax").textContent = "Income Tax (15%)";
+                document.getElementById("val-tds").textContent = Math.round(taxAmount);
+
+                grossTotal = grossPay;
+                deductionTotal = taxAmount + deductions;
+                netPayValue = netPay;
+            }
+
+            document.getElementById("lbl-net-gross").textContent = Math.round(grossTotal);
+            document.getElementById("lbl-total-deductions").textContent = Math.round(deductionTotal);
+            document.getElementById("lbl-net-pay").textContent = Math.round(netPayValue);
+
+            if (loadingEl) loadingEl.style.display = "none";
+            if (errorEl) errorEl.style.display = "none";
+            if (contentEl) contentEl.style.display = "flex";
+        }
+
+        function resetFormCells() {
+            const cellIds = [
+                "val-basic-pay", "val-esi", "val-hra", "val-pf", "val-other-allowance", "val-lwf",
+                "val-stat-bonus", "val-meal-debit", "val-attendance-bonus", "val-refyne-debit",
+                "val-leave-encashment", "val-advance-salary", "val-performance-incentive", "val-pt",
+                "val-extra-payment", "val-ebike-debit", "val-shipment-incentive", "val-advance-weeks",
+                "val-mobile-allowance", "val-shipment-debit", "val-meal-incentive", "val-accommodation",
+                "val-group-incentive", "val-notice-period", "val-night-allowance", "val-cod-loss",
+                "val-holiday-pay", "val-tshirt-recovery", "val-retention-bonus", "val-ewf-deduction",
+                "val-arrear-payment", "val-tds"
+            ];
+            cellIds.forEach(id => {
+                const el = document.getElementById(id);
+                if (el) el.textContent = "0";
+            });
+            document.getElementById("lbl-other-allowance").textContent = "Other Allowance";
+            document.getElementById("lbl-pt-deduction").textContent = "PT";
+            document.getElementById("lbl-tds-tax").textContent = "TDS";
+        }
+
+        function renderSelectionList() {
+            const query = document.getElementById("slip-search-input").value.toLowerCase();
+            const container = document.getElementById("employee-list-container");
+            if (!container) return;
+            
+            const filtered = state.employees.filter(e => {
+                const name = e.name.toLowerCase();
+                const id = e.id.toLowerCase();
+                const dept = (e.department || "").toLowerCase();
+                const loc = (e.location || e.centre || "").toLowerCase();
+                return name.includes(query) || id.includes(query) || dept.includes(query) || loc.includes(query);
+            });
+            
+            if (filtered.length === 0) {
+                container.innerHTML = `
+                    <div class="text-center text-slate-400 py-8 text-xs font-semibold">
+                        No matching consultants found.
+                    </div>
+                `;
+                return;
+            }
+            
+            const params = new URLSearchParams(window.location.search);
+            const activeId = params.get("id");
+
+            container.innerHTML = filtered.map(e => {
+                const typeLabel = e.isVendorStaff ? "Vendor Staff" : "Corporate";
+                const typeClass = e.isVendorStaff ? "bg-amber-50 text-amber-700 border border-amber-200/50" : "bg-blue-50 text-blue-700 border border-blue-200/50";
+                const isActive = activeId === e.id;
+                const activeClasses = isActive 
+                    ? "border-2 border-qt-primary bg-qt-light/10 shadow-sm shadow-qt-primary/5" 
+                    : "border border-slate-150 bg-slate-50/50 hover:bg-slate-50 hover:border-qt-primary/50";
+                
+                return `
+                    <div onclick="selectEmployee('${e.id}')" class="p-4 rounded-xl cursor-pointer flex flex-col gap-2.5 relative group transition-all duration-200 ${activeClasses}">
+                        <div class="flex justify-between items-start">
+                            <span class="font-mono text-[10px] font-bold text-qt-primary bg-qt-light/30 px-2 py-0.5 rounded">${e.id}</span>
+                            <span class="px-2 py-0.5 rounded text-[8px] font-bold uppercase tracking-wider ${typeClass}">${typeLabel}</span>
+                        </div>
+                        <div class="flex flex-col">
+                            <h4 class="font-bold text-xs text-slate-800 leading-snug group-hover:text-qt-primary transition-colors">${e.name}</h4>
+                            <span class="text-[10px] text-slate-400 mt-1 flex items-center gap-1">📍 ${e.location || e.centre || 'Gurgaon'}</span>
+                        </div>
+                        <div class="flex justify-between items-center mt-1 border-t border-slate-100 pt-2">
+                            <span class="text-[9px] text-slate-400 font-medium">${e.department || 'Consultant'}</span>
+                            <span class="text-[10px] font-bold text-qt-primary group-hover:underline flex items-center gap-1">
+                                View Slip ➔
+                            </span>
+                        </div>
+                    </div>
+                `;
+            }).join("");
+        }
+
+        document.addEventListener("DOMContentLoaded", () => {
+            loadStateFromStorage();
+
+            const searchInput = document.getElementById("slip-search-input");
+            if (searchInput) {
+                searchInput.addEventListener("input", renderSelectionList);
+            }
+
+            renderSelectionList();
+
+            const params = new URLSearchParams(window.location.search);
+            let activeId = params.get("id");
+            if (!activeId && state.employees.length > 0) {
+                activeId = state.employees[0].id;
+                const url = new URL(window.location);
+                url.searchParams.set("id", activeId);
+                window.history.pushState(null, "", url);
+                renderSelectionList();
+            }
+
+            loadPayslipPreview(activeId);
+
+            const shareBtn = document.getElementById("btn-share-slip");
+            if (shareBtn) {
+                shareBtn.addEventListener("click", () => {
+                    const url = window.location.href;
+                    if (navigator.clipboard && navigator.clipboard.writeText) {
+                        navigator.clipboard.writeText(url)
+                            .then(() => {
+                                Toast.show("Salary slip sharing link copied to clipboard!", "success");
+                            })
+                            .catch(err => {
+                                fallbackCopyText(url);
+                            });
+                    } else {
+                        fallbackCopyText(url);
+                    }
+                });
+            }
+
+            function fallbackCopyText(text) {
+                const textArea = document.createElement("textarea");
+                textArea.value = text;
+                textArea.style.top = "0";
+                textArea.style.left = "0";
+                textArea.style.position = "fixed";
+                document.body.appendChild(textArea);
+                textArea.focus();
+                textArea.select();
+                try {
+                    document.execCommand('copy');
+                    Toast.show("Salary slip sharing link copied to clipboard!", "success");
+                } catch (err) {
+                    Toast.show("Failed to copy link. Please manually copy the URL.", "danger");
+                }
+                document.body.removeChild(textArea);
+            }
+
+            const pdfBtn = document.getElementById("btn-download-pdf");
+            if (pdfBtn) {
+                pdfBtn.addEventListener("click", () => {
+                    window.print();
+                });
+            }
+
+            const bulkPdfBtn = document.getElementById("btn-bulk-pdf");
+            if (bulkPdfBtn) {
+                bulkPdfBtn.addEventListener("click", () => {
+                    openBulkSelectModal();
+                });
+            }
+
+            window.addEventListener("afterprint", () => {
+                document.body.classList.remove("bulk-print-active");
+                const container = document.getElementById("bulk-print-container");
+                if (container) container.innerHTML = "";
+            });
+
+            const btnToggle = document.getElementById("btn-toggle-employee-drawer");
+            const btnClose = document.getElementById("btn-close-employee-drawer");
+            const drawer = document.getElementById("employee-selection-panel");
+            const backdrop = document.getElementById("employee-drawer-backdrop");
+
+            if (btnToggle && drawer && backdrop) {
+                btnToggle.addEventListener("click", () => {
+                    drawer.classList.add("mobile-open");
+                    backdrop.classList.add("mobile-open");
+                });
+            }
+
+            if (btnClose && drawer && backdrop) {
+                btnClose.addEventListener("click", () => {
+                    drawer.classList.remove("mobile-open");
+                    backdrop.classList.remove("mobile-open");
+                });
+            }
+
+            if (backdrop && drawer) {
+                backdrop.addEventListener("click", () => {
+                    drawer.classList.remove("mobile-open");
+                    backdrop.classList.remove("mobile-open");
+                });
+            }
+
+            window.addEventListener("popstate", () => {
+                const params = new URLSearchParams(window.location.search);
+                const activeId = params.get("id");
+                renderSelectionList();
+                loadPayslipPreview(activeId);
+            });
+        });
+
+        function generateSinglePayslipHTML(emp, settings) {
+            const financials = FinanceCalculator.calculate(emp);
+            
+            // Calculate dynamic values
+            let logoHTML = "";
+            if (settings.logoImage) {
+                logoHTML = `<img src="${settings.logoImage}" class="w-12 h-12 rounded-lg object-cover">`;
+            } else if (settings.logoInitials && settings.logoInitials !== "QT") {
+                logoHTML = `
+                    <div class="w-12 h-12 bg-qt-primary text-white rounded-lg flex items-center justify-center font-extrabold text-lg shrink-0">
+                        ${settings.logoInitials}
+                    </div>
+                `;
+            } else {
+                logoHTML = `
+                    <svg width="55" height="55" viewBox="0 0 60 60" class="shrink-0">
+                        <path d="M 30 5 C 42 5, 50 12, 50 25 C 50 38, 40 48, 30 55 C 20 48, 10 38, 10 25 C 10 12, 18 5, 30 5 Z" fill="#0d2440" />
+                        <path d="M 30 8 C 39 8, 46 14, 46 25 C 46 35, 38 44, 30 50 C 22 44, 14 35, 14 25 C 14 14, 21 8, 30 8 Z" fill="${settings.primaryColor || '#88BDF2'}" />
+                        <circle cx="30" cy="24" r="7" fill="none" stroke="#FFFFFF" stroke-width="3" />
+                        <line x1="33" y1="28" x2="39" y2="34" stroke="#FFFFFF" stroke-width="3" stroke-linecap="round" />
+                    </svg>
+                `;
+            }
+
+            let sigHTML = "";
+            if (settings.signatureImage) {
+                sigHTML = `
+                    <div class="h-10 w-28 mb-1 z-10">
+                        <img src="${settings.signatureImage}" class="h-full w-full object-contain">
+                    </div>
+                `;
+            }
+
+            let stampHTML = "";
+            if (settings.sealImage) {
+                stampHTML = `<img src="${settings.sealImage}" class="w-[105px] h-[105px] object-contain" style="max-width: 105px; max-height: 105px;">`;
+            } else {
+                const city = settings.headOfficeAddress ? settings.headOfficeAddress.split('\n').pop().split(',')[0].trim().toUpperCase() : "CITY";
+                const companyLegalUpper = settings.fullLegalName ? settings.fullLegalName.toUpperCase() : "COMPANY LEGAL NAME";
+                stampHTML = `
+                    <svg width="105" height="105" viewBox="0 0 100 100" class="text-blue-700" style="color: ${settings.primaryColor || '#1d4ed8'};">
+                        <circle cx="50" cy="50" r="46" fill="none" stroke="currentColor" stroke-width="1.5" stroke-dasharray="3.5 1" />
+                        <circle cx="50" cy="50" r="43" fill="none" stroke="currentColor" stroke-width="1" />
+                        <circle cx="50" cy="50" r="29" fill="none" stroke="currentColor" stroke-width="1" />
+                        <path id="seal-text-path-top-${emp.id}" d="M 14 50 A 36 36 0 0 1 86 50" fill="none" />
+                        <path id="seal-text-path-bottom-${emp.id}" d="M 86 50 A 36 36 0 0 1 14 50" fill="none" />
+                        <text font-size="6.2" font-weight="900" fill="currentColor" letter-spacing="0.5">
+                            <textPath href="#seal-text-path-top-${emp.id}" startOffset="50%" text-anchor="middle">
+                                ${companyLegalUpper}
+                            </textPath>
+                        </text>
+                        <text font-size="6.5" font-weight="900" fill="currentColor" letter-spacing="1.5">
+                            <textPath href="#seal-text-path-bottom-${emp.id}" startOffset="50%" text-anchor="middle">
+                                * ${city} *
+                            </textPath>
+                        </text>
+                        <g transform="translate(50, 50) scale(0.55)" fill="none" stroke="currentColor" stroke-width="1.5">
+                            <path d="M -10 -15 C 0 -15, 10 -18, 10 -18 C 10 -18, 10 5, 0 15 C -10 5, -10 -18, -10 -18 Z" />
+                            <circle cx="0" cy="-2" r="4" fill="none" stroke="currentColor" stroke-width="1.5" />
+                            <line x1="2" y1="0" x2="6" y2="4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" />
+                        </g>
+                    </svg>
+                `;
+            }
+
+            const fullMonth = emp.month || "June 2026";
+            let shortMonthStr = fullMonth;
+            const monthMatch = fullMonth.match(/^([A-Za-z]+)\s*(\d{4})$/);
+            if (monthMatch) {
+                const mName = monthMatch[1].substring(0, 3);
+                const yearShort = monthMatch[2].substring(2);
+                shortMonthStr = `${mName}-${yearShort}`;
+            }
+
+            const workingDaysVal = emp.isVendorStaff ? (parseFloat(emp.workingDays) || 0) : ((parseFloat(emp.hoursWorked) || 0) / 8);
+            
+            let uniqueUan = "101458016658";
+            if (emp.id) {
+                const numericPart = emp.id.replace(/\D/g, "");
+                if (numericPart) {
+                    uniqueUan = "10145" + String(numericPart).padStart(7, "0");
+                }
+            }
+            
+            let uniqueEsic = "2019712124";
+            if (emp.id) {
+                const numericPart = emp.id.replace(/\D/g, "");
+                if (numericPart) {
+                    uniqueEsic = "2019" + String(numericPart).padStart(6, "0");
+                }
+            }
+
+            let basicWages = 0, overtimePay = 0, allowance = 0, deductions = 0, taxAmount = 0, grossTotal = 0, deductionTotal = 0, netPayValue = 0;
+            let otherAllowanceLabel = "Other Allowance";
+            let ptLabel = "PT";
+            let taxLabel = "TDS";
+
+            if (emp.isVendorStaff) {
+                basicWages = workingDaysVal * (parseFloat(emp.perDayPayment) || 0);
+                allowance = parseFloat(emp.incentive) || 0;
+                const candidatePayout = basicWages + allowance;
+                taxAmount = parseFloat(emp.tds) || (candidatePayout * 0.01);
+                netPayValue = candidatePayout - taxAmount;
+
+                grossTotal = candidatePayout;
+                deductionTotal = taxAmount;
+            } else {
+                const baseSal = parseFloat(emp.baseSalary) || 0;
+                const hourlyRate = parseFloat(emp.hourlyRate) || 0;
+                const hoursWorkedVal = parseFloat(emp.hoursWorked) || 0;
+                
+                if (emp.status === "Active" && emp.timesheetStatus === "Uploaded" && hoursWorkedVal > 160) {
+                    const overtimeHours = hoursWorkedVal - 160;
+                    overtimePay = overtimeHours * (hourlyRate * 1.5);
+                }
+                
+                allowance = parseFloat(emp.allowance) || 0;
+                const grossPay = baseSal + overtimePay + allowance;
+                taxAmount = emp.status === "Active" ? grossPay * 0.15 : 0;
+                deductions = parseFloat(emp.deductions) || 0;
+                netPayValue = grossPay - taxAmount - deductions;
+
+                basicWages = baseSal;
+                otherAllowanceLabel = "Other Allowance / OT";
+                allowance = allowance;
+                ptLabel = "PT / Admin Ded";
+                taxLabel = "Income Tax (15%)";
+                grossTotal = grossPay;
+                deductionTotal = taxAmount + deductions;
+            }
+
+            const primaryColorStyle = settings.primaryColor ? `style="color: ${settings.primaryColor};"` : "";
+
+            return `
+            <div class="bulk-slip-page font-mono text-black p-8 flex flex-col gap-6 bg-white min-w-0" style="page-break-after: always; break-after: page;">
+                <!-- GST-style Outer Border Frame -->
+                <div class="border-2 border-black flex flex-col flex-1 w-full h-full rounded-none p-0 bg-white">
+                    
+                    <!-- Header / Corporate Identity -->
+                    <div class="flex items-center justify-between p-4 border-b border-black relative">
+                        <!-- Branded Logo Container -->
+                        <div class="flex items-center">
+                            <div class="mr-3 shrink-0 flex items-center justify-center">
+                                ${logoHTML}
+                            </div>
+                            <div class="flex flex-col hidden">
+                                <h1 class="text-md font-black tracking-tight leading-none uppercase" ${primaryColorStyle}>${settings.shortName || "Company Short Name"}</h1>
+                                <span class="text-[0.45rem] font-bold text-slate-400 mt-1 uppercase tracking-widest">Partner in human resources</span>
+                            </div>
+                        </div>
+                        
+                        <!-- Company Details Centered -->
+                        <div class="flex-1 text-center pr-16 text-slate-700">
+                            <h2 class="text-md font-extrabold tracking-tight uppercase leading-snug text-slate-900 whitespace-nowrap">${settings.fullLegalName || "Company Legal Name"}</h2>
+                            <div class="text-[10px] text-slate-600 font-bold leading-normal">${(settings.headOfficeAddress || "Company Head Office Address").replace(/\n/g, ', ')}</div>
+                            <p class="text-[9px] font-bold leading-normal underline" ${primaryColorStyle}>${settings.supportEmail || 'support@company.com'}, M.No-${settings.contactPhone || 'Contact Phone'}</p>
+                        </div>
+                    </div>
+
+                    <!-- Statement Period Callout -->
+                    <div class="border-b border-black py-1.5 text-center font-bold text-[11px] text-black tracking-wide bg-slate-50/50">
+                        * Salary Slip For The Month of <span>${fullMonth}</span>
+                    </div>
+
+                    <!-- Employee Info Table Grid -->
+                    <div class="overflow-x-auto border-b border-black">
+                        <table class="w-full border-collapse text-[11px] font-bold text-black">
+                            <tbody>
+                                <tr>
+                                    <td class="border border-black p-1.5 w-[20%]">Emp. Code</td>
+                                    <td class="border border-black p-1.5 w-[30%] font-normal">${emp.id}</td>
+                                    <td class="border border-black p-1.5 w-[20%]">Company Month</td>
+                                    <td class="border border-black p-1.5 w-[30%] font-normal">${settings.shortName || "Company Short Name"}</td>
+                                </tr>
+                                <tr>
+                                    <td class="border border-black p-1.5">Name</td>
+                                    <td class="border border-black p-1.5 font-normal">${emp.name}</td>
+                                    <td class="border border-black p-1.5">Month</td>
+                                    <td class="border border-black p-1.5 font-normal">${shortMonthStr}</td>
+                                </tr>
+                                <tr>
+                                    <td class="border border-black p-1.5">Designation</td>
+                                    <td class="border border-black p-1.5 font-normal">${emp.department || "Consultant"}</td>
+                                    <td class="border border-black p-1.5">Working Day</td>
+                                    <td class="border border-black p-1.5 font-normal">${workingDaysVal.toFixed(0)}</td>
+                                </tr>
+                                <tr>
+                                    <td class="border border-black p-1.5">UAN No.</td>
+                                    <td class="border border-black p-1.5 font-normal font-mono">${uniqueUan}</td>
+                                    <td class="border border-black p-1.5">Account no.</td>
+                                    <td class="border border-black p-1.5 font-normal font-mono">${emp.accountNumber || "—"}</td>
+                                </tr>
+                                <tr>
+                                    <td class="border border-black p-1.5">STATE</td>
+                                    <td class="border border-black p-1.5 font-normal uppercase">${emp.state || emp.location || "DELHI"}</td>
+                                    <td class="border border-black p-1.5">Work Location</td>
+                                    <td class="border border-black p-1.5 font-normal">${emp.location || emp.centre || "Gurgaon"}</td>
+                                </tr>
+                                <tr>
+                                    <td class="border border-black p-1.5">ESIC No</td>
+                                    <td class="border border-black p-1.5 font-normal font-mono">${uniqueEsic}</td>
+                                    <td class="border border-black p-1.5"></td>
+                                    <td class="border border-black p-1.5 font-normal"></td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <!-- Earnings & Deductions Calculations Table -->
+                    <div class="overflow-x-auto border-b border-black">
+                        <table class="w-full border-collapse text-[11px] font-bold text-black zebra-table">
+                            <thead>
+                                <tr class="border-b border-black bg-slate-50">
+                                    <th class="border-r border-black p-1.5 text-left w-[30%]">Total Salary</th>
+                                    <th class="border-r border-black p-1.5 text-right w-[15%]">Earning</th>
+                                    <th class="border-r border-black p-1.5 text-left w-[30%]">Deductions</th>
+                                    <th class="border-r border-black p-1.5 text-right w-[15%]"></th>
+                                    <th class="p-1.5 text-center w-[10%] font-extrabold">Net Pay</th>
+                                </tr>
+                            </thead>
+                            <tbody class="font-normal text-slate-800 divide-y divide-black/10">
+                                <!-- Row 1: Basic Pay & ESI -->
+                                <tr class="border-b border-black/30">
+                                    <td class="border-r border-black p-1 bg-white font-bold text-black">Basic Pay</td>
+                                    <td class="border-r border-black p-1 text-right">${Math.round(basicWages)}</td>
+                                    <td class="border-r border-black p-1 bg-[#DCE6F1] font-bold text-black">E.S.I.</td>
+                                    <td class="border-r border-black p-1 text-right">0</td>
+                                    <td class="p-1"></td>
+                                </tr>
+                                <!-- Row 2: HRA & PF -->
+                                <tr class="border-b border-black/30">
+                                    <td class="border-r border-black p-1 bg-white font-bold text-black">H.R.A.</td>
+                                    <td class="border-r border-black p-1 text-right">0</td>
+                                    <td class="border-r border-black p-1 bg-[#DCE6F1] font-bold text-black">P.F.</td>
+                                    <td class="border-r border-black p-1 text-right">0</td>
+                                    <td class="p-1"></td>
+                                </tr>
+                                <!-- Row 3: Other Allowance & LWF -->
+                                <tr class="border-b border-black/30">
+                                    <td class="border-r border-black p-1 bg-white font-bold text-black">${otherAllowanceLabel}</td>
+                                    <td class="border-r border-black p-1 text-right">${Math.round(overtimePay)}</td>
+                                    <td class="border-r border-black p-1 bg-[#DCE6F1] font-bold text-black">LWF</td>
+                                    <td class="border-r border-black p-1 text-right">0</td>
+                                    <td class="p-1"></td>
+                                </tr>
+                                <!-- Row 4: Stat Bonus & Meal Debit -->
+                                <tr class="border-b border-black/30">
+                                    <td class="border-r border-black p-1 bg-white font-bold text-black">Stat Bonus</td>
+                                    <td class="border-r border-black p-1 text-right">0</td>
+                                    <td class="border-r border-black p-1 bg-[#DCE6F1] font-bold text-black">Meal Debit</td>
+                                    <td class="border-r border-black p-1 text-right">0</td>
+                                    <td class="p-1"></td>
+                                </tr>
+                                <!-- Row 5: Attendance Bonus & Refyne Debit -->
+                                <tr class="border-b border-black/30">
+                                    <td class="border-r border-black p-1 bg-white font-bold text-black">Attendance bonus</td>
+                                    <td class="border-r border-black p-1 text-right">0</td>
+                                    <td class="border-r border-black p-1 bg-[#DCE6F1] font-bold text-black">Refyne Debit</td>
+                                    <td class="border-r border-black p-1 text-right">0</td>
+                                    <td class="p-1"></td>
+                                </tr>
+                                <!-- Row 6: Leave Encashment & Advance salary -->
+                                <tr class="border-b border-black/30">
+                                    <td class="border-r border-black p-1 bg-white font-bold text-black">Leave Encashment</td>
+                                    <td class="border-r border-black p-1 text-right">0</td>
+                                    <td class="border-r border-black p-1 bg-[#DCE6F1] font-bold text-black">Advance salary</td>
+                                    <td class="border-r border-black p-1 text-right">0</td>
+                                    <td class="p-1"></td>
+                                </tr>
+                                <!-- Row 7: Performance incentive & PT -->
+                                <tr class="border-b border-black/30">
+                                    <td class="border-r border-black p-1 bg-white font-bold text-black">Performance incentive</td>
+                                    <td class="border-r border-black p-1 text-right">${Math.round(allowance)}</td>
+                                    <td class="border-r border-black p-1 bg-[#DCE6F1] font-bold text-black">${ptLabel}</td>
+                                    <td class="border-r border-black p-1 text-right">${Math.round(deductions)}</td>
+                                    <td class="p-1"></td>
+                                </tr>
+                                <!-- Row 8: Extra Payment & E-Bike Debit -->
+                                <tr class="border-b border-black/30">
+                                    <td class="border-r border-black p-1 bg-white font-bold text-black">Extra Payment</td>
+                                    <td class="border-r border-black p-1 text-right">0</td>
+                                    <td class="border-r border-black p-1 bg-[#DCE6F1] font-bold text-black">E-Bike Debit</td>
+                                    <td class="border-r border-black p-1 text-right">0</td>
+                                    <td class="p-1"></td>
+                                </tr>
+                                <!-- Row 9: Shipment Incentive & Advance Payments in Weeks -->
+                                <tr class="border-b border-black/30">
+                                    <td class="border-r border-black p-1 bg-white font-bold text-black">Shipment Incentive</td>
+                                    <td class="border-r border-black p-1 text-right">0</td>
+                                    <td class="border-r border-black p-1 bg-[#DCE6F1] font-bold text-black">Advance Payments In Weeks</td>
+                                    <td class="border-r border-black p-1 text-right">0</td>
+                                    <td class="p-1"></td>
+                                </tr>
+                                <!-- Row 10: Mobile allowance & Shipment Debit -->
+                                <tr class="border-b border-black/30">
+                                    <td class="border-r border-black p-1 bg-white font-bold text-black">Mobile allowance</td>
+                                    <td class="border-r border-black p-1 text-right">0</td>
+                                    <td class="border-r border-black p-1 bg-[#DCE6F1] font-bold text-black">Shipment Debit</td>
+                                    <td class="border-r border-black p-1 text-right">0</td>
+                                    <td class="p-1"></td>
+                                </tr>
+                                <!-- Row 11: Meal Incentive & Accommodation Recovery -->
+                                <tr class="border-b border-black/30">
+                                    <td class="border-r border-black p-1 bg-white font-bold text-black">Meal Incentive</td>
+                                    <td class="border-r border-black p-1 text-right">0</td>
+                                    <td class="border-r border-black p-1 bg-[#DCE6F1] font-bold text-black">Accmmodation Recovery</td>
+                                    <td class="border-r border-black p-1 text-right">0</td>
+                                    <td class="p-1"></td>
+                                </tr>
+                                <!-- Row 12: Group Incentive & Notice Period Deduction -->
+                                <tr class="border-b border-black/30">
+                                    <td class="border-r border-black p-1 bg-white font-bold text-black">Group Incentive</td>
+                                    <td class="border-r border-black p-1 text-right">0</td>
+                                    <td class="border-r border-black p-1 bg-[#DCE6F1] font-bold text-black">Notice Period Deduction</td>
+                                    <td class="border-r border-black p-1 text-right">0</td>
+                                    <td class="p-1"></td>
+                                </tr>
+                                <!-- Row 13: Night Allowance & COD Loss -->
+                                <tr class="border-b border-black/30">
+                                    <td class="border-r border-black p-1 bg-white font-bold text-black">Night Allowance</td>
+                                    <td class="border-r border-black p-1 text-right">0</td>
+                                    <td class="border-r border-black p-1 bg-[#DCE6F1] font-bold text-black">COD Loss</td>
+                                    <td class="border-r border-black p-1 text-right">0</td>
+                                    <td class="p-1"></td>
+                                </tr>
+                                <!-- Row 14: National Holiday Pay & Tshirt Recovery -->
+                                <tr class="border-b border-black/30">
+                                    <td class="border-r border-black p-1 bg-white font-bold text-black">National Holiday Pay</td>
+                                    <td class="border-r border-black p-1 text-right">0</td>
+                                    <td class="border-r border-black p-1 bg-[#DCE6F1] font-bold text-black">Tshirt Recovery</td>
+                                    <td class="border-r border-black p-1 text-right">0</td>
+                                    <td class="p-1"></td>
+                                </tr>
+                                <!-- Row 15: Retention Bonus & EWF Deduction -->
+                                <tr class="border-b border-black/30">
+                                    <td class="border-r border-black p-1 bg-white font-bold text-black">Retention Bonus</td>
+                                    <td class="border-r border-black p-1 text-right">0</td>
+                                    <td class="border-r border-black p-1 bg-[#DCE6F1] font-bold text-black">EWF Deduction</td>
+                                    <td class="border-r border-black p-1 text-right">0</td>
+                                    <td class="p-1"></td>
+                                </tr>
+                                <!-- Row 16: Arrear Payment & TDS (1%) / Tax -->
+                                <tr class="border-b border-black">
+                                    <td class="border-r border-black p-1 bg-white font-bold text-black">Arrear Payment</td>
+                                    <td class="border-r border-black p-1 text-right">0</td>
+                                    <td class="border-r border-black p-1 bg-[#DCE6F1] font-bold text-black">${taxLabel}</td>
+                                    <td class="border-r border-black p-1 text-right">${Math.round(taxAmount)}</td>
+                                    <td class="p-1"></td>
+                                </tr>
+                                
+                                <!-- Summary Green Footer Row -->
+                                <tr class="bg-[#92D050] font-bold text-black border-t border-black text-[11px] leading-relaxed">
+                                    <td class="border-r border-black p-2 uppercase">Net Gross Total</td>
+                                    <td class="border-r border-black p-2 text-right">${Math.round(grossTotal)}</td>
+                                    <td class="border-r border-black p-2 uppercase">Total Deduction</td>
+                                    <td class="border-r border-black p-2 text-right">${Math.round(deductionTotal)}</td>
+                                    <td class="p-2 text-center text-black font-extrabold border-l border-black">${Math.round(netPayValue)}</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <!-- Footer Signatures & Print Button -->
+                    <div class="flex justify-between items-end p-4 md:p-6 no-print-section bg-white">
+                        <!-- Employee Signature and Stamp -->
+                        <div class="flex flex-col items-start gap-1 relative min-h-[95px] justify-end">
+                            ${sigHTML}
+                            <span class="font-bold text-xs border-t border-black pt-1 w-28 text-center z-10">Employee Signature</span>
+                            
+                            <!-- Curved Stamp SVG / Image -->
+                            <div class="absolute left-10 bottom-2 select-none opacity-85" style="transform: rotate(-8deg);">
+                                ${stampHTML}
+                            </div>
+                        </div>
+                    </div>
+                </div> <!-- End of GST-style Outer Border Frame -->
+
+                <!-- System Generated Tag -->
+                <div class="text-center text-[10px] text-slate-700 font-bold mt-4 tracking-wide leading-none">
+                    This is a system generated pay slip.
+                </div>
+            </div>
+            `;
+        }
+
+        function openBulkSelectModal() {
+            const modal = document.getElementById("bulk-select-modal");
+            if (!modal) return;
+            
+            const searchInput = document.getElementById("modal-search-input");
+            if (searchInput) searchInput.value = "";
+            
+            renderModalEmployeeList();
+            
+            const selectAllCheckbox = document.getElementById("modal-select-all");
+            if (selectAllCheckbox) selectAllCheckbox.checked = false;
+            
+            updateModalSelectedCount();
+            
+            modal.classList.remove("hidden");
+        }
+
+        function closeBulkSelectModal() {
+            const modal = document.getElementById("bulk-select-modal");
+            if (modal) modal.classList.add("hidden");
+        }
+
+        function renderModalEmployeeList() {
+            const listContainer = document.getElementById("modal-employee-list");
+            if (!listContainer) return;
+            
+            const query = (document.getElementById("modal-search-input")?.value || "").toLowerCase();
+            const totalCountEl = document.getElementById("modal-total-count");
+            
+            const filtered = state.employees.filter(e => {
+                const name = e.name.toLowerCase();
+                const id = e.id.toLowerCase();
+                const dept = (e.department || "").toLowerCase();
+                return name.includes(query) || id.includes(query) || dept.includes(query);
+            });
+            
+            if (totalCountEl) totalCountEl.textContent = state.employees.length;
+            
+            if (filtered.length === 0) {
+                listContainer.innerHTML = `
+                    <div class="text-center text-slate-400 py-8 text-xs font-semibold">
+                        No matching employees found.
+                    </div>
+                `;
+                return;
+            }
+            
+            listContainer.innerHTML = filtered.map(e => `
+                <label class="flex items-center justify-between p-3 border border-slate-200 rounded-xl bg-white hover:bg-slate-50 cursor-pointer select-none transition-all">
+                    <div class="flex items-center gap-3">
+                        <input type="checkbox" data-emp-id="${e.id}" onchange="updateModalSelectedCount()" class="modal-emp-checkbox w-4 h-4 rounded border-slate-300 text-qt-primary focus:ring-qt-primary">
+                        <div class="flex flex-col">
+                            <span class="text-xs font-bold text-slate-800">${e.name}</span>
+                            <span class="text-[10px] text-slate-400 mt-0.5">${e.department || 'Consultant'} • ${e.id}</span>
+                        </div>
+                    </div>
+                    <span class="px-2 py-0.5 rounded text-[8px] font-bold uppercase tracking-wider ${
+                        e.isVendorStaff 
+                        ? 'bg-amber-50 text-amber-700 border border-amber-200/50' 
+                        : 'bg-blue-50 text-blue-700 border border-blue-200/50'
+                    }">
+                        ${e.isVendorStaff ? 'Vendor Staff' : 'Corporate'}
+                    </span>
+                </label>
+            `).join("");
+        }
+
+        function filterModalEmployees() {
+            renderModalEmployeeList();
+        }
+
+        function toggleModalSelectAll(checked) {
+            const checkboxes = document.querySelectorAll(".modal-emp-checkbox");
+            checkboxes.forEach(cb => cb.checked = checked);
+            updateModalSelectedCount();
+        }
+
+        function updateModalSelectedCount() {
+            const checkboxes = document.querySelectorAll(".modal-emp-checkbox");
+            const checkedCount = Array.from(checkboxes).filter(cb => cb.checked).length;
+            const countEl = document.getElementById("modal-selected-count");
+            if (countEl) countEl.textContent = checkedCount;
+            
+            const selectAllCheckbox = document.getElementById("modal-select-all");
+            if (selectAllCheckbox) {
+                selectAllCheckbox.checked = checkboxes.length > 0 && checkedCount === checkboxes.length;
+            }
+        }
+
+        function generateSelectedBulkPDF() {
+            const checkboxes = document.querySelectorAll(".modal-emp-checkbox");
+            const selectedIds = Array.from(checkboxes)
+                .filter(cb => cb.checked)
+                .map(cb => cb.getAttribute("data-emp-id"));
+                
+            if (selectedIds.length === 0) {
+                Toast.show("Please select at least one employee.", "warning");
+                return;
+            }
+            
+            closeBulkSelectModal();
+            
+            const container = document.getElementById("bulk-print-container");
+            if (!container) return;
+            
+            const settings = state.companySettings || DEFAULT_COMPANY_SETTINGS;
+            
+            Toast.show(`Compiling ${selectedIds.length} selected salary slips for bulk printing...`, "info");
+            
+            // Build the bulk HTML only for selected employees
+            const selectedEmployees = state.employees.filter(e => selectedIds.includes(e.id));
+            const bulkHTML = selectedEmployees.map(emp => generateSinglePayslipHTML(emp, settings)).join("");
+            container.innerHTML = bulkHTML;
+            
+            // Activate bulk print mode
+            document.body.classList.add("bulk-print-active");
+            
+            // Trigger print
+            setTimeout(() => {
+                window.print();
+            }, 100);
+        }
+    </script>
+
+    <!-- Bulk PDF Selection Modal -->
+    <div id="bulk-select-modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[150] flex items-center justify-center p-4 hidden">
+        <div class="bg-white rounded-3xl border border-slate-200 shadow-2xl w-full max-w-md flex flex-col max-h-[80vh]">
+            <!-- Modal Header -->
+            <div class="p-5 border-b border-slate-100 flex justify-between items-center">
+                <div>
+                    <h3 class="text-xs font-bold uppercase tracking-wider text-qt-dark">📚 Bulk PDF Export</h3>
+                    <p class="text-[10px] text-slate-450 mt-0.5">Select the employees whose salary slips you want to export.</p>
+                </div>
+                <button onclick="closeBulkSelectModal()" class="text-slate-400 hover:text-slate-600 font-bold text-sm p-1">✕</button>
+            </div>
+            
+            <!-- Modal Search & Select All -->
+            <div class="px-5 py-3.5 bg-slate-50 border-b border-slate-100 flex flex-col gap-3">
+                <div class="relative p-0.5 border border-slate-200/60 rounded-xl bg-white">
+                    <input type="text" id="modal-search-input" placeholder="Filter employees..." oninput="filterModalEmployees()" class="w-full pl-8 pr-4 py-1.5 rounded-lg focus:outline-none text-xs bg-transparent border-0 font-medium">
+                    <span class="absolute left-3 top-2.5 text-slate-400 text-xs">🔍</span>
+                </div>
+                
+                <div class="flex justify-between items-center text-[10px] font-bold text-slate-600">
+                    <label class="flex items-center gap-2 cursor-pointer select-none">
+                        <input type="checkbox" id="modal-select-all" onchange="toggleModalSelectAll(this.checked)" class="w-3.5 h-3.5 rounded border-slate-300 text-qt-primary focus:ring-qt-primary">
+                        <span>Select All (<span id="modal-selected-count">0</span>/<span id="modal-total-count">0</span>)</span>
+                    </label>
+                </div>
+            </div>
+            
+            <!-- Modal Body -->
+            <div id="modal-employee-list" class="flex-1 overflow-y-auto p-5 space-y-2 max-h-[40vh]">
+                <!-- Populated dynamically -->
+            </div>
+            
+            <!-- Modal Footer -->
+            <div class="p-5 border-t border-slate-100 flex justify-end gap-3 bg-slate-50 rounded-b-3xl">
+                <button onclick="closeBulkSelectModal()" class="px-3 py-2 bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 rounded-xl font-bold text-xs transition-colors">
+                    Cancel
+                </button>
+                <button onclick="generateSelectedBulkPDF()" class="px-4 py-2 bg-qt-primary hover:bg-qt-dark text-white rounded-xl font-bold text-xs shadow-md shadow-qt-primary/10 transition-colors flex items-center gap-1.5">
+                    <span>📥</span> Export Selected
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <div id="bulk-print-container"></div>
+</body>
+</html>

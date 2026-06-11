@@ -1,0 +1,1466 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>QT Consultancy - Employee Directory</title>
+    
+    <!-- Synchronous theme loader from localStorage -->
+    <script>
+      (function() {
+          const cached = localStorage.getItem("qt_consultancy_state");
+          let primaryColor = '#88BDF2';
+          let darkColor = '#384959';
+          if (cached) {
+              try {
+                  const state = JSON.parse(cached);
+                  const settings = state.companySettings || state.settings;
+                  if (settings) {
+                      primaryColor = settings.primaryColor || settings.themeColor || primaryColor;
+                      darkColor = settings.sidebarColor || settings.themeColorDark || darkColor;
+                  }
+              } catch(e) {}
+          }
+          document.documentElement.style.setProperty('--qt-primary', primaryColor);
+          document.documentElement.style.setProperty('--qt-dark', darkColor);
+          document.documentElement.style.setProperty('--primary', primaryColor);
+          document.documentElement.style.setProperty('--bg-sidebar', darkColor);
+          window.qtTheme = { primaryColor, darkColor };
+      })();
+    </script>
+
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+      tailwind.config = {
+        theme: {
+          extend: {
+            colors: {
+              qt: {
+                light: '#BDDDFC',    // Very Light Pastel Blue
+                medium: '#6A89A7',   // Muted Steel/Blue-grey
+                primary: 'var(--qt-primary)',  // Dynamic
+                dark: 'var(--qt-dark)',     // Dynamic
+                darker: '#26323d'    // Slightly darker Charcoal
+              }
+            },
+            fontFamily: {
+              sans: ['Poppins', 'Inter', 'sans-serif']
+            }
+          }
+        }
+      }
+    </script>
+
+    <!-- Google Fonts Poppins & Inter -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- SheetJS Excel Library -->
+    <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+    <link rel="stylesheet" href="{% static 'prototype/styles.css' %}"> <!-- Helper classes -->
+</head>
+<body class="bg-slate-50 font-sans text-qt-dark antialiased">
+
+    <div class="flex min-h-screen w-full">
+        
+        <!-- Left Sidebar component -->
+        <aside class="w-64 bg-qt-dark text-white flex flex-col justify-between p-6 flex-shrink-0 z-30 sticky top-0 h-screen">
+            <div>
+                <!-- Brand logo -->
+                <div class="flex items-center gap-2.5 mb-8">
+                    <div class="w-8 h-8 bg-qt-medium rounded-lg flex items-center justify-center text-white font-extrabold text-sm" data-company="logo">
+                        QT
+                    </div>
+                    <span class="text-white font-bold text-base leading-none tracking-tight" data-company="shortName">QT Consultancy</span>
+                </div>
+                
+                <!-- Menu -->
+                <ul class="flex flex-col gap-1 list-none">
+                    <li class="rounded-xl overflow-hidden text-slate-400 hover:text-white hover:bg-slate-800/50">
+                        <a href="/dashboard/" class="flex items-center gap-3 px-4 py-3 text-slate-400 font-medium text-sm transition-colors duration-200">
+                            <span>📊</span> Dashboard
+                        </a>
+                    </li>
+                    <li class="rounded-xl overflow-hidden bg-qt-primary">
+                        <a href="/employees/" class="flex items-center gap-3 px-4 py-3 text-white font-medium text-sm transition-colors duration-200">
+                            <span>👥</span> Staff Directory
+                        </a>
+                    </li>
+                    
+                    <li class="rounded-xl overflow-hidden text-slate-400 hover:text-white hover:bg-slate-800/50">
+                        <a href="/payroll/" class="flex items-center gap-3 px-4 py-3 text-slate-400 hover:text-white font-medium text-sm transition-colors duration-200">
+                            <span>💰</span> Payroll Engine
+                        </a>
+                    </li>
+                    <li class="rounded-xl overflow-hidden text-slate-400 hover:text-white hover:bg-slate-800/50">
+                        <a href="/documents/invoices/" class="flex items-center gap-3 px-4 py-3 text-slate-400 hover:text-white font-medium text-sm transition-colors duration-200">
+                            <span>📄</span> Refrens Invoices
+                        </a>
+                    </li>
+                    <li class="rounded-xl overflow-hidden text-slate-400 hover:text-white hover:bg-slate-800/50">
+                        <a href="/salary-slip/" class="flex items-center gap-3 px-4 py-3 text-slate-400 hover:text-white font-medium text-sm transition-colors duration-200">
+                            <span>🧾</span> Salary Slips
+                        </a>
+                    </li>
+                    <li class="rounded-xl overflow-hidden text-slate-400 hover:text-white hover:bg-slate-800/50">
+                        <a href="/settings/" class="flex items-center gap-3 px-4 py-3 text-slate-400 hover:text-white font-medium text-sm transition-colors duration-200">
+                            <span>⚙️</span> Settings
+                        </a>
+                    </li>
+                </ul>
+            </div>
+            
+            <!-- User avatar on bottom -->
+            <div class="border-t border-slate-800 pt-5 flex flex-col gap-4">
+                <div class="flex items-center gap-3 px-2">
+                    <div id="header-user-avatar" class="w-9 h-9 rounded-full bg-qt-primary flex items-center justify-center font-bold text-sm text-white">AD</div>
+                    <div class="flex flex-col">
+                        <span id="header-user-name" class="text-xs font-bold text-white leading-none">Admin User</span>
+                        <span class="text-[0.62rem] text-slate-500 font-semibold uppercase tracking-wider mt-1">HR & Finance Admin</span>
+                    </div>
+                </div>
+                <button id="btn-logout-sidebar" class="flex items-center justify-center gap-2 py-2.5 rounded-xl bg-slate-800 hover:bg-red-600 border border-slate-700 hover:border-red-600 text-white font-semibold text-xs tracking-wide transition-all duration-200">
+                    <span>🚪</span> Sign Out
+                </button>
+            </div>
+        </aside>
+
+        <!-- Main Workspace -->
+        <main class="flex-1 flex flex-col min-h-screen overflow-x-hidden">
+            
+            <!-- Header -->
+            <header class="h-[70px] bg-white border-b border-slate-200 px-8 flex items-center justify-between sticky top-0 z-25">
+                <div class="header-title">
+                    <h2 class="text-lg font-bold text-qt-dark tracking-tight"><span data-company="shortName">QT Consultancy</span> Corporate Registry</h2>
+                </div>
+                <div class="flex items-center gap-5">
+                    <div class="bg-qt-light text-qt-primary text-xs font-bold px-4 py-1.5 rounded-full border border-blue-200 flex items-center gap-2">
+                        <span class="w-1.5 h-1.5 bg-qt-primary rounded-full animate-pulse"></span>
+                        Active Period: June 2026
+                    </div>
+                    <div id="nav-system-time" class="text-xs font-medium text-slate-400">02/06/2026 | 15:30</div>
+                </div>
+            </header>
+
+            <!-- Workspace View -->
+            <div class="p-8 flex-1 flex flex-col gap-6">
+                
+                <!-- Action Header Row -->
+                <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-white border border-slate-200 p-5 rounded-2xl shadow-sm">
+                    <div class="flex flex-col">
+                        <h3 class="text-sm font-bold uppercase tracking-wider text-qt-dark">Employee Directory</h3>
+                        <p class="text-xs text-slate-400 mt-1">Browse, filter, and manage administrative profiles.</p>
+                    </div>
+                    <div class="flex flex-wrap gap-2.5">
+                        <button id="btn-bulk-upload-trigger" class="px-5 py-2.5 bg-slate-100 hover:bg-slate-200 border border-slate-200 hover:border-slate-350 text-slate-700 rounded-xl font-bold text-xs shadow-sm transition-all duration-200 flex items-center gap-2 cursor-pointer">
+                            📤 Bulk Upload Employees
+                        </button>
+                        <button id="btn-add-employee-trigger" class="px-5 py-2.5 bg-qt-primary hover:bg-qt-dark text-white rounded-xl font-bold text-xs shadow-md shadow-qt-primary/10 transition-all duration-200 flex items-center gap-2 cursor-pointer">
+                            ➕ Add Corporate Profile
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Filtering row -->
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 bg-white border border-slate-200 p-5 rounded-2xl shadow-sm">
+                    <div class="flex flex-col gap-1.5">
+                        <label for="filter-search" class="text-[0.68rem] font-bold uppercase tracking-wider text-slate-400">Keyword Search</label>
+                        <input type="text" id="filter-search" placeholder="Search by name, ID, or email..." class="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-xs focus:outline-none focus:border-qt-primary">
+                    </div>
+                    <div class="flex flex-col gap-1.5">
+                        <label for="filter-centre" class="text-[0.68rem] font-bold uppercase tracking-wider text-slate-400">Centre</label>
+                        <select id="filter-centre" class="w-full px-3 py-2.5 rounded-xl border border-slate-200 text-xs focus:outline-none focus:border-qt-primary bg-slate-50">
+                            <option value="All">All Centres</option>
+                        </select>
+                    </div>
+                    <div class="flex flex-col gap-1.5">
+                        <label for="filter-month" class="text-[0.68rem] font-bold uppercase tracking-wider text-slate-400">Month Filter</label>
+                        <select id="filter-month" class="w-full px-3 py-2.5 rounded-xl border border-slate-200 text-xs focus:outline-none focus:border-qt-primary bg-slate-50">
+                            <option value="All">All Months</option>
+                        </select>
+                    </div>
+                    <div class="flex flex-col gap-1.5">
+                        <label for="filter-status" class="text-[0.68rem] font-bold uppercase tracking-wider text-slate-400">Employment Status</label>
+                        <select id="filter-status" class="w-full px-3 py-2.5 rounded-xl border border-slate-200 text-xs focus:outline-none focus:border-qt-primary bg-slate-50">
+                            <option value="All">All Statuses</option>
+                            <option value="Active">Active</option>
+                            <option value="Inactive">Inactive</option>
+                        </select>
+                    </div>
+                    <div class="flex flex-col gap-1.5 sm:col-span-2 lg:col-span-4">
+                        <label class="text-[0.68rem] font-bold uppercase tracking-wider text-slate-400 opacity-0 select-none">Actions</label>
+                        <button id="btn-search-directory" type="button" class="w-full px-4 py-2.5 rounded-xl bg-qt-dark text-white text-xs font-bold tracking-wide shadow-sm hover:bg-qt-primary transition-colors">
+                            Search Directory
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Directory Grid Table -->
+                <div class="bg-white border border-slate-200 rounded-2xl shadow-sm overflow-hidden">
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left border-collapse">
+                            <thead>
+                                <tr class="bg-slate-55/40 border-b border-slate-200 text-[0.68rem] font-bold uppercase text-slate-400 tracking-wider">
+                                    <th class="px-4 py-4">Candidate Name</th>
+                                    <th class="px-4 py-4">Emp Code</th>
+                                    <th class="px-4 py-4">Centre</th>
+                                    <th class="px-4 py-4">Mob No</th>
+                                    <th class="px-4 py-4 text-right">Net Salary</th>
+                                    <th class="px-4 py-4">Account Number</th>
+                                    <th class="px-4 py-4">IFSC Code</th>
+                                    <th class="px-4 py-4">Bank Name</th>
+                                    <th class="px-4 py-4">Status</th>
+                                    <th class="px-4 py-4">UTR</th>
+                                    <th class="px-4 py-4">Month</th>
+                                    <th class="px-4 py-4 text-center">Action</th>
+                                </tr>
+                            </thead>
+                            <tbody id="employee-table-body" class="divide-y divide-slate-100 text-xs font-medium text-slate-700">
+                                <!-- Injected dynamically via JS -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+            </div>
+
+        </main>
+    </div>
+
+    <!-- 1. Form Modal Overlay for Creating Profiles -->
+    <div id="add-employee-modal" class="fixed inset-0 bg-slate-950/60 backdrop-blur-sm z-[150] hidden items-center justify-center p-6 opacity-0 transition-opacity duration-300">
+        <div class="bg-white w-full max-w-[560px] rounded-2xl overflow-hidden shadow-2xl border border-slate-200 transform scale-95 transition-transform duration-300 ease-out">
+            <div class="bg-qt-dark p-6 text-white relative">
+                <button id="modal-close-btn" class="absolute top-4 right-6 text-slate-400 hover:text-white text-3xl font-light leading-none">&times;</button>
+                <h3 class="text-lg font-bold">➕ Create Corporate Employee Profile</h3>
+            </div>
+            
+            <form id="add-employee-form" class="p-6 space-y-4 max-h-[80vh] overflow-y-auto">
+                <div class="grid grid-cols-2 gap-4">
+                    <div class="flex flex-col gap-1.5">
+                        <label for="emp-name" class="text-xs font-semibold text-qt-dark">Full Name</label>
+                        <input type="text" id="emp-name" required placeholder="e.g. Liam Foster" class="px-3 py-2.5 rounded-lg border border-slate-200 text-xs focus:outline-none focus:border-qt-primary bg-slate-50">
+                    </div>
+                    <div class="flex flex-col gap-1.5">
+                        <label for="emp-email" class="text-xs font-semibold text-qt-dark">Corporate Email</label>
+                        <input type="email" id="emp-email" required placeholder="e.g. liam.f@company.com" class="px-3 py-2.5 rounded-lg border border-slate-200 text-xs focus:outline-none focus:border-qt-primary bg-slate-50">
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-2 gap-4">
+                    <div class="flex flex-col gap-1.5">
+                        <label for="emp-phone" class="text-xs font-semibold text-qt-dark">Phone Contact</label>
+                        <input type="text" id="emp-phone" required placeholder="+91 98765 43217" class="px-3 py-2.5 rounded-lg border border-slate-200 text-xs focus:outline-none focus:border-qt-primary bg-slate-50">
+                    </div>
+                    <div class="flex flex-col gap-1.5">
+                        <label for="emp-status" class="text-xs font-semibold text-qt-dark">Employment Status</label>
+                        <select id="emp-status" class="px-3 py-2.5 rounded-lg border border-slate-200 text-xs focus:outline-none focus:border-qt-primary bg-slate-50">
+                            <option value="Active">Active</option>
+                            <option value="Inactive">Inactive</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-2 gap-4">
+                    <div class="flex flex-col gap-1.5">
+                        <label for="emp-payment-status" class="text-xs font-semibold text-qt-dark">Payment Status</label>
+                        <select id="emp-payment-status" class="px-3 py-2.5 rounded-lg border border-slate-200 text-xs focus:outline-none focus:border-qt-primary bg-slate-50">
+                            <option value="Unpaid">Unpaid</option>
+                            <option value="Paid">Paid</option>
+                            <option value="Hold">Hold</option>
+                        </select>
+                    </div>
+                    <div class="flex flex-col gap-1.5">
+                        <label for="emp-utr" class="text-xs font-semibold text-qt-dark">UTR No.</label>
+                        <input type="text" id="emp-utr" placeholder="Required if Paid" class="px-3 py-2.5 rounded-lg border border-slate-200 text-xs focus:outline-none focus:border-qt-primary bg-slate-50">
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-2 gap-4">
+                    <div class="flex flex-col gap-1.5">
+                        <label for="emp-centre" class="text-xs font-semibold text-qt-dark">Centre</label>
+                        <input type="text" id="emp-centre" required placeholder="e.g. Gurgaon" class="px-3 py-2.5 rounded-lg border border-slate-200 text-xs focus:outline-none focus:border-qt-primary bg-slate-50">
+                    </div>
+                    <div class="flex flex-col gap-1.5">
+                        <label for="emp-month" class="text-xs font-semibold text-qt-dark">Month</label>
+                        <input type="text" id="emp-month" required placeholder="e.g. June 2026" class="px-3 py-2.5 rounded-lg border border-slate-200 text-xs focus:outline-none focus:border-qt-primary bg-slate-50" value="June 2026">
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-2 gap-4 border-t border-slate-100 pt-4">
+                    <div class="flex flex-col gap-1.5">
+                        <label for="emp-salary" class="text-xs font-semibold text-qt-dark">Base Monthly Salary (₹)</label>
+                        <input type="number" id="emp-salary" required min="1000" placeholder="5000" class="px-3 py-2.5 rounded-lg border border-slate-200 text-xs focus:outline-none focus:border-qt-primary bg-slate-50">
+                    </div>
+                    <div class="flex flex-col gap-1.5">
+                        <label for="emp-rate" class="text-xs font-semibold text-qt-dark">Base Hourly Rate (₹/hr)</label>
+                        <input type="number" id="emp-rate" required min="10" placeholder="45" class="px-3 py-2.5 rounded-lg border border-slate-200 text-xs focus:outline-none focus:border-qt-primary bg-slate-50">
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-2 gap-4">
+                    <div class="flex flex-col gap-1.5">
+                        <label for="emp-allowance" class="text-xs font-semibold text-qt-dark">Standard Allowances (₹)</label>
+                        <input type="number" id="emp-allowance" min="0" value="200" class="px-3 py-2.5 rounded-lg border border-slate-200 text-xs focus:outline-none focus:border-qt-primary bg-slate-50">
+                    </div>
+                    <div class="flex flex-col gap-1.5">
+                        <label for="emp-deductions" class="text-xs font-semibold text-qt-dark">Fixed Deductions (₹)</label>
+                        <input type="number" id="emp-deductions" min="0" value="120" class="px-3 py-2.5 rounded-lg border border-slate-200 text-xs focus:outline-none focus:border-qt-primary bg-slate-50">
+                    </div>
+                </div>
+
+                <p id="emp-utr-hint" class="text-[11px] text-slate-400 -mt-2">UTR is mandatory when Payment Status is Paid.</p>
+
+                <div class="flex gap-3 justify-end border-t border-slate-100 pt-4 mt-6">
+                    <button type="button" id="btn-cancel-modal" class="px-5 py-2.5 bg-slate-100 hover:bg-slate-200 rounded-xl text-slate-500 font-bold text-xs transition-all duration-150">Cancel</button>
+                    <button type="submit" class="px-5 py-2.5 bg-qt-primary hover:bg-qt-dark text-white rounded-xl font-bold text-xs shadow-md shadow-qt-primary/10 transition-all duration-150">Add Profile</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Bulk Upload Modal Overlay -->
+    <div id="bulk-upload-modal" class="fixed inset-0 bg-slate-950/60 backdrop-blur-sm z-[150] hidden items-center justify-center p-6 opacity-0 transition-opacity duration-300">
+        <div class="bg-white w-full max-w-[640px] rounded-2xl overflow-hidden shadow-2xl border border-slate-200 transform scale-95 transition-transform duration-300 ease-out flex flex-col max-h-[90vh]">
+            <div class="bg-qt-dark p-6 text-white relative flex-shrink-0">
+                <button id="bulk-modal-close-btn" class="absolute top-4 right-6 text-slate-400 hover:text-white text-3xl font-light leading-none">&times;</button>
+                <h3 class="text-lg font-bold">📤 Bulk Employee Import</h3>
+            </div>
+            
+            <div class="p-6 overflow-y-auto flex-1 space-y-6 text-xs text-slate-600">
+                <!-- Template & Drag Area -->
+                <div id="bulk-upload-step-1" class="space-y-4">
+                    <div class="flex justify-between items-center bg-slate-50 p-4 rounded-xl border border-slate-200">
+                        <div class="pr-4">
+                            <h4 class="font-bold text-qt-dark text-xs">Excel Template</h4>
+                            <p class="text-[0.68rem] text-slate-400 mt-0.5">Download the template to format your employee list correctly.</p>
+                        </div>
+                        <button type="button" onclick="downloadEmployeeTemplate()" class="px-4 py-2 bg-[#0F172A] hover:bg-slate-800 text-white rounded-lg font-bold text-[0.68rem] flex items-center gap-1.5 transition-colors cursor-pointer shrink-0">
+                            📥 Download Template
+                        </button>
+                    </div>
+
+                    <!-- Drag and Drop Area -->
+                    <div id="drag-drop-area" class="border-2 border-dashed border-slate-200 hover:border-qt-primary bg-slate-50/50 hover:bg-qt-light/10 rounded-2xl p-8 flex flex-col items-center justify-center gap-3 transition-all cursor-pointer">
+                        <div class="w-12 h-12 rounded-full bg-slate-100 flex items-center justify-center text-xl text-slate-400">
+                            📄
+                        </div>
+                        <div class="text-center">
+                            <p class="font-bold text-slate-700">Drag and drop your spreadsheet here</p>
+                            <p class="text-[0.65rem] text-slate-400 mt-1">Supports .xlsx and .csv files (max 5MB)</p>
+                        </div>
+                        <span class="text-slate-300 text-[0.68rem]">or</span>
+                        <input type="file" id="bulk-file-input" accept=".xlsx, .csv" class="hidden">
+                        <button type="button" onclick="document.getElementById('bulk-file-input').click()" class="px-4 py-2 border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 rounded-lg font-bold text-[0.68rem] transition-colors">
+                            Browse File
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Progress Section -->
+                <div id="bulk-progress-container" class="hidden space-y-2.5">
+                    <div class="flex justify-between items-center">
+                        <span class="font-bold text-slate-700">Uploading and parsing file...</span>
+                        <span id="bulk-progress-percent" class="font-bold text-qt-primary">0%</span>
+                    </div>
+                    <div class="w-full bg-slate-100 h-2 rounded-full overflow-hidden">
+                        <div id="bulk-progress-bar" class="bg-qt-primary h-full transition-all duration-300" style="width: 0%"></div>
+                    </div>
+                </div>
+
+                <!-- Validation & Summary Section -->
+                <div id="bulk-summary-container" class="hidden space-y-4">
+                    <h4 class="font-bold text-qt-dark text-xs uppercase tracking-wider">Import Validation Summary</h4>
+                    
+                    <!-- Stats Grid -->
+                    <div class="grid grid-cols-4 gap-3">
+                        <div class="bg-slate-50 border border-slate-200 p-3 rounded-xl text-center">
+                            <span class="text-[0.62rem] text-slate-400 uppercase font-bold tracking-wider">Total Records</span>
+                            <span id="stat-total-records" class="block text-base font-extrabold text-slate-900 mt-1">0</span>
+                        </div>
+                        <div class="bg-emerald-50/50 border border-emerald-100 p-3 rounded-xl text-center">
+                            <span class="text-[0.62rem] text-emerald-600 uppercase font-bold tracking-wider">Ready</span>
+                            <span id="stat-valid-records" class="block text-base font-extrabold text-emerald-700 mt-1">0</span>
+                        </div>
+                        <div class="bg-red-50/50 border border-red-100 p-3 rounded-xl text-center">
+                            <span class="text-[0.62rem] text-red-500 uppercase font-bold tracking-wider">Failed</span>
+                            <span id="stat-failed-records" class="block text-base font-extrabold text-red-600 mt-1">0</span>
+                        </div>
+                        <div class="bg-amber-50/50 border border-amber-100 p-3 rounded-xl text-center">
+                            <span class="text-[0.62rem] text-amber-600 uppercase font-bold tracking-wider">Warnings</span>
+                            <span id="stat-warning-records" class="block text-base font-extrabold text-amber-700 mt-1">0</span>
+                        </div>
+                    </div>
+
+                    <!-- Actions for summary -->
+                    <div id="error-report-container" class="hidden justify-between items-center bg-red-50/30 p-3.5 rounded-xl border border-red-100">
+                        <span class="text-[0.68rem] text-red-600 font-semibold pr-2">
+                            ⚠️ Some rows failed validation. Fix the errors and re-upload.
+                        </span>
+                        <button type="button" onclick="downloadErrorReport()" class="px-3.5 py-1.5 bg-red-600 hover:bg-red-700 text-white rounded-lg font-bold text-[0.65rem] transition-colors cursor-pointer shrink-0">
+                            📥 Download Error Report
+                        </button>
+                    </div>
+
+                    <!-- Detailed Table -->
+                    <div class="border border-slate-200 rounded-xl overflow-hidden max-h-[200px] overflow-y-auto">
+                        <table class="w-full text-left border-collapse" style="font-size: 0.68rem;">
+                            <thead class="sticky top-0 bg-slate-50 z-10">
+                                <tr class="bg-slate-50 border-b border-slate-200 text-[0.62rem] font-bold text-slate-400 uppercase tracking-wider">
+                                    <th class="p-2.5 text-center w-12">Row</th>
+                                    <th class="p-2.5 w-20">Emp Code</th>
+                                    <th class="p-2.5 w-28">Name</th>
+                                    <th class="p-2.5 w-24">Status</th>
+                                    <th class="p-2.5">Validation details / Errors</th>
+                                </tr>
+                            </thead>
+                            <tbody id="bulk-validation-rows" class="divide-y divide-slate-100 font-medium text-slate-700">
+                                <!-- Dynamic rows -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Footer Buttons -->
+            <div class="p-6 bg-slate-50 border-t border-slate-200 flex gap-3 justify-end flex-shrink-0">
+                <button type="button" id="btn-cancel-bulk-modal" class="px-5 py-2.5 bg-white hover:bg-slate-150 border border-slate-200 hover:border-slate-350 rounded-xl text-slate-550 font-bold text-xs transition-all cursor-pointer">Cancel</button>
+                <button type="button" id="btn-import-bulk" class="px-5 py-2.5 bg-slate-200 text-slate-400 rounded-xl font-bold text-xs cursor-not-allowed transition-all" disabled>Import Data</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 2. Sliding detailed profile Drawer component -->
+    <div id="drawer-overlay" class="fixed inset-0 bg-slate-950/60 backdrop-blur-sm z-[100] hidden opacity-0 transition-opacity duration-300"></div>
+    <div id="profile-drawer" class="fixed top-0 right-0 bottom-0 w-full max-w-[440px] bg-white shadow-2xl z-[110] p-8 flex flex-col overflow-y-auto border-l border-slate-200 transform translate-x-full transition-transform duration-300 ease-in-out">
+        <button id="drawer-close-btn" class="absolute top-6 right-6 text-slate-400 hover:text-qt-dark text-3xl font-light">&times;</button>
+        
+        <div class="flex flex-col items-center text-center mt-6 mb-8 border-b border-slate-100 pb-6">
+            <div id="drawer-avatar" class="w-16 h-16 rounded-full bg-qt-primary text-white font-extrabold text-2xl flex items-center justify-center shadow-lg shadow-qt-primary/15 mb-4">SJ</div>
+            <h3 id="drawer-name" class="text-lg font-bold text-qt-dark">Sarah Jenkins</h3>
+            <p id="drawer-title" class="text-xs text-slate-400 mt-1 font-semibold">Senior Consultant — Engineering</p>
+        </div>
+
+        <div class="space-y-6">
+            
+            <div class="bg-slate-50 border border-slate-100 p-4 rounded-xl">
+                <h4 class="text-[0.62rem] font-bold text-slate-400 uppercase tracking-widest mb-3">Contact Details</h4>
+                <div class="grid grid-cols-2 gap-3 text-xs">
+                    <div>
+                        <span class="text-slate-400 block mb-1">Employee ID</span>
+                        <span id="val-emp-id" class="font-bold text-qt-dark">QT-001</span>
+                    </div>
+                    <div>
+                        <span class="text-slate-400 block mb-1">Current Status</span>
+                        <span id="val-emp-status" class="inline-block px-2.5 py-0.5 rounded-full font-bold text-[0.6rem] uppercase tracking-wider bg-green-100 text-green-800">ACTIVE</span>
+                    </div>
+                    <div class="col-span-2 pt-2 border-t border-slate-200/50">
+                        <span class="text-slate-400 block mb-1">Corporate Email</span>
+                        <span id="val-emp-email" class="font-bold text-qt-dark break-all">sarah.j@qtconsultancy.in</span>
+                    </div>
+                    <div class="col-span-2 pt-2 border-t border-slate-200/50">
+                        <span class="text-slate-400 block mb-1">Phone Contact</span>
+                        <span id="val-emp-phone" class="font-bold text-qt-dark">+91 98765 43210</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="bg-slate-50 border border-slate-100 p-4 rounded-xl">
+                <h4 class="text-[0.62rem] font-bold text-slate-400 uppercase tracking-widest mb-3">Department Allocation</h4>
+                <div class="grid grid-cols-2 gap-3 text-xs">
+                    <div>
+                        <span class="text-slate-400 block mb-1">Allocated Department</span>
+                        <span id="val-emp-dept" class="font-bold text-qt-dark">Human Resources</span>
+                    </div>
+                    <div>
+                        <span class="text-slate-400 block mb-1">Corporate Grade</span>
+                        <span id="val-emp-role" class="font-bold text-qt-dark">Director</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="bg-slate-50 border border-slate-100 p-4 rounded-xl">
+                <h4 class="text-[0.62rem] font-bold text-slate-400 uppercase tracking-widest mb-3">Financial Baselines</h4>
+                <div class="grid grid-cols-2 gap-3.5 text-xs">
+                    <div>
+                        <span class="text-slate-400 block mb-1">Monthly Base Salary</span>
+                        <span id="val-emp-salary" class="font-bold text-qt-dark">₹8,500.00</span>
+                    </div>
+                    <div>
+                        <span class="text-slate-400 block mb-1">Consulting Hourly Rate</span>
+                        <span id="val-emp-rate" class="font-bold text-qt-dark">₹75.00/hr</span>
+                    </div>
+                    <div class="pt-2 border-t border-slate-200/50">
+                        <span class="text-slate-400 block mb-1">Allowances Amount</span>
+                        <span id="val-emp-allowance" class="font-bold text-qt-dark">₹400.00</span>
+                    </div>
+                    <div class="pt-2 border-t border-slate-200/50">
+                        <span class="text-slate-400 block mb-1">System Deductions</span>
+                        <span id="val-emp-deductions" class="font-bold text-qt-dark">₹120.00</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Bank & Payment Details Section -->
+            <div id="drawer-bank-section" class="bg-slate-50 border border-slate-100 p-4 rounded-xl hidden">
+                <h4 class="text-[0.62rem] font-bold text-slate-400 uppercase tracking-widest mb-3">Bank & Payment Details</h4>
+                <div class="grid grid-cols-2 gap-3 text-xs">
+                    <div>
+                        <span class="text-slate-400 block mb-1">Bank Name</span>
+                        <span id="val-emp-bank-name" class="font-bold text-qt-dark">—</span>
+                    </div>
+                    <div>
+                        <span class="text-slate-400 block mb-1">Account Number</span>
+                        <span id="val-emp-bank-acc" class="font-bold text-qt-dark font-mono">—</span>
+                    </div>
+                    <div class="pt-2 border-t border-slate-200/50">
+                        <span class="text-slate-400 block mb-1">IFSC Code</span>
+                        <span id="val-emp-bank-ifsc" class="font-bold text-qt-dark font-mono">—</span>
+                    </div>
+                    <div class="pt-2 border-t border-slate-200/50">
+                        <span class="text-slate-400 block mb-1">Centre / City</span>
+                        <span id="val-emp-centre" class="font-bold text-qt-dark">—</span>
+                    </div>
+                    <div class="col-span-2 pt-2 border-t border-slate-200/50 grid grid-cols-2 gap-3">
+                        <div>
+                            <span class="text-slate-400 block mb-1">Payment Status</span>
+                            <span id="val-emp-payment-status" class="inline-block px-2 py-0.5 rounded font-bold text-[0.55rem] uppercase tracking-wider">—</span>
+                        </div>
+                        <div>
+                            <span class="text-slate-400 block mb-1">UTR Code</span>
+                            <span id="val-emp-utr" class="font-bold text-qt-dark font-mono">—</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="bg-slate-50 border border-slate-100 p-4 rounded-xl">
+                <h4 class="text-[0.62rem] font-bold text-slate-400 uppercase tracking-widest mb-3">Active Ingested Logs</h4>
+                <div class="grid grid-cols-2 gap-3 text-xs">
+                    <div>
+                        <span class="text-slate-400 block mb-1">Timesheet Status</span>
+                        <span id="val-emp-sheet" class="inline-block px-2.5 py-0.5 rounded-full font-bold text-[0.6rem] uppercase tracking-wider bg-green-100 text-green-800">UPLOADED</span>
+                    </div>
+                    <div>
+                        <span class="text-slate-400 block mb-1">Monthly Ingested Hours</span>
+                        <span id="val-emp-hours" class="font-bold text-qt-dark">168 hrs</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Salary Slip Action -->
+            <div class="pt-4 border-t border-slate-200 flex justify-center mt-2">
+                <a id="btn-drawer-salary-slip" href="#" class="w-full flex items-center justify-center gap-2 py-3 px-4 bg-qt-primary hover:bg-qt-dark text-white font-bold text-xs rounded-xl shadow-md transition-all duration-200">
+                    <span>📄</span> View & Print Salary Slip
+                </a>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- Toast notification containers -->
+    <div id="toast-container" class="fixed bottom-6 right-6 z-[200] flex flex-col gap-3 max-w-sm pointer-events-none"></div>
+    {{ employees_data|json_script:"django-employees-data" }}
+
+    <script src="{% static 'prototype/app.js' %}"></script>
+    <script>
+        let editingEmpId = null;
+        document.addEventListener("DOMContentLoaded", () => {
+            try {
+                const source = document.getElementById("django-employees-data");
+                const seededEmployees = source ? JSON.parse(source.textContent || "[]") : [];
+                if (Array.isArray(seededEmployees) && seededEmployees.length) {
+                    const currentEmployees = Array.isArray(state.employees) ? state.employees : [];
+                    const byId = new Map(currentEmployees.map(emp => [emp.id, emp]));
+                    seededEmployees.forEach(emp => {
+                        byId.set(emp.id, { ...(byId.get(emp.id) || {}), ...emp });
+                    });
+                    state.employees = Array.from(byId.values());
+                } else if (!Array.isArray(state.employees) || state.employees.length === 0) {
+                    state.employees = [];
+                }
+            } catch (e) {
+                console.warn("Unable to seed employee data", e);
+            }
+
+            populateCentreFilter();
+            populateMonthFilter();
+            renderDirectory();
+
+            // Bind filters
+            document.getElementById("filter-search").addEventListener("input", renderDirectory);
+            document.getElementById("filter-search").addEventListener("keydown", (e) => {
+                if (e.key === "Enter") {
+                    e.preventDefault();
+                    renderDirectory();
+                }
+            });
+            document.getElementById("filter-centre").addEventListener("change", renderDirectory);
+            document.getElementById("filter-month").addEventListener("change", renderDirectory);
+            document.getElementById("filter-status").addEventListener("change", renderDirectory);
+            document.getElementById("btn-search-directory").addEventListener("click", renderDirectory);
+
+            // Modal controller
+            const modal = document.getElementById("add-employee-modal");
+            const addBtn = document.getElementById("btn-add-employee-trigger");
+            const closeBtn = document.getElementById("modal-close-btn");
+            const cancelBtn = document.getElementById("btn-cancel-modal");
+            const form = document.getElementById("add-employee-form");
+            const modalContainer = modal.querySelector("div");
+
+            addBtn.addEventListener("click", () => {
+                editingEmpId = null;
+                document.querySelector("#add-employee-modal h3").textContent = "➕ Create Corporate Employee Profile";
+                form.querySelector("button[type='submit']").textContent = "Add Profile";
+                form.reset();
+                
+                modal.classList.remove("hidden");
+                modal.classList.add("flex");
+                setTimeout(() => {
+                    modal.classList.remove("opacity-0");
+                    modal.classList.add("opacity-100");
+                    modalContainer.classList.remove("scale-95");
+                    modalContainer.classList.add("scale-100");
+                }, 10);
+            });
+            
+            const closeModal = () => {
+                modal.classList.remove("opacity-100");
+                modal.classList.add("opacity-0");
+                modalContainer.classList.remove("scale-100");
+                modalContainer.classList.add("scale-95");
+                setTimeout(() => {
+                    modal.classList.add("hidden");
+                    modal.classList.remove("flex");
+                    form.reset();
+                    editingEmpId = null;
+                }, 300);
+            };
+
+            closeBtn.addEventListener("click", closeModal);
+            cancelBtn.addEventListener("click", closeModal);
+
+            form.addEventListener("submit", (e) => {
+                e.preventDefault();
+                
+                const name = document.getElementById("emp-name").value.trim();
+                const email = document.getElementById("emp-email").value.trim();
+                const phone = document.getElementById("emp-phone").value.trim();
+                const centre = document.getElementById("emp-centre").value.trim();
+                const month = document.getElementById("emp-month").value.trim() || "June 2026";
+                const status = document.getElementById("emp-status").value;
+                const paymentStatus = document.getElementById("emp-payment-status").value;
+                const utr = document.getElementById("emp-utr").value.trim();
+                const baseSalary = parseFloat(document.getElementById("emp-salary").value) || 0;
+                const hourlyRate = parseFloat(document.getElementById("emp-rate").value) || 0;
+                const allowance = parseFloat(document.getElementById("emp-allowance").value) || 0;
+                const deductions = parseFloat(document.getElementById("emp-deductions").value) || 0;
+
+                if (paymentStatus === "Paid" && !utr) {
+                    Toast.show("UTR number is required when payment status is Paid.", "danger");
+                    document.getElementById("emp-utr").focus();
+                    return;
+                }
+
+                const settings = state.companySettings || DEFAULT_COMPANY_SETTINGS;
+                const prefix = settings.logoInitials || "QT";
+                const employeeId = editingEmpId || (() => {
+                    let num = 1;
+                    let nextId;
+                    do {
+                        nextId = prefix + "-" + String(num).padStart(3, "0");
+                        num++;
+                    } while (state.employees.some(emp => emp.id === nextId));
+                    return nextId;
+                })();
+
+                const payload = {
+                    id: employeeId,
+                    name,
+                    email,
+                    phone,
+                    department: centre,
+                    centre,
+                    month,
+                    role: "Consultant",
+                    status,
+                    paymentStatus,
+                    utr,
+                    baseSalary,
+                    hourlyRate,
+                    allowance,
+                    deductions,
+                    hoursWorked: 0,
+                    timesheetStatus: "Pending",
+                    workLocation: centre,
+                    accountNumber: "",
+                    ifscCode: "",
+                    bankName: "",
+                    basicPay: baseSalary,
+                    tds: deductions,
+                    netPay: baseSalary - deductions,
+                    totalPayment: baseSalary
+                };
+
+                fetch("/employees/", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                        "X-Requested-With": "XMLHttpRequest"
+                    },
+                    body: JSON.stringify(payload)
+                }).then(async (response) => {
+                    const data = await response.json().catch(() => ({}));
+                    if (!response.ok || !data.ok) {
+                        throw new Error(data.error || "Unable to save employee.");
+                    }
+                    window.location.reload();
+                }).catch((err) => {
+                    Toast.show(err.message, "danger");
+                });
+            });
+
+            // Bulk Upload Modal controller
+            const bulkModal = document.getElementById("bulk-upload-modal");
+            const bulkTrigger = document.getElementById("btn-bulk-upload-trigger");
+            const bulkClose = document.getElementById("bulk-modal-close-btn");
+            const bulkCancel = document.getElementById("btn-cancel-bulk-modal");
+            const bulkImport = document.getElementById("btn-import-bulk");
+            const bulkModalContainer = bulkModal.querySelector("div");
+
+            const openBulkModal = () => {
+                resetBulkModalState();
+                bulkModal.classList.remove("hidden");
+                bulkModal.classList.add("flex");
+                setTimeout(() => {
+                    bulkModal.classList.remove("opacity-0");
+                    bulkModal.classList.add("opacity-100");
+                    bulkModalContainer.classList.remove("scale-95");
+                    bulkModalContainer.classList.add("scale-100");
+                }, 10);
+            };
+
+            const closeBulkModal = () => {
+                bulkModal.classList.remove("opacity-100");
+                bulkModal.classList.add("opacity-0");
+                bulkModalContainer.classList.remove("scale-100");
+                bulkModalContainer.classList.add("scale-95");
+                setTimeout(() => {
+                    bulkModal.classList.add("hidden");
+                    bulkModal.classList.remove("flex");
+                    resetBulkModalState();
+                }, 300);
+            };
+
+            bulkTrigger.addEventListener("click", openBulkModal);
+            bulkClose.addEventListener("click", closeBulkModal);
+            bulkCancel.addEventListener("click", closeBulkModal);
+
+            // Drag and Drop listeners
+            const dropArea = document.getElementById("drag-drop-area");
+            ['dragenter', 'dragover'].forEach(eventName => {
+                dropArea.addEventListener(eventName, e => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    dropArea.classList.add('bg-qt-light/20', 'border-qt-primary');
+                }, false);
+            });
+
+            ['dragleave', 'drop'].forEach(eventName => {
+                dropArea.addEventListener(eventName, e => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    dropArea.classList.remove('bg-qt-light/20', 'border-qt-primary');
+                }, false);
+            });
+
+            dropArea.addEventListener('drop', e => {
+                const dt = e.dataTransfer;
+                if (dt && dt.files.length > 0) {
+                    handleUploadedFile(dt.files[0]);
+                }
+            }, false);
+
+            document.getElementById("bulk-file-input").addEventListener("change", e => {
+                if (e.target.files && e.target.files.length > 0) {
+                    handleUploadedFile(e.target.files[0]);
+                }
+            });
+
+            bulkImport.addEventListener("click", () => {
+                if (parsedRows.length === 0) return;
+
+                Promise.all(parsedRows.map(row => fetch("/employees/", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                        "X-Requested-With": "XMLHttpRequest"
+                    },
+                    body: JSON.stringify(row)
+                }))).then(async (responses) => {
+                    const failures = [];
+                    for (const response of responses) {
+                        const data = await response.json().catch(() => ({}));
+                        if (!response.ok || !data.ok) failures.push(data.error || "Save failed");
+                    }
+                    if (failures.length) throw new Error(failures[0]);
+                    window.location.reload();
+                }).catch((err) => {
+                    Toast.show(err.message, "danger");
+                });
+            });
+
+            document.getElementById("drawer-close-btn").addEventListener("click", closeDrawer);
+            document.getElementById("drawer-overlay").addEventListener("click", closeDrawer);
+        });
+
+        function renderDirectory() {
+            const query = document.getElementById("filter-search").value.toLowerCase();
+            const centreFilter = document.getElementById("filter-centre") ? document.getElementById("filter-centre").value : "All";
+            const monthFilter = document.getElementById("filter-month") ? document.getElementById("filter-month").value : "All";
+            const status = document.getElementById("filter-status").value;
+
+            const container = document.getElementById("employee-table-body");
+            if (!container) return;
+
+            const filtered = (state.employees || []).filter(e => {
+                const matchesSearch = (e.name || "").toLowerCase().includes(query) || (e.id || "").toLowerCase().includes(query) || (e.email || "").toLowerCase().includes(query);
+                const matchesCentre = centreFilter === "All" || (e.centre && e.centre.trim() === centreFilter) || (e.department && e.department.trim() === centreFilter);
+                const matchesMonth = monthFilter === "All" || (e.month && e.month.trim() === monthFilter);
+                const matchesStatus = status === "All" || e.status === status;
+                return matchesSearch && matchesCentre && matchesMonth && matchesStatus;
+            });
+
+            if (filtered.length === 0) {
+                container.innerHTML = `
+                    <tr>
+                        <td colspan="12" class="text-center text-slate-400 py-12">
+                            No matching consultant profiles found in registry.
+                        </td>
+                    </tr>
+                `;
+                return;
+            }
+
+            container.innerHTML = filtered.map(e => {
+                const displayStatus = e.paymentStatus || e.status || "Unpaid";
+                let statusClass = "bg-slate-100 text-slate-800";
+                const statLower = displayStatus.toLowerCase();
+                if (statLower === "paid" || statLower === "active") {
+                    statusClass = "bg-green-100 text-green-800";
+                } else if (statLower === "unpaid" || statLower === "inactive") {
+                    statusClass = "bg-red-100 text-red-800";
+                } else if (statLower === "hold") {
+                    statusClass = "bg-amber-100 text-amber-800";
+                }
+                const centreVal = e.centre || e.department || "—";
+                const phoneVal = e.phone || "—";
+                const accNumVal = e.accountNumber || "—";
+                const ifscVal = e.ifscCode || "—";
+                const bankNameVal = e.bankName || "—";
+                const utrVal = e.utr || "—";
+                const monthVal = e.month || "June 2026";
+                return `
+                    <tr onclick="openDetails('${e.id}')" class="hover:bg-slate-50 cursor-pointer transition-colors duration-150 border-b border-slate-100 last:border-0">
+                        <td class="px-4 py-4.5 font-bold text-qt-dark">${e.name}</td>
+                        <td class="px-4 py-4.5 font-bold text-qt-primary">${e.id}</td>
+                        <td class="px-4 py-4.5 text-slate-500">${centreVal}</td>
+                        <td class="px-4 py-4.5 text-slate-500">${phoneVal}</td>
+                        <td class="px-4 py-4.5 font-bold text-right text-qt-dark">₹${e.baseSalary.toLocaleString()}</td>
+                        <td class="px-4 py-4.5 text-slate-500 font-mono">${accNumVal}</td>
+                        <td class="px-4 py-4.5 text-slate-500 font-mono">${ifscVal}</td>
+                        <td class="px-4 py-4.5 text-slate-500">${bankNameVal}</td>
+                        <td class="px-4 py-4.5"><span class="px-2.5 py-0.5 rounded-full font-bold text-[0.6rem] uppercase tracking-wider ${statusClass}">${displayStatus}</span></td>
+                        <td class="px-4 py-4.5 text-slate-550 font-mono">${utrVal}</td>
+                        <td class="px-4 py-4.5 text-slate-500">${monthVal}</td>
+                        <td class="px-4 py-4.5 text-center flex items-center justify-center gap-2" onclick="event.stopPropagation();">
+                            <button onclick="event.stopPropagation(); editEmployee('${e.id}')" class="text-blue-500 hover:text-blue-700 bg-blue-50 hover:bg-blue-100 p-1.5 rounded transition-colors" title="Edit Profile">✏️</button>
+                            <button onclick="event.stopPropagation(); deleteEmployee('${e.id}')" class="text-red-500 hover:text-red-700 bg-red-50 hover:bg-red-100 p-1.5 rounded transition-colors" title="Delete Profile">🗑️</button>
+                        </td>
+                    </tr>
+                `;
+            }).join("");
+        }
+
+        // Bulk Upload Importer State
+        let parsedRows = [];
+        let errorReportData = [];
+
+        function downloadEmployeeTemplate() {
+            const data = [
+                ["Candidate Name", "Emp Code", "Centre", "Mob No", "Net Salary", "Account Number", "IFSC Code", "Bank Name", "Status", "UTR", "Month"],
+                ["Rahul Sharma", "EMP001", "Gurgaon", "9876543210", 26000, "123456789012", "HDFC0001234", "HDFC Bank", "Paid", "UTR123456", "June 2026"],
+                ["Priya Verma", "EMP002", "Delhi", "9876543211", 30000, "123456789013", "ICIC0004567", "ICICI Bank", "Unpaid", "", "June 2026"],
+                ["Amit Kumar", "EMP003", "Noida", "9876543212", 28000, "123456789014", "SBIN0007890", "State Bank of India", "Hold", "", "June 2026"]
+            ];
+
+            const settings = state.companySettings || DEFAULT_COMPANY_SETTINGS;
+            const companyPrefix = (settings.shortName || 'Company').replace(/\s+/g, '_');
+
+            const ws = XLSX.utils.aoa_to_sheet(data);
+            const wb = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(wb, ws, "Template");
+            XLSX.writeFile(wb, `${companyPrefix}_Employee_Template.xlsx`);
+            
+            if (typeof Toast !== 'undefined') {
+                Toast.show("Excel template downloaded successfully.");
+            }
+        }
+
+        function handleUploadedFile(file) {
+            if (!file) return;
+            const ext = file.name.split('.').pop().toLowerCase();
+            if (ext !== 'xlsx' && ext !== 'csv') {
+                if (typeof Toast !== 'undefined') {
+                    Toast.show("Unsupported format. Please upload .xlsx or .csv files.", "danger");
+                }
+                return;
+            }
+
+            const step1 = document.getElementById("bulk-upload-step-1");
+            const progressContainer = document.getElementById("bulk-progress-container");
+            const summaryContainer = document.getElementById("bulk-summary-container");
+            
+            step1.classList.add("hidden");
+            progressContainer.classList.remove("hidden");
+            summaryContainer.classList.add("hidden");
+
+            const progressBar = document.getElementById("bulk-progress-bar");
+            const progressPercent = document.getElementById("bulk-progress-percent");
+
+            let progress = 0;
+            progressBar.style.width = "0%";
+            progressPercent.textContent = "0%";
+            
+            const interval = setInterval(() => {
+                progress += 20;
+                progressBar.style.width = progress + "%";
+                progressPercent.textContent = progress + "%";
+                
+                if (progress >= 100) {
+                    clearInterval(interval);
+                    parseAndValidateFile(file);
+                }
+            }, 80);
+        }
+
+        function parseAndValidateFile(file) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const data = new Uint8Array(e.target.result);
+                    const workbook = XLSX.read(data, {type: 'array'});
+                    const sheetName = workbook.SheetNames[0];
+                    const sheet = workbook.Sheets[sheetName];
+                    const rows = XLSX.utils.sheet_to_json(sheet, {header: 1});
+                    
+                    if (rows.length <= 1) {
+                        throw new Error("The spreadsheet is empty or has no data rows.");
+                    }
+
+                    // Validate headers exactly
+                    const REQUIRED_HEADERS = [
+                        "Candidate Name", "Emp Code", "Centre", "Mob No", "Net Salary", 
+                        "Account Number", "IFSC Code", "Bank Name", "Status", "UTR", "Month"
+                    ];
+                    const headers = rows[0].map(h => String(h || "").trim());
+                    let headersValid = true;
+                    if (headers.length < REQUIRED_HEADERS.length) {
+                        headersValid = false;
+                    } else {
+                        for (let i = 0; i < REQUIRED_HEADERS.length; i++) {
+                            if (headers[i].toLowerCase() !== REQUIRED_HEADERS[i].toLowerCase()) {
+                                headersValid = false;
+                                break;
+                            }
+                        }
+                    }
+                    if (!headersValid) {
+                        throw new Error("Template columns do not match the required format or order.");
+                    }
+
+                    validateData(rows);
+                } catch (err) {
+                    if (typeof Toast !== 'undefined') {
+                        Toast.show(err.message, "danger");
+                    }
+                    resetBulkModalState();
+                }
+            };
+            reader.readAsArrayBuffer(file);
+        }
+
+        function validateData(rows) {
+            const dataRows = rows.slice(1);
+            parsedRows = [];
+            errorReportData = [];
+
+            let total = dataRows.length;
+            let validCount = 0;
+            let failedCount = 0;
+            let warningCount = 0;
+
+            const existingEmpCodes = new Set(state.employees.map(e => e.id.toLowerCase()));
+            const uploadedEmpCodes = new Set();
+            
+            const tableBody = document.getElementById("bulk-validation-rows");
+            tableBody.innerHTML = "";
+
+            dataRows.forEach((row, index) => {
+                const rowNum = index + 2;
+                
+                // Map columns
+                const name = String(row[0] || "").trim();
+                const empCode = String(row[1] || "").trim();
+                const centre = String(row[2] || "").trim();
+                const mobNo = String(row[3] || "").trim();
+                const netSalaryVal = row[4];
+                const accNum = String(row[5] || "").trim();
+                let ifsc = String(row[6] || "").trim();
+                const bankName = String(row[7] || "").trim();
+                const status = String(row[8] || "").trim();
+                const utr = String(row[9] || "").trim();
+                const month = String(row[10] || "").trim();
+
+                let errors = [];
+                let warnings = [];
+
+                // 1. Candidate Name Required
+                if (!name) {
+                    errors.push("Candidate Name is required.");
+                }
+
+                // 2. Emp Code Required & Unique
+                if (!empCode) {
+                    errors.push("Emp Code is required.");
+                } else {
+                    const empCodeLower = empCode.toLowerCase();
+                    if (existingEmpCodes.has(empCodeLower)) {
+                        errors.push(`Emp Code '${empCode}' already exists in system.`);
+                    }
+                    if (uploadedEmpCodes.has(empCodeLower)) {
+                        errors.push(`Duplicate Emp Code '${empCode}' in the upload sheet.`);
+                    }
+                    uploadedEmpCodes.add(empCodeLower);
+                }
+
+                // 3. Centre Required
+                if (!centre) {
+                    errors.push("Centre is required.");
+                }
+
+                // 4. Mob No Required & Valid 10-digit
+                if (!mobNo) {
+                    errors.push("Mob No is required.");
+                } else if (!/^\d{10}$/.test(mobNo)) {
+                    errors.push("Mob No must be a valid 10-digit number.");
+                }
+
+                // 5. Net Salary Required, Numeric, > 0
+                const netSalary = parseFloat(netSalaryVal);
+                if (netSalaryVal === undefined || netSalaryVal === null || netSalaryVal === "") {
+                    errors.push("Net Salary is required.");
+                } else if (isNaN(netSalary)) {
+                    errors.push("Net Salary must be numeric.");
+                } else if (netSalary <= 0) {
+                    errors.push("Net Salary must be greater than zero.");
+                }
+
+                // 6. Account Number Required, Numeric only
+                if (!accNum) {
+                    errors.push("Account Number is required.");
+                } else if (!/^\d+$/.test(accNum)) {
+                    errors.push("Account Number must be numeric only.");
+                }
+
+                // 7. IFSC Code Required & format
+                const ifscRegex = /^[A-Z]{4}0[A-Z0-9]{6}$/i;
+                if (!ifsc) {
+                    errors.push("IFSC Code is required.");
+                } else if (!ifscRegex.test(ifsc)) {
+                    errors.push("Invalid IFSC Code format (e.g. SBIN0001234).");
+                } else if (/[a-z]/.test(ifsc)) {
+                    warnings.push("IFSC code contained lowercase letters and was auto-capitalized.");
+                    ifsc = ifsc.toUpperCase();
+                }
+
+                // 8. Bank Name Required
+                if (!bankName) {
+                    errors.push("Bank Name is required.");
+                }
+
+                // 9. Status Required
+                const allowedStatuses = ["paid", "unpaid", "hold"];
+                if (!status) {
+                    errors.push("Status is required.");
+                } else if (!allowedStatuses.includes(status.toLowerCase())) {
+                    errors.push("Status must be Paid, Unpaid, or Hold.");
+                }
+
+                // 10. UTR Optional, Mandatory if Status = Paid
+                if (status.toLowerCase() === "paid" && !utr) {
+                    errors.push("UTR is mandatory when Status is 'Paid'.");
+                }
+                if (status.toLowerCase() !== "paid" && utr) {
+                    warnings.push("UTR provided but status is not 'Paid'.");
+                }
+
+                // 11. Month Required
+                if (!month) {
+                    errors.push("Month is required.");
+                }
+
+                const isValid = errors.length === 0;
+
+                if (isValid) {
+                    if (warnings.length > 0) {
+                        warningCount++;
+                    } else {
+                        validCount++;
+                    }
+
+                    parsedRows.push({
+                        id: empCode,
+                        name: name,
+                        email: (() => {
+                            const settings = state.companySettings || DEFAULT_COMPANY_SETTINGS;
+                             const domain = settings.supportEmail ? settings.supportEmail.split('@')[1] : "company.com";
+                            return name.toLowerCase().replace(/[^a-z0-9]/g, ".") + "@" + domain;
+                        })(),
+                        phone: mobNo,
+                        department: centre, // map Centre to Department
+                        month: month,
+                        role: "Consultant",
+                        status: status.toLowerCase() === "hold" ? "Inactive" : "Active",
+                        baseSalary: netSalary,
+                        hourlyRate: 35,
+                        allowance: 0,
+                        deductions: 0,
+                        hoursWorked: 0,
+                        timesheetStatus: "Pending",
+                        // Custom bulk upload variables
+                        accountNumber: accNum,
+                        ifscCode: ifsc,
+                        bankName: bankName,
+                        paymentStatus: status.charAt(0).toUpperCase() + status.slice(1).toLowerCase(),
+                        utr: utr || "",
+                        centre: centre
+                    });
+                } else {
+                    failedCount++;
+                    errors.forEach(err => {
+                        errorReportData.push({
+                            row: rowNum,
+                            empCode: empCode || "N/A",
+                            name: name || "N/A",
+                            error: err
+                        });
+                    });
+                }
+
+                // Row output HTML
+                let statusHTML = "";
+                let detailsHTML = "";
+                let rowClass = "border-b border-slate-100 hover:bg-slate-50";
+
+                if (!isValid) {
+                    statusHTML = `<span class="bg-red-50 text-red-700 border border-red-200 px-2 py-0.5 rounded text-[0.62rem] font-bold">❌ INVALID</span>`;
+                    detailsHTML = `<span class="text-red-500 font-semibold">${errors.join(" | ")}</span>`;
+                    rowClass = "bg-red-50/20 hover:bg-red-50/40 border-b border-red-100/50";
+                } else if (warnings.length > 0) {
+                    statusHTML = `<span class="bg-amber-50 text-amber-700 border border-amber-200 px-2 py-0.5 rounded text-[0.62rem] font-bold">⚠️ WARNING</span>`;
+                    detailsHTML = `<span class="text-amber-600 font-semibold">${warnings.join(" | ")}</span>`;
+                } else {
+                    statusHTML = `<span class="bg-emerald-50 text-emerald-700 border border-emerald-200 px-2 py-0.5 rounded text-[0.62rem] font-bold">✓ VALID</span>`;
+                    detailsHTML = `<span class="text-slate-400">Ready to import.</span>`;
+                }
+
+                const tr = document.createElement("tr");
+                tr.className = rowClass;
+                tr.innerHTML = `
+                    <td class="p-2.5 text-center font-semibold text-slate-400">${rowNum}</td>
+                    <td class="p-2.5 font-bold">${empCode || "—"}</td>
+                    <td class="p-2.5 font-bold text-slate-800">${name || "—"}</td>
+                    <td class="p-2.5">${statusHTML}</td>
+                    <td class="p-2.5 text-[0.68rem] leading-normal">${detailsHTML}</td>
+                `;
+                tableBody.appendChild(tr);
+            });
+
+            // Update Statistics
+            document.getElementById("stat-total-records").textContent = total;
+            document.getElementById("stat-valid-records").textContent = validCount + warningCount;
+            document.getElementById("stat-failed-records").textContent = failedCount;
+            document.getElementById("stat-warning-records").textContent = warningCount;
+
+            document.getElementById("bulk-progress-container").classList.add("hidden");
+            document.getElementById("bulk-summary-container").classList.remove("hidden");
+
+            const importBtn = document.getElementById("btn-import-bulk");
+            const errorReportContainer = document.getElementById("error-report-container");
+            if (failedCount > 0) {
+                errorReportContainer.classList.remove("hidden");
+                errorReportContainer.classList.add("flex");
+                importBtn.disabled = true;
+                importBtn.className = "px-5 py-2.5 bg-slate-200 text-slate-400 rounded-xl font-bold text-xs cursor-not-allowed transition-all";
+            } else {
+                errorReportContainer.classList.add("hidden");
+                errorReportContainer.classList.remove("flex");
+                importBtn.disabled = false;
+                importBtn.className = "px-5 py-2.5 bg-qt-primary hover:bg-qt-dark text-white rounded-xl font-bold text-xs shadow-md shadow-qt-primary/10 transition-all cursor-pointer";
+            }
+        }
+
+        function downloadErrorReport() {
+            if (errorReportData.length === 0) return;
+
+            const headers = "Row Number,Emp Code,Candidate Name,Error Description\n";
+            const rows = errorReportData.map(err => {
+                const escapedName = err.name.replace(/"/g, '""');
+                const escapedError = err.error.replace(/"/g, '""');
+                return `${err.row},${err.empCode},"${escapedName}","${escapedError}"`;
+            }).join("\n");
+
+            const settings = state.companySettings || DEFAULT_COMPANY_SETTINGS;
+            const companyPrefix = (settings.shortName || 'Company').replace(/\s+/g, '_');
+            const csvContent = "data:text/csv;charset=utf-8," + encodeURIComponent(headers + rows);
+            const link = document.createElement("a");
+            link.setAttribute("href", csvContent);
+            link.setAttribute("download", `${companyPrefix}_Employee_Import_Error_Report.csv`);
+            document.body.appendChild(link);
+            link.click();
+            link.remove();
+            
+            if (typeof Toast !== 'undefined') {
+                Toast.show("Error report CSV downloaded.");
+            }
+        }
+
+        function resetBulkModalState() {
+            parsedRows = [];
+            errorReportData = [];
+            
+            document.getElementById("bulk-file-input").value = "";
+            
+            document.getElementById("bulk-upload-step-1").classList.remove("hidden");
+            document.getElementById("bulk-progress-container").classList.add("hidden");
+            document.getElementById("bulk-summary-container").classList.add("hidden");
+            
+            const errorReportContainer = document.getElementById("error-report-container");
+            errorReportContainer.classList.add("hidden");
+            errorReportContainer.classList.remove("flex");
+            
+            const importBtn = document.getElementById("btn-import-bulk");
+            importBtn.disabled = true;
+            importBtn.className = "px-5 py-2.5 bg-slate-200 text-slate-400 rounded-xl font-bold text-xs cursor-not-allowed transition-all";
+        }
+
+        function populateCentreFilter() {
+            const select = document.getElementById("filter-centre");
+            if (!select) return;
+            
+            const prevVal = select.value;
+            const centres = new Set(["Gurgaon", "Delhi", "Noida"]);
+            
+            if (state && state.employees) {
+                state.employees.forEach(e => {
+                    if (e.centre) centres.add(e.centre.trim());
+                    else if (e.department) centres.add(e.department.trim());
+                });
+            }
+            
+            let html = `<option value="All">All Centres</option>`;
+            Array.from(centres).sort().forEach(c => {
+                html += `<option value="${c}">${c}</option>`;
+            });
+            
+            select.innerHTML = html;
+            if (Array.from(centres).includes(prevVal)) {
+                select.value = prevVal;
+            } else {
+                select.value = "All";
+            }
+        }
+
+        function populateDepartmentFilter() {
+            populateCentreFilter();
+        }
+
+        function populateMonthFilter() {
+            const select = document.getElementById("filter-month");
+            if (!select) return;
+            
+            const prevVal = select.value;
+            const months = new Set(["June 2026"]);
+            
+            if (state && state.employees) {
+                state.employees.forEach(e => {
+                    if (e.month) months.add(e.month.trim());
+                });
+            }
+            
+            let html = `<option value="All">All Months</option>`;
+            Array.from(months).sort().forEach(m => {
+                html += `<option value="${m}">${m}</option>`;
+            });
+            
+            select.innerHTML = html;
+            if (Array.from(months).includes(prevVal)) {
+                select.value = prevVal;
+            } else {
+                select.value = "All";
+            }
+        }
+
+        function openDetails(id) {
+            const emp = state.employees.find(e => e.id === id);
+            if (!emp) return;
+
+            state.selectedEmployee = emp;
+
+            // Load drawer variables
+            const avatar = document.getElementById("drawer-avatar");
+            avatar.textContent = emp.name.split(" ").map(n => n[0]).join("").toUpperCase();
+
+            document.getElementById("drawer-name").textContent = emp.name;
+            document.getElementById("drawer-title").textContent = `${emp.role} — ${emp.department}`;
+            document.getElementById("val-emp-id").textContent = emp.id;
+            document.getElementById("val-emp-email").textContent = emp.email;
+            document.getElementById("val-emp-phone").textContent = emp.phone;
+            document.getElementById("val-emp-dept").textContent = emp.department;
+            document.getElementById("val-emp-role").textContent = emp.role;
+            
+            const statusBadge = document.getElementById("val-emp-status");
+            statusBadge.textContent = emp.status;
+            statusBadge.className = `inline-block px-2.5 py-0.5 rounded-full font-bold text-[0.6rem] uppercase tracking-wider ${emp.status === 'Active' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`;
+
+            document.getElementById("val-emp-salary").textContent = `₹${emp.baseSalary.toLocaleString([], { minimumFractionDigits: 2 })}`;
+            document.getElementById("val-emp-rate").textContent = `₹${emp.hourlyRate.toFixed(2)}/hr`;
+            document.getElementById("val-emp-allowance").textContent = `₹${emp.allowance.toFixed(2)}`;
+            document.getElementById("val-emp-deductions").textContent = `₹${emp.deductions.toFixed(2)}`;
+            
+            const sheetBadge = document.getElementById("val-emp-sheet");
+            sheetBadge.textContent = emp.timesheetStatus;
+            sheetBadge.className = `inline-block px-2.5 py-0.5 rounded-full font-bold text-[0.6rem] uppercase tracking-wider ${emp.timesheetStatus === 'Uploaded' ? 'bg-green-100 text-green-800' : 'bg-amber-100 text-amber-800'}`;
+            document.getElementById("val-emp-hours").textContent = `${emp.hoursWorked} hrs`;
+
+            // Bank details mapping
+            const bankSection = document.getElementById("drawer-bank-section");
+            if (emp.bankName || emp.accountNumber || emp.ifscCode || emp.paymentStatus) {
+                document.getElementById("val-emp-bank-name").textContent = emp.bankName || "—";
+                document.getElementById("val-emp-bank-acc").textContent = emp.accountNumber || "—";
+                document.getElementById("val-emp-bank-ifsc").textContent = emp.ifscCode || "—";
+                document.getElementById("val-emp-centre").textContent = emp.centre || emp.department || "—";
+                
+                const pStatus = emp.paymentStatus || "Unpaid";
+                const pStatusEl = document.getElementById("val-emp-payment-status");
+                pStatusEl.textContent = pStatus.toUpperCase();
+                
+                let pClass = "bg-slate-100 text-slate-700";
+                if (pStatus.toLowerCase() === "paid") pClass = "bg-emerald-100 text-emerald-800";
+                else if (pStatus.toLowerCase() === "unpaid") pClass = "bg-red-100 text-red-800";
+                else if (pStatus.toLowerCase() === "hold") pClass = "bg-amber-100 text-amber-800";
+                pStatusEl.className = `inline-block px-2.5 py-0.5 rounded font-bold text-[0.55rem] uppercase tracking-wider ${pClass}`;
+                
+                document.getElementById("val-emp-utr").textContent = emp.utr || "—";
+                bankSection.classList.remove("hidden");
+                bankSection.style.display = "block";
+            } else {
+                bankSection.classList.add("hidden");
+                bankSection.style.display = "none";
+            }
+
+            // Update salary slip link
+            document.getElementById("btn-drawer-salary-slip").href = `/salary-slip/?id=${emp.id}`;
+
+            // Display Drawer overlay
+            const overlay = document.getElementById("drawer-overlay");
+            const drawer = document.getElementById("profile-drawer");
+
+            overlay.classList.remove("hidden");
+            setTimeout(() => {
+                overlay.classList.remove("opacity-0");
+                overlay.classList.add("opacity-100");
+                drawer.classList.remove("translate-x-full");
+                drawer.classList.add("translate-x-0");
+            }, 10);
+        }
+
+        function closeDrawer() {
+            const overlay = document.getElementById("drawer-overlay");
+            const drawer = document.getElementById("profile-drawer");
+
+            overlay.classList.remove("opacity-100");
+            overlay.classList.add("opacity-0");
+            drawer.classList.remove("translate-x-0");
+            drawer.classList.add("translate-x-full");
+            setTimeout(() => {
+                overlay.classList.add("hidden");
+            }, 300);
+        }
+
+
+
+        function editEmployee(id) {
+            const emp = state.employees.find(e => e.id === id);
+            if (!emp) return;
+
+            editingEmpId = id;
+            
+            // Set modal title and submit button text
+            document.querySelector("#add-employee-modal h3").textContent = `✏️ Edit Profile: ${emp.name} [${emp.id}]`;
+            document.querySelector("#add-employee-form button[type='submit']").textContent = "Save Changes";
+
+            // Pre-fill fields
+            document.getElementById("emp-name").value = emp.name;
+            document.getElementById("emp-email").value = emp.email;
+            document.getElementById("emp-phone").value = emp.phone;
+            document.getElementById("emp-status").value = emp.status || "Active";
+            document.getElementById("emp-payment-status").value = emp.paymentStatus || "Unpaid";
+            
+            document.getElementById("emp-centre").value = emp.centre || emp.department || "";
+            
+            document.getElementById("emp-month").value = emp.month || "June 2026";
+            document.getElementById("emp-salary").value = emp.baseSalary;
+            document.getElementById("emp-rate").value = emp.hourlyRate;
+            document.getElementById("emp-allowance").value = emp.allowance || 0;
+            document.getElementById("emp-deductions").value = emp.deductions || 0;
+            document.getElementById("emp-utr").value = emp.utr || "";
+
+            // Open modal
+            const modal = document.getElementById("add-employee-modal");
+            const modalContainer = modal.querySelector("div");
+            
+            modal.classList.remove("hidden");
+            modal.classList.add("flex");
+            setTimeout(() => {
+                modal.classList.remove("opacity-0");
+                modal.classList.add("opacity-100");
+                modalContainer.classList.remove("scale-95");
+                modalContainer.classList.add("scale-100");
+            }, 10);
+        }
+
+        function deleteEmployee(id) {
+            const emp = state.employees.find(e => e.id === id);
+            if (!emp) return;
+
+            if (confirm(`Are you sure you want to delete the profile for ${emp.name} [${emp.id}]?`)) {
+                state.employees = state.employees.filter(e => e.id !== id);
+                populateCentreFilter();
+                Auditor.log(`Deleted corporate profile: ${emp.name} [${emp.id}].`);
+                Toast.show(`Successfully deleted profile for ${emp.name}.`);
+                
+                if (state.selectedEmployee && state.selectedEmployee.id === id) {
+                    closeDrawer();
+                }
+                
+                renderDirectory();
+            }
+        }
+    </script>
+</body>
+</html>

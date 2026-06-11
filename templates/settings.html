@@ -1,0 +1,650 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+{% load static %}
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>QT Consultancy - Settings & Customization</title>
+    
+    <!-- Synchronous theme loader from localStorage -->
+    <script>
+      (function() {
+          const cached = localStorage.getItem("qt_consultancy_state");
+          let primaryColor = '#88BDF2';
+          let darkColor = '#384959';
+          if (cached) {
+              try {
+                  const state = JSON.parse(cached);
+                  const settings = state.companySettings || state.settings;
+                  if (settings) {
+                      primaryColor = settings.primaryColor || settings.themeColor || primaryColor;
+                      darkColor = settings.sidebarColor || settings.themeColorDark || darkColor;
+                  }
+              } catch(e) {}
+          }
+          document.documentElement.style.setProperty('--qt-primary', primaryColor);
+          document.documentElement.style.setProperty('--qt-dark', darkColor);
+          document.documentElement.style.setProperty('--primary', primaryColor);
+          document.documentElement.style.setProperty('--bg-sidebar', darkColor);
+          window.qtTheme = { primaryColor, darkColor };
+      })();
+    </script>
+
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+      tailwind.config = {
+        theme: {
+          extend: {
+            colors: {
+              qt: {
+                light: '#BDDDFC',    // Very Light Pastel Blue
+                medium: '#6A89A7',   // Muted Steel/Blue-grey
+                primary: 'var(--qt-primary)',  // Dynamic
+                dark: 'var(--qt-dark)',     // Dynamic
+                darker: '#26323d'    // Slightly darker Charcoal
+              }
+            },
+            fontFamily: {
+              sans: ['Poppins', 'Inter', 'sans-serif']
+            }
+          }
+        }
+      }
+    </script>
+
+    <!-- Google Fonts Poppins & Inter -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    
+    {% load static %}
+    <link rel="stylesheet" href="{% static 'prototype/styles.css' %}"> <!-- Helper classes and custom styles -->
+</head>
+<body class="bg-slate-50 font-sans text-qt-dark antialiased">
+
+    <div class="flex min-h-screen w-full">
+        
+        <!-- Left Sidebar component -->
+        <aside class="w-64 bg-qt-dark text-white flex flex-col justify-between p-6 flex-shrink-0 z-30 sticky top-0 h-screen">
+            <div>
+                <!-- Brand logo -->
+                <div class="flex items-center gap-2.5 mb-8">
+                    <div class="w-8 h-8 bg-qt-medium rounded-lg flex items-center justify-center text-white font-extrabold text-sm" data-company="logo">
+                        QT
+                    </div>
+                    <span class="text-white font-bold text-base leading-none tracking-tight" data-company="shortName">QT Consultancy</span>
+                </div>
+                
+                <!-- Menu -->
+                <ul class="flex flex-col gap-1 list-none">
+                    <li class="rounded-xl overflow-hidden text-slate-400 hover:text-white hover:bg-slate-800/50">
+                        <a href="/dashboard/" class="flex items-center gap-3 px-4 py-3 text-slate-400 font-medium text-sm transition-colors duration-200">
+                            <span>📊</span> Dashboard
+                        </a>
+                    </li>
+                    <li class="rounded-xl overflow-hidden text-slate-400 hover:text-white hover:bg-slate-800/50">
+                        <a href="/employees/" class="flex items-center gap-3 px-4 py-3 text-slate-400 font-medium text-sm transition-colors duration-200">
+                            <span>👥</span> Staff Directory
+                        </a>
+                    </li>
+                    
+                    <li class="rounded-xl overflow-hidden text-slate-400 hover:text-white hover:bg-slate-800/50">
+                        <a href="/payroll/" class="flex items-center gap-3 px-4 py-3 text-slate-400 font-medium text-sm transition-colors duration-200">
+                            <span>💰</span> Payroll Engine
+                        </a>
+                    </li>
+                    <li class="rounded-xl overflow-hidden text-slate-400 hover:text-white hover:bg-slate-800/50">
+                        <a href="/documents/invoices/" class="flex items-center gap-3 px-4 py-3 text-slate-400 font-medium text-sm transition-colors duration-200">
+                            <span>📄</span> Refrens Invoices
+                        </a>
+                    </li>
+                    <li class="rounded-xl overflow-hidden text-slate-400 hover:text-white hover:bg-slate-800/50">
+                        <a href="/salary-slip/" class="flex items-center gap-3 px-4 py-3 text-slate-400 font-medium text-sm transition-colors duration-200">
+                            <span>🧾</span> Salary Slips
+                        </a>
+                    </li>
+                    <li class="rounded-xl overflow-hidden bg-qt-primary text-white">
+                        <a href="/settings/" class="flex items-center gap-3 px-4 py-3 text-white font-medium text-sm transition-colors duration-200">
+                            <span>⚙️</span> Settings
+                        </a>
+                    </li>
+                </ul>
+            </div>
+            
+            <!-- User avatar on bottom -->
+            <div class="border-t border-slate-800 pt-5 flex flex-col gap-4">
+                <div class="flex items-center gap-3 px-2">
+                    <div id="header-user-avatar" class="w-9 h-9 rounded-full bg-qt-primary flex items-center justify-center font-bold text-sm text-white">AD</div>
+                    <div class="flex flex-col">
+                        <span id="header-user-name" class="text-xs font-bold text-white leading-none">Admin User</span>
+                        <span class="text-[0.62rem] text-slate-500 font-semibold uppercase tracking-wider mt-1">HR & Finance Admin</span>
+                    </div>
+                </div>
+                <button id="btn-logout-sidebar" class="flex items-center justify-center gap-2 py-2.5 rounded-xl bg-slate-800 hover:bg-red-600 border border-slate-700 hover:border-red-600 text-white font-semibold text-xs tracking-wide transition-all duration-200">
+                    <span>🚪</span> Sign Out
+                </button>
+            </div>
+        </aside>
+
+        <!-- Main Workspace -->
+        <main class="flex-1 flex flex-col min-h-screen overflow-x-hidden">
+            
+            <!-- Header -->
+            <header class="h-[70px] bg-white border-b border-slate-200 px-8 flex items-center justify-between sticky top-0 z-25">
+                <div class="header-title">
+                    <h2 class="text-lg font-bold text-qt-dark tracking-tight">System Settings & Customization</h2>
+                </div>
+                <div class="flex items-center gap-5">
+                    <div class="bg-qt-light text-qt-primary text-xs font-bold px-4 py-1.5 rounded-full border border-blue-200 flex items-center gap-2">
+                        <span class="w-1.5 h-1.5 bg-qt-primary rounded-full animate-pulse"></span>
+                        Active Period: June 2026
+                    </div>
+                    <div id="nav-system-time" class="text-xs font-medium text-slate-400">02/06/2026 | 15:30</div>
+                </div>
+            </header>
+
+            <!-- Workspace View -->
+            <div class="p-8 flex-1 flex flex-col gap-8 max-w-4xl">
+                
+                <div class="bg-white border border-slate-200 rounded-2xl shadow-sm overflow-hidden">
+                    <div class="p-6 border-b border-slate-100 bg-slate-50/50">
+                        <h3 class="text-sm font-bold uppercase tracking-wider text-qt-dark">Branding & Identity Customizer</h3>
+                        <p class="text-xs text-slate-400 mt-1">Configure company profiles, upload signature seals, and customize the website's brand colors.</p>
+                    </div>
+
+                    <form id="settings-form" class="p-6 space-y-6 text-xs text-slate-600">
+                        {% csrf_token %}
+                        
+                        <!-- Row 1: Company Names -->
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div class="flex flex-col gap-1.5">
+                                <label for="set-company-short" class="font-bold text-qt-dark">Company Short Name</label>
+                                <input type="text" id="set-company-short" required placeholder="e.g. QT Consultancy" class="px-3.5 py-2.5 rounded-xl border border-slate-200 focus:outline-none focus:border-qt-primary bg-slate-55/30 text-xs font-medium">
+                            </div>
+                            <div class="flex flex-col gap-1.5">
+                                <label for="set-company-full" class="font-bold text-qt-dark">Company Full Legal Name</label>
+                                <input type="text" id="set-company-full" required placeholder="e.g. QT Consultancy Private Limited" class="px-3.5 py-2.5 rounded-xl border border-slate-200 focus:outline-none focus:border-qt-primary bg-slate-55/30 text-xs font-medium">
+                            </div>
+                        </div>
+
+                        <!-- Row 2: Address & Contact info -->
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                            <div class="flex flex-col gap-1.5 md:col-span-2">
+                                <label for="set-address" class="font-bold text-qt-dark">Corporate Head Office Address</label>
+                                <textarea id="set-address" required rows="2" placeholder="Corporate Address..." class="px-3.5 py-2.5 rounded-xl border border-slate-200 focus:outline-none focus:border-qt-primary bg-slate-55/30 text-xs font-medium resize-none"></textarea>
+                            </div>
+                            <div class="flex flex-col gap-4">
+                                <div class="flex flex-col gap-1.5">
+                                    <label for="set-email" class="font-bold text-qt-dark">Support Email Address</label>
+                                    <input type="email" id="set-email" required placeholder="hr@company.com" class="px-3.5 py-2 rounded-xl border border-slate-200 focus:outline-none focus:border-qt-primary bg-slate-55/30 text-xs font-medium">
+                                </div>
+                                <div class="flex flex-col gap-1.5">
+                                    <label for="set-phone" class="font-bold text-qt-dark">Contact Phone Number</label>
+                                    <input type="text" id="set-phone" required placeholder="+91 99999 99999" class="px-3.5 py-2 rounded-xl border border-slate-200 focus:outline-none focus:border-qt-primary bg-slate-55/30 text-xs font-medium">
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Row 2b: Website, GSTIN & State Code -->
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 pt-4 border-t border-slate-100">
+                            <div class="flex flex-col gap-1.5">
+                                <label for="set-website" class="font-bold text-qt-dark">Website URL</label>
+                                <input type="url" id="set-website" required placeholder="e.g. https://qtconsultancy.in" class="px-3.5 py-2.5 rounded-xl border border-slate-200 focus:outline-none focus:border-qt-primary bg-slate-55/30 text-xs font-medium">
+                            </div>
+                            <div class="flex flex-col gap-1.5">
+                                <label for="set-gstin" class="font-bold text-qt-dark">GSTIN</label>
+                                <input type="text" id="set-gstin" required placeholder="e.g. 09AABCQ0892L1Z0" class="px-3.5 py-2.5 rounded-xl border border-slate-200 focus:outline-none focus:border-qt-primary bg-slate-55/30 text-xs font-medium uppercase font-mono">
+                            </div>
+                            <div class="flex flex-col gap-1.5">
+                                <label for="set-statecode" class="font-bold text-qt-dark">State Code</label>
+                                <input type="text" id="set-statecode" required placeholder="e.g. 09" class="px-3.5 py-2.5 rounded-xl border border-slate-200 focus:outline-none focus:border-qt-primary bg-slate-55/30 text-xs font-medium font-mono">
+                            </div>
+                        </div>
+
+                        <!-- Row 3: Logo Configs -->
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 pt-4 border-t border-slate-100">
+                            <!-- Initials -->
+                            <div class="flex flex-col gap-1.5">
+                                <label for="set-logo-text" class="font-bold text-qt-dark">Logo Letter Initials</label>
+                                <input type="text" id="set-logo-text" required maxlength="3" placeholder="QT" class="px-3.5 py-2.5 rounded-xl border border-slate-200 focus:outline-none focus:border-qt-primary bg-slate-55/30 text-xs font-medium uppercase">
+                                <p class="text-[10px] text-slate-400 mt-1">Shown in the sidebar header if no image logo is uploaded.</p>
+                            </div>
+                            
+                            <!-- Logo Image Upload -->
+                            <div class="flex flex-col gap-1.5 md:col-span-2">
+                                <label class="font-bold text-qt-dark">Brand Logo Image</label>
+                                <div class="flex items-center gap-4">
+                                    <div id="logo-preview-box" class="w-12 h-12 rounded-xl border border-slate-200 bg-slate-50 flex items-center justify-center text-slate-400 font-extrabold overflow-hidden shrink-0">
+                                        QT
+                                    </div>
+                                    <div class="flex-1 flex gap-2">
+                                        <input type="file" id="logo-file-input" accept="image/*" class="hidden">
+                                        <button type="button" onclick="document.getElementById('logo-file-input').click()" class="px-4 py-2 border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 rounded-lg font-bold text-[0.68rem] transition-colors cursor-pointer">
+                                            Upload Logo
+                                        </button>
+                                        <button type="button" id="btn-clear-logo" class="px-4 py-2 text-red-650 hover:text-red-700 font-bold text-[0.68rem] transition-colors hidden cursor-pointer">
+                                            Clear
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Row 4: Signature & Stamp Uploads -->
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 pt-4 border-t border-slate-100">
+                            <!-- Signature Image Upload -->
+                            <div class="flex flex-col gap-1.5">
+                                <label class="font-bold text-qt-dark">Authorized Signature Image</label>
+                                <div class="flex items-center gap-4">
+                                    <div id="sig-preview-box" class="w-24 h-12 rounded-xl border border-slate-200 bg-slate-50 flex items-center justify-center text-slate-400 font-bold overflow-hidden shrink-0 text-[10px]">
+                                        No Image
+                                    </div>
+                                    <div class="flex-1 flex gap-2">
+                                        <input type="file" id="sig-file-input" accept="image/*" class="hidden">
+                                        <button type="button" onclick="document.getElementById('sig-file-input').click()" class="px-3.5 py-2 border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 rounded-lg font-bold text-[0.68rem] transition-colors cursor-pointer">
+                                            Upload Signature
+                                        </button>
+                                        <button type="button" id="btn-clear-sig" class="px-3.5 py-2 text-red-650 hover:text-red-700 font-bold text-[0.68rem] transition-colors hidden cursor-pointer">
+                                            Clear
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Stamp Image Upload -->
+                            <div class="flex flex-col gap-1.5">
+                                <label class="font-bold text-qt-dark">Official Company Seal Stamp Image</label>
+                                <div class="flex items-center gap-4">
+                                    <div id="stamp-preview-box" class="w-16 h-16 rounded-xl border border-slate-200 bg-slate-50 flex items-center justify-center text-slate-400 font-bold overflow-hidden shrink-0 text-[10px] text-center p-1">
+                                        No Image
+                                    </div>
+                                    <div class="flex-1 flex gap-2">
+                                        <input type="file" id="stamp-file-input" accept="image/*" class="hidden">
+                                        <button type="button" onclick="document.getElementById('stamp-file-input').click()" class="px-3.5 py-2 border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 rounded-lg font-bold text-[0.68rem] transition-colors cursor-pointer">
+                                            Upload Stamp
+                                        </button>
+                                        <button type="button" id="btn-clear-stamp" class="px-3.5 py-2 text-red-650 hover:text-red-700 font-bold text-[0.68rem] transition-colors hidden cursor-pointer">
+                                            Clear
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Row 4b: Bank Details & Authorized Signatory -->
+                        <div class="pt-4 border-t border-slate-100 flex flex-col gap-4">
+                            <h4 class="font-bold text-qt-dark text-xs uppercase tracking-wider">Bank Details & Authorized Signatory</h4>
+                            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                                <div class="flex flex-col gap-1.5">
+                                    <label for="set-account-name" class="font-bold text-qt-dark">Account Name</label>
+                                    <input type="text" id="set-account-name" placeholder="e.g. QT Consultancy Private Limited" class="px-3.5 py-2.5 rounded-xl border border-slate-200 focus:outline-none focus:border-qt-primary bg-slate-55/30 text-xs font-medium">
+                                </div>
+                                <div class="flex flex-col gap-1.5">
+                                    <label for="set-account-no" class="font-bold text-qt-dark">Account No.</label>
+                                    <input type="text" id="set-account-no" placeholder="Bank Account Number" class="px-3.5 py-2.5 rounded-xl border border-slate-200 focus:outline-none focus:border-qt-primary bg-slate-55/30 text-xs font-medium font-mono">
+                                </div>
+                                <div class="flex flex-col gap-1.5">
+                                    <label for="set-ifsc-code" class="font-bold text-qt-dark">IFSC Code</label>
+                                    <input type="text" id="set-ifsc-code" placeholder="Bank IFSC Code" class="px-3.5 py-2.5 rounded-xl border border-slate-200 focus:outline-none focus:border-qt-primary bg-slate-55/30 text-xs font-medium font-mono uppercase">
+                                </div>
+                            </div>
+                            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                                <div class="flex flex-col gap-1.5">
+                                    <label for="set-bank-name" class="font-bold text-qt-dark">Bank Name</label>
+                                    <input type="text" id="set-bank-name" placeholder="Bank Name" class="px-3.5 py-2.5 rounded-xl border border-slate-200 focus:outline-none focus:border-qt-primary bg-slate-55/30 text-xs font-medium">
+                                </div>
+                                <div class="flex flex-col gap-1.5">
+                                    <label for="set-branch-name" class="font-bold text-qt-dark">Branch Name</label>
+                                    <input type="text" id="set-branch-name" placeholder="Branch Name" class="px-3.5 py-2.5 rounded-xl border border-slate-200 focus:outline-none focus:border-qt-primary bg-slate-55/30 text-xs font-medium">
+                                </div>
+                                <div class="flex flex-col gap-1.5">
+                                    <label for="set-signatory-name" class="font-bold text-qt-dark">Signatory Name</label>
+                                    <input type="text" id="set-signatory-name" placeholder="Signatory Name" class="px-3.5 py-2.5 rounded-xl border border-slate-200 focus:outline-none focus:border-qt-primary bg-slate-55/30 text-xs font-medium">
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Row 5: Theme Colors Config -->
+                        <div class="pt-4 border-t border-slate-100 flex flex-col gap-3">
+                            <label class="font-bold text-qt-dark">Accent Website Theme Color</label>
+                            <div class="flex flex-wrap items-center gap-4">
+                                <!-- Theme Preset Swatches -->
+                                <div class="flex gap-2.5">
+                                    <button type="button" onclick="selectThemePreset('#88BDF2', '#384959')" class="w-8 h-8 rounded-full bg-[#88BDF2] border-2 border-transparent hover:scale-105 transition-transform cursor-pointer relative" title="Sky Blue">
+                                        <span class="absolute inset-0.5 rounded-full border border-white opacity-40"></span>
+                                    </button>
+                                    <button type="button" onclick="selectThemePreset('#10B981', '#064E3B')" class="w-8 h-8 rounded-full bg-[#10B981] border-2 border-transparent hover:scale-105 transition-transform cursor-pointer relative" title="Emerald Green">
+                                        <span class="absolute inset-0.5 rounded-full border border-white opacity-40"></span>
+                                    </button>
+                                    <button type="button" onclick="selectThemePreset('#EF4444', '#7F1D1D')" class="w-8 h-8 rounded-full bg-[#EF4444] border-2 border-transparent hover:scale-105 transition-transform cursor-pointer relative" title="Crimson Red">
+                                        <span class="absolute inset-0.5 rounded-full border border-white opacity-40"></span>
+                                    </button>
+                                    <button type="button" onclick="selectThemePreset('#8B5CF6', '#4C1D95')" class="w-8 h-8 rounded-full bg-[#8B5CF6] border-2 border-transparent hover:scale-105 transition-transform cursor-pointer relative" title="Deep Purple">
+                                        <span class="absolute inset-0.5 rounded-full border border-white opacity-40"></span>
+                                    </button>
+                                    <button type="button" onclick="selectThemePreset('#64748B', '#1E293B')" class="w-8 h-8 rounded-full bg-[#64748B] border-2 border-transparent hover:scale-105 transition-transform cursor-pointer relative" title="Charcoal Slate">
+                                        <span class="absolute inset-0.5 rounded-full border border-white opacity-40"></span>
+                                    </button>
+                                </div>
+                                <span class="text-slate-300">or</span>
+                                <!-- Custom color pickers -->
+                                <div class="flex items-center gap-3">
+                                    <div class="flex items-center gap-1.5 border border-slate-200 px-3 py-1.5 rounded-xl bg-slate-50">
+                                        <input type="color" id="set-theme-picker" class="w-5 h-5 border-0 rounded cursor-pointer bg-transparent">
+                                        <span class="font-bold text-[10px] text-slate-400">Primary</span>
+                                    </div>
+                                    <div class="flex items-center gap-1.5 border border-slate-200 px-3 py-1.5 rounded-xl bg-slate-50">
+                                        <input type="color" id="set-theme-dark-picker" class="w-5 h-5 border-0 rounded cursor-pointer bg-transparent">
+                                        <span class="font-bold text-[10px] text-slate-400">Sidebar</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Form Submission footer -->
+                        <div class="pt-6 border-t border-slate-100 flex justify-between items-center mt-6">
+                            <button type="button" onclick="resetToDefaultsSettings()" class="px-5 py-2.5 bg-slate-100 hover:bg-slate-200 rounded-xl text-slate-600 font-bold transition-all cursor-pointer">
+                                Reset Defaults
+                            </button>
+                            <button type="submit" class="px-6 py-2.5 bg-qt-primary hover:bg-qt-dark text-white rounded-xl font-bold shadow-md shadow-qt-primary/10 transition-all cursor-pointer">
+                                Save Configuration
+                            </button>
+                        </div>
+
+                    </form>
+                </div>
+
+            </div>
+
+        </main>
+    </div>
+
+    <!-- Toast notification containers -->
+    <div id="toast-container" class="fixed bottom-6 right-6 z-[200] flex flex-col gap-3 max-w-sm pointer-events-none"></div>
+
+    {{ company_json|json_script:"company-settings-json" }}
+
+    <script src="{% static 'prototype/app.js' %}"></script>
+    <script>
+        let logoBase64 = null;
+        let signatureBase64 = null;
+        let stampBase64 = null;
+
+        function getCsrfToken() {
+            const el = document.querySelector('[name=csrfmiddlewaretoken]');
+            return el ? el.value : "";
+        }
+
+        document.addEventListener("DOMContentLoaded", () => {
+            // Load from backend first
+            let backendSettings = {};
+            try {
+                backendSettings = JSON.parse(document.getElementById("company-settings-json").textContent);
+            } catch (e) {
+                console.error("Failed to parse company-settings-json:", e);
+            }
+
+            // Sync backend settings to local state companySettings
+            state.companySettings = Object.assign({}, DEFAULT_COMPANY_SETTINGS, state.companySettings, backendSettings);
+            const settings = state.companySettings;
+            
+            document.getElementById("set-company-short").value = settings.shortName || "";
+            document.getElementById("set-company-full").value = settings.fullLegalName || "";
+            document.getElementById("set-logo-text").value = settings.logoInitials || "";
+            document.getElementById("set-address").value = settings.headOfficeAddress || "";
+            document.getElementById("set-email").value = settings.supportEmail || "";
+            document.getElementById("set-phone").value = settings.contactPhone || "";
+            document.getElementById("set-website").value = settings.websiteUrl || "";
+            document.getElementById("set-gstin").value = settings.gstin || "";
+            document.getElementById("set-statecode").value = settings.stateCode || "";
+            
+            // Populate bank settings
+            document.getElementById("set-account-name").value = settings.accountName || "";
+            document.getElementById("set-account-no").value = settings.accountNo || "";
+            document.getElementById("set-ifsc-code").value = settings.ifscCode || "";
+            document.getElementById("set-bank-name").value = settings.bankName || "";
+            document.getElementById("set-branch-name").value = settings.branchName || "";
+            document.getElementById("set-signatory-name").value = settings.signatoryName || "";
+            
+            document.getElementById("set-theme-picker").value = settings.primaryColor || "#88BDF2";
+            document.getElementById("set-theme-dark-picker").value = settings.sidebarColor || "#384959";
+
+            // Logo Image
+            if (settings.logoImage) {
+                logoBase64 = settings.logoImage;
+                updateLogoPreview(logoBase64);
+            } else {
+                updateLogoPreview(null, settings.logoInitials);
+            }
+
+            // Signature Image
+            if (settings.signatureImage) {
+                signatureBase64 = settings.signatureImage;
+                updateSigPreview(signatureBase64);
+            }
+
+            // Stamp Image
+            if (settings.sealImage) {
+                stampBase64 = settings.sealImage;
+                updateStampPreview(stampBase64);
+            }
+
+            // Logo input listener
+            document.getElementById("logo-file-input").addEventListener("change", e => {
+                const file = e.target.files[0];
+                if (file) {
+                    const reader = new FileReader();
+                    reader.onload = function(evt) {
+                        logoBase64 = evt.target.result;
+                        updateLogoPreview(logoBase64);
+                    };
+                    reader.readAsDataURL(file);
+                }
+            });
+
+            // Signature input listener
+            document.getElementById("sig-file-input").addEventListener("change", e => {
+                const file = e.target.files[0];
+                if (file) {
+                    const reader = new FileReader();
+                    reader.onload = function(evt) {
+                        signatureBase64 = evt.target.result;
+                        updateSigPreview(signatureBase64);
+                    };
+                    reader.readAsDataURL(file);
+                }
+            });
+
+            // Stamp input listener
+            document.getElementById("stamp-file-input").addEventListener("change", e => {
+                const file = e.target.files[0];
+                if (file) {
+                    const reader = new FileReader();
+                    reader.onload = function(evt) {
+                        stampBase64 = evt.target.result;
+                        updateStampPreview(stampBase64);
+                    };
+                    reader.readAsDataURL(file);
+                }
+            });
+
+            // Clear handlers
+            document.getElementById("btn-clear-logo").addEventListener("click", () => {
+                logoBase64 = null;
+                document.getElementById("logo-file-input").value = "";
+                updateLogoPreview(null, document.getElementById("set-logo-text").value);
+            });
+
+            document.getElementById("btn-clear-sig").addEventListener("click", () => {
+                signatureBase64 = null;
+                document.getElementById("sig-file-input").value = "";
+                updateSigPreview(null);
+            });
+
+            document.getElementById("btn-clear-stamp").addEventListener("click", () => {
+                stampBase64 = null;
+                document.getElementById("stamp-file-input").value = "";
+                updateStampPreview(null);
+            });
+
+            // Update initials preview live
+            document.getElementById("set-logo-text").addEventListener("input", e => {
+                if (!logoBase64) {
+                    updateLogoPreview(null, e.target.value);
+                }
+            });
+
+            // Form Submit handler
+            document.getElementById("settings-form").addEventListener("submit", (e) => {
+                e.preventDefault();
+                
+                const shortName = document.getElementById("set-company-short").value.trim();
+                const fullLegalName = document.getElementById("set-company-full").value.trim();
+                const logoInitials = document.getElementById("set-logo-text").value.trim().toUpperCase();
+                const headOfficeAddress = document.getElementById("set-address").value.trim();
+                const supportEmail = document.getElementById("set-email").value.trim();
+                const contactPhone = document.getElementById("set-phone").value.trim();
+                const websiteUrl = document.getElementById("set-website").value.trim();
+                const gstin = document.getElementById("set-gstin").value.trim().toUpperCase();
+                const stateCode = document.getElementById("set-statecode").value.trim();
+                
+                const accountName = document.getElementById("set-account-name").value.trim();
+                const accountNo = document.getElementById("set-account-no").value.trim();
+                const ifscCode = document.getElementById("set-ifsc-code").value.trim().toUpperCase();
+                const bankName = document.getElementById("set-bank-name").value.trim();
+                const branchName = document.getElementById("set-branch-name").value.trim();
+                const signatoryName = document.getElementById("set-signatory-name").value.trim();
+                
+                const primaryColor = document.getElementById("set-theme-picker").value;
+                const sidebarColor = document.getElementById("set-theme-dark-picker").value;
+
+                const updatedSettings = {
+                    shortName,
+                    fullLegalName,
+                    logoInitials,
+                    logoImage: logoBase64,
+                    headOfficeAddress,
+                    supportEmail,
+                    contactPhone,
+                    websiteUrl,
+                    gstin,
+                    stateCode,
+                    primaryColor,
+                    sidebarColor,
+                    signatureImage: signatureBase64,
+                    sealImage: stampBase64,
+                    accountName,
+                    accountNo,
+                    ifscCode,
+                    bankName,
+                    branchName,
+                    signatoryName
+                };
+
+                // Send AJAX POST request to save settings in the database
+                fetch("/settings/", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                        "X-CSRFToken": getCsrfToken() || ""
+                    },
+                    body: JSON.stringify(updatedSettings)
+                })
+                .then(res => res.json())
+                .then(data => {
+                    if (data.ok) {
+                        state.companySettings = updatedSettings;
+                        saveStateToStorage();
+                        Auditor.log(`Updated global settings: Branding set to ${shortName}, theme color changed.`);
+                        Toast.show("Portal configuration saved successfully.");
+                        
+                        // Live reload theme and labels
+                        applyCompanyBranding();
+                        setTimeout(() => window.location.reload(), 1200);
+                    } else {
+                        Toast.show(data.error || "Failed to save settings.", "danger");
+                    }
+                })
+                .catch(err => {
+                    console.error(err);
+                    Toast.show("An error occurred while saving configuration.", "danger");
+                });
+            });
+        });
+
+        function selectThemePreset(primary, dark) {
+            document.getElementById("set-theme-picker").value = primary;
+            document.getElementById("set-theme-dark-picker").value = dark;
+        }
+
+        function updateLogoPreview(base64, textFallback = "QT") {
+            const preview = document.getElementById("logo-preview-box");
+            const clearBtn = document.getElementById("btn-clear-logo");
+            if (base64) {
+                preview.innerHTML = `<img src="${base64}" class="w-full h-full object-cover">`;
+                clearBtn.classList.remove("hidden");
+            } else {
+                preview.innerHTML = textFallback.toUpperCase() || "QT";
+                preview.style.display = "flex";
+                clearBtn.classList.add("hidden");
+            }
+        }
+
+        function updateSigPreview(base64) {
+            const preview = document.getElementById("sig-preview-box");
+            const clearBtn = document.getElementById("btn-clear-sig");
+            if (base64) {
+                preview.innerHTML = `<img src="${base64}" class="w-full h-full object-contain p-1 bg-white">`;
+                clearBtn.classList.remove("hidden");
+            } else {
+                preview.textContent = "No Image";
+                clearBtn.classList.add("hidden");
+            }
+        }
+
+        function updateStampPreview(base64) {
+            const preview = document.getElementById("stamp-preview-box");
+            const clearBtn = document.getElementById("btn-clear-stamp");
+            if (base64) {
+                preview.innerHTML = `<img src="${base64}" class="w-full h-full object-contain p-1 bg-white">`;
+                clearBtn.classList.remove("hidden");
+            } else {
+                preview.textContent = "No Image";
+                clearBtn.classList.add("hidden");
+            }
+        }
+
+        function resetToDefaultsSettings() {
+            if (confirm("Are you sure you want to reset all portal branding and colors to default values?")) {
+                const defaultSettings = JSON.parse(JSON.stringify(DEFAULT_COMPANY_SETTINGS));
+                // Send AJAX POST request to reset settings in the database
+                fetch("/settings/", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                        "X-CSRFToken": getCsrfToken() || ""
+                    },
+                    body: JSON.stringify(defaultSettings)
+                })
+                .then(res => res.json())
+                .then(data => {
+                    if (data.ok) {
+                        state.companySettings = defaultSettings;
+                        saveStateToStorage();
+                        Auditor.log("Global settings reverted to system defaults.");
+                        Toast.show("Configuration reset to defaults.");
+                        setTimeout(() => window.location.reload(), 1200);
+                    } else {
+                        Toast.show("Failed to reset settings.", "danger");
+                    }
+                })
+                .catch(err => {
+                    console.error(err);
+                    Toast.show("An error occurred while resetting configuration.", "danger");
+                });
+            }
+        }
+    </script>
+</body>
+</html>

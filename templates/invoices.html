@@ -1,0 +1,2087 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>QT Consultancy - Invoicing Workspace</title>
+    
+    <!-- Synchronous theme loader from localStorage -->
+    <script>
+      (function() {
+          const cached = localStorage.getItem("qt_consultancy_state");
+          let primaryColor = '#88BDF2';
+          let darkColor = '#384959';
+          if (cached) {
+              try {
+                  const state = JSON.parse(cached);
+                  const settings = state.companySettings || state.settings;
+                  if (settings) {
+                      primaryColor = settings.primaryColor || settings.themeColor || primaryColor;
+                      darkColor = settings.sidebarColor || settings.themeColorDark || darkColor;
+                  }
+              } catch(e) {}
+          }
+          document.documentElement.style.setProperty('--qt-primary', primaryColor);
+          document.documentElement.style.setProperty('--qt-dark', darkColor);
+          document.documentElement.style.setProperty('--primary', primaryColor);
+          document.documentElement.style.setProperty('--bg-sidebar', darkColor);
+          window.qtTheme = { primaryColor, darkColor };
+      })();
+    </script>
+
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+      tailwind.config = {
+        theme: {
+          extend: {
+            colors: {
+              qt: {
+                light: '#BDDDFC',    // Very Light Pastel Blue
+                medium: '#6A89A7',   // Muted Steel/Blue-grey
+                primary: 'var(--qt-primary)',  // Dynamic
+                dark: 'var(--qt-dark)',     // Dynamic
+                darker: '#26323d'    // Slightly darker Charcoal
+              }
+            },
+            fontFamily: {
+              sans: ['Poppins', 'Inter', 'sans-serif']
+            }
+          }
+        }
+      }
+    </script>
+
+    <!-- Google Fonts Poppins, Inter & Caveat -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&family=Inter:wght@400;500;600;700&family=Caveat:wght@700&display=swap" rel="stylesheet">
+    
+    <script src="https://unpkg.com/lucide@latest"></script>
+    {% load static %}
+    <link rel="stylesheet" href="{% static 'prototype/styles.css' %}"> <!-- Helper classes -->
+    
+    <style>
+        .font-cursive {
+            font-family: 'Caveat', cursive;
+        }
+
+        /* Print Media Styles for clean Refrens PDF exports */
+        @media print {
+            body * {
+                visibility: hidden;
+            }
+            #invoice-sheet, #invoice-sheet * {
+                visibility: visible;
+            }
+            #invoice-sheet {
+                position: absolute;
+                left: 0;
+                top: 0;
+                width: 100% !important;
+                max-width: 100% !important;
+                min-height: 0 !important;
+                height: auto !important;
+                box-shadow: none !important;
+                border: none !important;
+                margin: 0 !important;
+                padding: 10mm !important;
+                background-color: white !important;
+                -webkit-print-color-adjust: exact !important;
+                print-color-adjust: exact !important;
+            }
+            #invoice-sheet > div {
+                min-height: 0 !important;
+                height: auto !important;
+            }
+            #payslip-table-grid {
+                flex: none !important;
+            }
+            .app-sidebar, .app-header, .invoice-split-left {
+                display: none !important;
+            }
+        }
+
+        @page {
+            size: A4 portrait;
+            margin: 10mm 12mm 10mm 12mm;
+        }
+
+        /* Custom scrollbar to keep layout clean */
+        .invoice-split-left::-webkit-scrollbar {
+            width: 6px;
+        }
+        .invoice-split-left::-webkit-scrollbar-track {
+            background: #f1f5f9;
+        }
+        .invoice-split-left::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 9999px;
+        }
+
+        /* Interactive styling for editable topic on preview card */
+        #lbl-invoice-topic[contenteditable="true"]:hover {
+            background-color: #f1f5f9;
+            cursor: text;
+        }
+        #lbl-invoice-topic[contenteditable="true"]:focus {
+            background-color: #e2e8f0;
+            outline: none;
+        }
+    </style>
+</head>
+<body class="bg-slate-50 font-sans text-qt-dark antialiased">
+
+    <div class="flex min-h-screen w-full">
+        
+        <!-- Left Sidebar component -->
+        <aside id="app-sidebar" class="w-64 bg-qt-dark text-white flex flex-col justify-between p-6 flex-shrink-0 z-30 sticky top-0 h-screen print:hidden hidden lg:flex">
+            <div>
+                <!-- Brand logo -->
+                <div class="flex items-center justify-between mb-8">
+                    <div class="flex items-center gap-2.5">
+                        <div class="w-8 h-8 bg-qt-medium rounded-lg flex items-center justify-center text-white font-extrabold text-sm" data-company="logo">
+                            QT
+                        </div>
+                        <span class="text-white font-bold text-base leading-none tracking-tight" data-company="shortName">QT Consultancy</span>
+                    </div>
+                    <button onclick="toggleSidebar()" class="lg:hidden text-slate-400 hover:text-white text-xl p-1" aria-label="Close Menu">✕</button>
+                </div>
+                
+                <!-- Menu -->
+                <ul class="flex flex-col gap-1 list-none">
+                    <li class="rounded-xl overflow-hidden text-slate-400 hover:text-white hover:bg-slate-800/50">
+                        <a href="/dashboard/" class="flex items-center gap-3 px-4 py-3 text-slate-400 font-medium text-sm transition-colors duration-200">
+                            <span>📊</span> Dashboard
+                        </a>
+                    </li>
+                    <li class="rounded-xl overflow-hidden text-slate-400 hover:text-white hover:bg-slate-800/50">
+                        <a href="/employees/" class="flex items-center gap-3 px-4 py-3 text-slate-400 font-medium text-sm transition-colors duration-200">
+                            <span>👥</span> Staff Directory
+                        </a>
+                    </li>
+                   
+                    <li class="rounded-xl overflow-hidden text-slate-400 hover:text-white hover:bg-slate-800/50">
+                        <a href="/payroll/" class="flex items-center gap-3 px-4 py-3 text-slate-400 hover:text-white font-medium text-sm transition-colors duration-200">
+                            <span>💰</span> Payroll Engine
+                        </a>
+                    </li>
+                    <li class="rounded-xl overflow-hidden bg-qt-primary">
+                        <a href="/documents/invoices/" class="flex items-center gap-3 px-4 py-3 text-white font-medium text-sm transition-colors duration-200">
+                            <span>📄</span> Refrens Invoices
+                        </a>
+                    </li>
+                    <li class="rounded-xl overflow-hidden text-slate-400 hover:text-white hover:bg-slate-800/50">
+                        <a href="/salary-slip/" class="flex items-center gap-3 px-4 py-3 text-slate-400 hover:text-white font-medium text-sm transition-colors duration-200">
+                            <span>🧾</span> Salary Slips
+                        </a>
+                    </li>
+                    <li class="rounded-xl overflow-hidden text-slate-400 hover:text-white hover:bg-slate-800/50">
+                        <a href="/settings/" class="flex items-center gap-3 px-4 py-3 text-slate-400 hover:text-white font-medium text-sm transition-colors duration-200">
+                            <span>⚙️</span> Settings
+                        </a>
+                    </li>
+                </ul>
+            </div>
+            
+            <!-- User avatar on bottom -->
+            <div class="border-t border-slate-800 pt-5 flex flex-col gap-4">
+                <div class="flex items-center gap-3 px-2">
+                    <div id="header-user-avatar" class="w-9 h-9 rounded-full bg-qt-primary flex items-center justify-center font-bold text-sm text-white">AD</div>
+                    <div class="flex flex-col">
+                        <span id="header-user-name" class="text-xs font-bold text-white leading-none">Admin User</span>
+                        <span class="text-[0.62rem] text-slate-500 font-semibold uppercase tracking-wider mt-1">HR & Finance Admin</span>
+                    </div>
+                </div>
+                <button id="btn-logout-sidebar" class="flex items-center justify-center gap-2 py-2.5 rounded-xl bg-slate-800 hover:bg-red-600 border border-slate-700 hover:border-red-600 text-white font-semibold text-xs tracking-wide transition-all duration-200">
+                    <span>🚪</span> Sign Out
+                </button>
+            </div>
+        </aside>
+
+        <!-- Main Workspace -->
+        <main class="flex-1 flex flex-col min-h-screen overflow-x-hidden">
+            
+            <!-- Header -->
+            <header class="h-[70px] bg-white border-b border-slate-200 px-4 md:px-8 flex items-center justify-between sticky top-0 z-25 print:hidden">
+                <div class="flex items-center">
+                    <!-- Hamburger Menu for Mobile -->
+                    <button onclick="toggleSidebar()" class="lg:hidden p-2 mr-3 rounded-lg hover:bg-slate-100 text-lg flex items-center justify-center text-slate-650" aria-label="Toggle Sidebar">
+                        ☰
+                    </button>
+                    <div class="header-title">
+                        <h2 class="text-xs sm:text-sm font-extrabold text-slate-900 tracking-tight uppercase"><span data-company="shortName">QT Consultancy</span> Billing Hub</h2>
+                    </div>
+                </div>
+                <div class="flex items-center gap-5">
+                    <!-- Theme Toggle -->
+                    <button class="w-8 h-8 rounded-full hover:bg-slate-100 flex items-center justify-center text-slate-500 transition-colors">
+                        🌙
+                    </button>
+                    <!-- Profile Card -->
+                    <div class="flex items-center gap-2">
+                        <div class="w-8 h-8 rounded-full bg-slate-800 text-white font-extrabold text-xs flex items-center justify-center">
+                            AD
+                        </div>
+                        <span class="text-xs font-bold text-slate-800 hidden sm:inline">Admin User</span>
+                    </div>
+                </div>
+            </header>
+
+            <!-- Workspace View -->
+            <div class="p-4 md:p-8 flex-1 flex flex-col gap-6 print:p-0 print:bg-white max-w-6xl mx-auto w-full">
+                
+                <!-- 1. Invoice Dashboard View (Default starting view) -->
+                <div id="invoice-dashboard-view" class="space-y-6 print:hidden">
+                    
+                    <!-- Dashboard Header / Title Row -->
+                    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
+                        <h1 class="text-3xl sm:text-4xl font-bold text-[#0D2440] tracking-tight">Invoices</h1>
+                        <button onclick="showEditorForNew()" class="py-2.5 px-5 bg-[#0F172A] hover:bg-slate-800 text-white rounded-lg font-semibold text-sm flex items-center gap-2 transition-all cursor-pointer">
+                            <span>+</span> Create Invoice
+                        </button>
+                    </div>
+
+                    <!-- Tabs Navigation -->
+                    <div class="border-b border-slate-200 mb-6">
+                        <div class="flex gap-8 text-base font-semibold">
+                            <button id="tab-upcoming" onclick="switchDashboardTab('upcoming')" class="pb-3 text-[#1D4ED8] border-b-2 border-[#1D4ED8] font-semibold transition-all cursor-pointer">
+                                Generated Invoices
+                            </button>
+                            <button id="tab-past" onclick="switchDashboardTab('past')" class="pb-3 text-slate-400 hover:text-[#0D2440] font-semibold transition-all cursor-pointer">
+                                Past Drafts
+                            </button>
+                        </div>
+                    </div>
+
+
+
+                    <!-- Filtration Row -->
+                    <div class="flex flex-col sm:flex-row gap-4 items-center justify-between mt-3 mb-6 bg-slate-50 p-4 rounded-xl border border-slate-200">
+                        <div class="flex flex-wrap items-center gap-4 text-xs font-semibold text-slate-650">
+                            <!-- Status Filter Buttons -->
+                            <div class="flex items-center gap-2">
+                                <span>Status:</span>
+                                <div class="flex rounded-lg border border-slate-200 bg-white overflow-hidden p-0.5">
+                                    <button onclick="setStatusFilter('ALL')" id="filter-status-all" class="px-3 py-1.5 rounded-md text-[0.7rem] uppercase tracking-wider font-extrabold transition-all cursor-pointer bg-slate-800 text-white">All</button>
+                                    <button onclick="setStatusFilter('PAID')" id="filter-status-paid" class="px-3 py-1.5 rounded-md text-[0.7rem] uppercase tracking-wider font-extrabold transition-all cursor-pointer text-slate-500 hover:text-slate-800">Paid</button>
+                                    <button onclick="setStatusFilter('UNPAID')" id="filter-status-unpaid" class="px-3 py-1.5 rounded-md text-[0.7rem] uppercase tracking-wider font-extrabold transition-all cursor-pointer text-slate-500 hover:text-slate-800">Unpaid</button>
+                                    <button onclick="setStatusFilter('NONE')" id="filter-status-none" class="px-3 py-1.5 rounded-md text-[0.7rem] uppercase tracking-wider font-extrabold transition-all cursor-pointer text-slate-500 hover:text-slate-800">None</button>
+                                </div>
+                            </div>
+
+                            <!-- Company Filter Select -->
+                            <div class="flex items-center gap-2">
+                                <span>Company / Client:</span>
+                                <select id="filter-company-select" onchange="setCompanyFilter(this.value)" class="px-3 py-1.5 rounded-lg border border-slate-200 bg-white text-xs focus:outline-none focus:border-qt-primary cursor-pointer font-bold">
+                                    <option value="ALL">All Clients</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="text-[0.7rem] font-bold text-slate-400 uppercase tracking-widest" id="invoice-count-badge">
+                            Total: 0
+                        </div>
+                    </div>
+
+                    <!-- Invoices List Container -->
+                    <div id="generated-invoices-list" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <!-- Rendered dynamically -->
+                    </div>
+                </div>
+
+                <!-- 2. Invoice Editor View (Initially hidden) -->
+                <div id="invoice-editor-view" class="hidden space-y-4">
+                    
+                    <!-- Back Button Header -->
+                    <div class="flex items-center gap-3 print:hidden">
+                        <button onclick="hideEditor()" class="py-2 px-4 bg-white hover:bg-slate-50 text-slate-600 border border-slate-200 hover:border-slate-350 rounded-xl font-bold text-xs flex items-center gap-1.5 transition-all cursor-pointer">
+                            ← Back to Invoices
+                        </button>
+                    </div>
+
+                    <!-- Split Grid: Compiler & Preview -->
+                    <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+                    
+                    <!-- Left Column: Parameters Compiler -->
+                    <div class="lg:col-span-5 bg-white border border-slate-200 p-4 sm:p-6 rounded-2xl shadow-sm space-y-5 lg:max-h-[85vh] lg:overflow-y-auto invoice-split-left print:hidden">
+                        <div class="border-b border-slate-100 pb-3">
+                            <h3 class="text-sm font-bold uppercase tracking-wider text-qt-dark">📝 Tax Invoice Compiler</h3>
+                            <p class="text-xs text-slate-400 mt-1">Configure client details, invoice metadata, and line items.</p>
+                        </div>
+
+                        <div class="space-y-4 text-xs text-slate-600">
+                            
+                            <!-- Step 1: Staff selection -->
+                            <div class="flex flex-col gap-1.5">
+                                <span class="text-[0.62rem] font-bold uppercase tracking-wider text-slate-400">1. Employee / Consultant Profile (Optional Ingestion)</span>
+                                <select id="invoice-employee-select" class="w-full px-3 py-2.5 rounded-xl border border-slate-200 text-xs focus:outline-none focus:border-qt-primary bg-slate-50 font-medium">
+                                    <!-- Populated via JS -->
+                                </select>
+                            </div>
+
+                            <!-- Step 2: Invoice Metadata -->
+                            <div class="flex flex-col gap-2">
+                                <span class="text-[0.62rem] font-bold uppercase tracking-wider text-slate-400">2. Invoice Details</span>
+                                <div class="grid grid-cols-2 gap-3">
+                                    <div class="flex flex-col gap-1">
+                                        <label class="text-[0.6rem] text-slate-400 font-bold uppercase">Invoice Number</label>
+                                        <input type="text" id="inp-invoice-num" oninput="updateField('invoiceNum', this.value)" class="px-3 py-2 rounded-lg border border-slate-200 text-xs focus:outline-none focus:border-qt-primary">
+                                    </div>
+                                    <div class="flex flex-col gap-1">
+                                        <label class="text-[0.6rem] text-slate-400 font-bold uppercase">Invoice Date</label>
+                                        <input type="date" id="inp-invoice-date" oninput="updateField('invoiceDate', this.value)" class="px-3 py-2 rounded-lg border border-slate-200 text-xs focus:outline-none focus:border-qt-primary">
+                                    </div>
+                                    <div class="flex flex-col gap-1">
+                                        <label class="text-[0.6rem] text-slate-400 font-bold uppercase">Supply State</label>
+                                        <input type="text" id="inp-supply-state" oninput="updateField('supplyState', this.value)" class="px-3 py-2 rounded-lg border border-slate-200 text-xs focus:outline-none focus:border-qt-primary">
+                                    </div>
+                                    <div class="flex flex-col gap-1">
+                                        <label class="text-[0.6rem] text-slate-400 font-bold uppercase">Topic Label</label>
+                                        <input type="text" id="inp-invoice-topic-label" oninput="updateField('topicLabel', this.value)" class="px-3 py-2 rounded-lg border border-slate-200 text-xs focus:outline-none focus:border-qt-primary">
+                                    </div>
+                                    <div class="flex flex-col gap-1 col-span-2">
+                                        <label class="text-[0.6rem] text-slate-400 font-bold uppercase">Topic Value</label>
+                                        <input type="text" id="inp-invoice-topic" oninput="updateField('topic', this.value)" class="px-3 py-2 rounded-lg border border-slate-200 text-xs focus:outline-none focus:border-qt-primary">
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Step 3: Billed To -->
+                            <div class="flex flex-col gap-2">
+                                <span class="text-[0.62rem] font-bold uppercase tracking-wider text-slate-400">3. Details of Receiver | Billed To</span>
+                                <div class="flex flex-col gap-2.5">
+                                    <div class="flex flex-col gap-1">
+                                        <label class="text-[0.6rem] text-slate-400 font-bold uppercase">Client Name</label>
+                                        <input type="text" id="inp-client-name" oninput="updateField('clientName', this.value)" class="px-3 py-2 rounded-lg border border-slate-200 text-xs focus:outline-none focus:border-qt-primary">
+                                    </div>
+                                    <div class="flex flex-col gap-1">
+                                        <label class="text-[0.6rem] text-slate-400 font-bold uppercase">Client Address</label>
+                                        <textarea id="inp-client-address" rows="2" oninput="updateField('clientAddress', this.value)" class="px-3 py-2 rounded-lg border border-slate-200 text-xs focus:outline-none focus:border-qt-primary leading-normal"></textarea>
+                                    </div>
+                                    <div class="grid grid-cols-3 gap-2">
+                                        <div class="flex flex-col gap-1">
+                                            <label class="text-[0.6rem] text-slate-400 font-bold uppercase">GSTIN</label>
+                                            <input type="text" id="inp-client-gstin" oninput="updateField('clientGstin', this.value)" class="px-2 py-2 rounded-lg border border-slate-200 text-xs focus:outline-none focus:border-qt-primary font-mono">
+                                        </div>
+                                        <div class="flex flex-col gap-1">
+                                            <label class="text-[0.6rem] text-slate-400 font-bold uppercase">State</label>
+                                            <input type="text" id="inp-client-state" oninput="updateField('clientState', this.value)" class="px-2 py-2 rounded-lg border border-slate-200 text-xs focus:outline-none focus:border-qt-primary">
+                                        </div>
+                                        <div class="flex flex-col gap-1">
+                                            <label class="text-[0.6rem] text-slate-400 font-bold uppercase">State Code</label>
+                                            <input type="text" id="inp-client-state-code" oninput="updateField('clientStateCode', this.value)" class="px-2 py-2 rounded-lg border border-slate-200 text-xs focus:outline-none focus:border-qt-primary font-mono">
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Step 4: Line Items -->
+                            <div class="flex flex-col gap-2">
+                                <span class="text-[0.62rem] font-bold uppercase tracking-wider text-slate-400">4. Product Line Items</span>
+                                <div id="dynamic-items-container" class="space-y-2.5">
+                                    <!-- Dynamic rows loaded here -->
+                                </div>
+                                <button type="button" class="inline-flex items-center gap-1.5 py-2 px-4 rounded-xl border border-dashed border-blue-200 hover:border-qt-primary bg-blue-50/50 hover:bg-qt-light/30 text-qt-primary font-bold text-[0.7rem] transition-all duration-150 self-start mt-1" onclick="addItemRow()">
+                                    ➕ Add Product Line Item
+                                </button>
+                            </div>
+
+                            <!-- Step 5: Bank Details & Signatory -->
+                            <div class="flex flex-col gap-2 border-t border-slate-100 pt-4">
+                                <span class="text-[0.62rem] font-bold uppercase tracking-wider text-slate-400">5. Bank Details & Authorized Signatory</span>
+                                <div class="grid grid-cols-2 gap-3">
+                                    <div class="flex flex-col gap-1">
+                                        <label class="text-[0.6rem] text-slate-400 font-bold uppercase">Account Name</label>
+                                        <input type="text" id="inp-account-name" oninput="updateField('accountName', this.value)" class="px-3 py-2 rounded-lg border border-slate-200 text-xs focus:outline-none focus:border-qt-primary">
+                                    </div>
+                                    <div class="flex flex-col gap-1">
+                                        <label class="text-[0.6rem] text-slate-400 font-bold uppercase">Account No.</label>
+                                        <input type="text" id="inp-account-no" oninput="updateField('accountNo', this.value)" class="px-3 py-2 rounded-lg border border-slate-200 text-xs focus:outline-none focus:border-qt-primary font-mono">
+                                    </div>
+                                    <div class="flex flex-col gap-1">
+                                        <label class="text-[0.6rem] text-slate-400 font-bold uppercase">IFSC Code</label>
+                                        <input type="text" id="inp-ifsc" oninput="updateField('ifscCode', this.value)" class="px-3 py-2 rounded-lg border border-slate-200 text-xs focus:outline-none focus:border-qt-primary font-mono">
+                                    </div>
+                                    <div class="flex flex-col gap-1">
+                                        <label class="text-[0.6rem] text-slate-400 font-bold uppercase">Bank Name</label>
+                                        <input type="text" id="inp-bank-name" oninput="updateField('bankName', this.value)" class="px-3 py-2 rounded-lg border border-slate-200 text-xs focus:outline-none focus:border-qt-primary">
+                                    </div>
+                                    <div class="flex flex-col gap-1">
+                                        <label class="text-[0.6rem] text-slate-400 font-bold uppercase">Branch Name</label>
+                                        <input type="text" id="inp-branch-name" oninput="updateField('branchName', this.value)" class="px-3 py-2 rounded-lg border border-slate-200 text-xs focus:outline-none focus:border-qt-primary">
+                                    </div>
+                                    <div class="flex flex-col gap-1">
+                                        <label class="text-[0.6rem] text-slate-400 font-bold uppercase">Signatory Name</label>
+                                        <input type="text" id="inp-signatory-name" oninput="updateField('signatoryName', this.value)" class="px-3 py-2 rounded-lg border border-slate-200 text-xs focus:outline-none focus:border-qt-primary">
+                                    </div>
+                                    <div class="flex flex-col gap-1 col-span-2">
+                                        <label class="text-[0.6rem] text-slate-400 font-bold uppercase">Cursive Signature Text</label>
+                                        <input type="text" id="inp-sig-script" oninput="updateField('sigScript', this.value)" class="px-3 py-2 rounded-lg border border-slate-200 text-xs focus:outline-none focus:border-qt-primary">
+                                    </div>
+                                </div>
+                            </div>
+                                
+                            <div class="grid grid-cols-2 gap-4 border-t border-slate-100 pt-4">
+                                <!-- Left Column: Theme Customization -->
+                                <div class="flex flex-col gap-3">
+                                    <span class="text-[0.62rem] font-bold uppercase tracking-wider text-slate-400">6. Theme Customization</span>
+                                    <div>
+                                        <label class="text-[0.62rem] font-bold uppercase text-slate-400 mb-2 block">Invoice Primary Theme Color</label>
+                                        <div class="flex items-center gap-2">
+                                            <div class="theme-dot w-5 h-5 rounded-full cursor-pointer border-2 border-transparent transition-all duration-200 relative bg-[#1D4ED8] active" onclick="changeTheme(this, '#1D4ED8')"></div>
+                                            <div class="theme-dot w-5 h-5 rounded-full cursor-pointer border-2 border-transparent transition-all duration-200 relative bg-[#7D3BDF]" onclick="changeTheme(this, '#7D3BDF')"></div>
+                                            <div class="theme-dot w-5 h-5 rounded-full cursor-pointer border-2 border-transparent transition-all duration-200 relative bg-[#1e3a8a]" onclick="changeTheme(this, '#1e3a8a')"></div>
+                                            <div class="theme-dot w-5 h-5 rounded-full cursor-pointer border-2 border-transparent transition-all duration-200 relative bg-[#059669]" onclick="changeTheme(this, '#059669')"></div>
+                                            <div class="theme-dot w-5 h-5 rounded-full cursor-pointer border-2 border-transparent transition-all duration-200 relative bg-[#202A36]" onclick="changeTheme(this, '#202A36')"></div>
+                                        </div>
+                                    </div>
+                                    <button type="button" id="btn-toggle-stamp" class="w-full flex items-center justify-center gap-1.5 py-1.5 px-3 rounded-lg border border-blue-200 hover:border-qt-primary bg-blue-50/50 hover:bg-qt-light/30 text-qt-primary font-bold text-[0.65rem] transition-all duration-150 active" onclick="toggleStamp()">
+                                        <span>✍️</span> Digital Sign Block
+                                    </button>
+                                </div>
+                                <!-- Right Column: Invoice Status -->
+                                <div class="flex flex-col gap-3 border-l border-slate-100 pl-4">
+                                    <span class="text-[0.62rem] font-bold uppercase tracking-wider text-slate-400">7. Invoice Status</span>
+                                    <div>
+                                        <label class="text-[0.62rem] font-bold uppercase text-slate-400 mb-2 block">Select Status</label>
+                                        <select id="inp-invoice-status" onchange="updateField('status', this.value)" class="w-full px-2 py-1.5 rounded-lg border border-slate-200 text-xs focus:outline-none focus:border-qt-primary bg-white font-medium">
+                                            <option value="NONE">⚪ NO MARK</option>
+                                            <option value="UNPAID">🔴 UNPAID</option>
+                                            <option value="PAID">🟢 PAID</option>
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Step 8: Upload Signature -->
+                            <div class="flex flex-col gap-2 border-t border-slate-100 pt-4">
+                                <span class="text-[0.62rem] font-bold uppercase tracking-wider text-slate-400">8. Signature Image Upload (Optional Override)</span>
+                                <div class="flex items-center gap-3">
+                                    <input type="file" id="inp-sig-upload" accept="image/*" class="hidden" onchange="handleSignatureUpload(this)">
+                                    <button type="button" onclick="document.getElementById('inp-sig-upload').click()" class="py-2 px-3 border border-slate-200 hover:border-slate-350 bg-slate-50 hover:bg-slate-100 text-slate-650 hover:text-slate-800 rounded-lg text-xs font-semibold transition-all">
+                                        📁 Select Signature Image
+                                    </button>
+                                    <button type="button" id="btn-clear-sig-upload" onclick="clearSignatureUpload()" class="py-2 px-3 border border-red-200 hover:bg-red-50 text-red-600 rounded-lg text-xs font-semibold transition-all hidden">
+                                        🗑️ Clear Upload
+                                    </button>
+                                </div>
+                                <p class="text-[0.6rem] text-slate-400">Upload an image of your signature. If uploaded, it will override the cursive signature text.</p>
+                            </div>
+
+                            <!-- Actions -->
+                            <div class="border-t border-slate-100 pt-4 flex flex-col gap-3">
+                                <span class="text-[0.62rem] font-bold uppercase tracking-wider text-slate-400">9. Actions</span>
+                                <div class="grid grid-cols-2 gap-3">
+                                    <button id="btn-save-invoice" onclick="saveCurrentInvoice()" class="w-full py-3 bg-slate-800 hover:bg-slate-900 text-white rounded-xl font-bold text-xs shadow-md transition-colors flex items-center justify-center gap-1.5">
+                                        💾 Save / Update
+                                    </button>
+                                    <button id="btn-print-invoice" class="w-full py-3 bg-qt-primary hover:bg-qt-dark text-white rounded-xl font-bold text-xs shadow-md shadow-qt-primary/10 transition-colors flex items-center justify-center gap-1.5">
+                                        🖨 Print / PDF
+                                    </button>
+                                </div>
+                                <div class="grid grid-cols-2 gap-3 mt-1">
+                                    <button class="w-full py-2.5 bg-slate-50 hover:bg-slate-100 border border-slate-200 hover:border-slate-350 rounded-xl text-slate-550 hover:text-slate-800 font-bold text-[0.7rem] transition-colors" onclick="simulateMailTransmittal()">
+                                        📧 Email Client
+                                    </button>
+                                    <button class="w-full py-2.5 bg-slate-50 hover:bg-slate-100 border border-slate-200 hover:border-slate-350 rounded-xl text-slate-550 hover:text-slate-800 font-bold text-[0.7rem] transition-colors" onclick="simulateWhatsAppShare()">
+                                        💬 WhatsApp Delivery
+                                    </button>
+                                </div>
+                            </div>
+
+                        </div>
+                    </div>
+
+                    <!-- Right Column: Document Preview Card Wrapper -->
+                    <div class="lg:col-span-7 w-full overflow-x-auto pb-4 print:overflow-visible">
+                        <div class="bg-white rounded-sm shadow-xl border border-slate-300 overflow-hidden relative p-4 sm:p-8 min-h-[85vh] flex flex-col justify-between print:border-0 print:shadow-none min-w-[720px] lg:min-w-0 print:min-w-0" id="invoice-sheet" style="font-size: 0.65rem;">
+                        <!-- Watermark Status Stamp -->
+                        <div id="invoice-status-stamp" class="absolute top-[28%] right-[10%] border-4 border-dashed rounded-xl px-5 py-2 text-2xl font-black uppercase tracking-widest -rotate-12 select-none pointer-events-none z-10 transition-all duration-200 hidden">
+                            UNPAID
+                        </div>
+                        
+                        <!-- GST-style Outer Border Frame -->
+                        <div class="border-2 border-black flex flex-col flex-1 w-full h-full min-h-[inherit] rounded-none p-0 bg-white">
+                            <!-- 1. Corporate Header Section -->
+                            <div class="relative flex flex-col items-center justify-center border-b-2 p-4 border-black bg-white min-h-[90px]">
+                                <!-- Logo on the left -->
+                                <div class="absolute left-4 top-1/2 -translate-y-1/2 w-16 h-16 shrink-0 flex items-center justify-center" id="prev-invoice-logo" data-company="logo">
+                                    <!-- Injected dynamically via applyCompanyBranding -->
+                                </div>
+                                
+                                <!-- Centered content -->
+                                <div class="flex flex-col items-center text-center max-w-[90%] px-24 w-full">
+                                    <h1 class="text-[0.72rem] sm:text-xs font-black tracking-wide text-slate-955 uppercase whitespace-nowrap" id="lbl-comp-title" data-company="fullLegalName">[Company Legal Name]</h1>
+                                    
+                                    <p class="text-[0.52rem] text-slate-650 font-semibold leading-relaxed mt-1" id="lbl-comp-address">
+                                        [Head Office Address]
+                                    </p>
+                                    
+                                    <div class="flex items-center justify-center gap-2 text-[0.52rem] text-slate-650 font-semibold mt-1">
+                                        <span>GSTIN : <span class="font-bold text-slate-950 font-mono" data-company="gstin">[GSTIN]</span></span>
+                                        <span class="border border-black px-1.5 py-0.2 rounded font-bold font-mono text-slate-950 ml-1">State Code : <span data-company="stateCode">[State Code]</span></span>
+                                    </div>
+                                    
+                                    <p class="text-[0.52rem] text-slate-650 font-semibold mt-0.5">
+                                        Website : <span class="font-bold text-slate-950 font-mono" data-company="websiteUrl">[Website URL]</span>
+                                    </p>
+                                </div>
+                            </div>
+
+                            <!-- 2. Tax Invoice Title Banner -->
+                            <div class="relative py-1.5 text-center bg-blue-50/30 border-b-2 border-black text-[0.72rem] font-extrabold uppercase tracking-widest" id="prev-payslip-banner">
+                                TAX INVOICE
+                                <span class="absolute right-4 top-1.5 text-[0.55rem] font-bold italic normal-case tracking-normal text-slate-500 print:right-0">Original For Recipient</span>
+                            </div>
+
+                            <!-- 3. Invoice Metadata Grid -->
+                            <div class="grid grid-cols-4 border-b-2 border-black text-[0.62rem] leading-normal font-medium bg-white" id="payslip-metadata-grid">
+                                <!-- Col 1 & 2 -->
+                                <div class="border-b border-r border-black p-1.5 font-bold bg-slate-50/20">Invoice Number</div>
+                                <div class="border-b border-r border-black p-1.5 font-mono font-bold" id="lbl-invoice-num">[Invoice Number]</div>
+                                <!-- Col 3 & 4 -->
+                                <div class="border-b border-r border-black p-1.5 font-bold bg-slate-50/20">Invoice Date</div>
+                                <div class="border-b border-black p-1.5 font-mono" id="lbl-invoice-date">03-03-2026</div>
+
+                                <!-- Col 1 & 2 -->
+                                <div class="border-r border-black p-1.5 font-bold bg-slate-50/20">State</div>
+                                <div class="border-r border-black p-1.5" id="lbl-supply-state">Uttar Pradesh</div>
+                                <!-- Col 3 & 4 -->
+                                <div class="border-r border-black p-1.5 font-bold bg-slate-50/20" id="lbl-topic-header" contenteditable="true" oninput="updateFieldFromPreview('topicLabel', this.textContent)" style="outline: none;">Topic</div>
+                                <div class="p-1.5 font-bold" id="lbl-invoice-topic" contenteditable="true" oninput="updateFieldFromPreview('topic', this.textContent)" style="outline: none;">Sales Support Service Charge</div>
+                            </div>
+
+                            <!-- 4. Details of Receiver | Billed To banner -->
+                            <div class="py-1.5 text-center bg-[#1D4ED8] text-white font-extrabold text-[0.62rem] uppercase tracking-wider border-b-2 border-black" id="lbl-receiver-banner">
+                                Details of Receiver | Billed to
+                            </div>
+
+                            <!-- 5. Billed To Details Block -->
+                            <div class="p-3 bg-white flex flex-col gap-1 border-b-2 border-black" id="payslip-receiver-details">
+                                <div class="flex items-center gap-2">
+                                    <span class="font-bold text-slate-500 uppercase text-[0.55rem] tracking-wider w-16">Name:</span>
+                                    <span class="font-extrabold text-slate-950 text-xs" id="lbl-client-name">ElectricPe</span>
+                                </div>
+                                <div class="flex items-start gap-2">
+                                    <span class="font-bold text-slate-500 uppercase text-[0.55rem] tracking-wider w-16 mt-0.5">Address:</span>
+                                    <span class="font-semibold text-slate-800 leading-normal" id="lbl-client-address">Plot No-12-A, GR Flat No-264B-KH No-99/18 Late K L Vig Old New Delhi, West Delhi, Delhi, 110059</span>
+                                </div>
+                                <div class="flex items-center gap-2 mt-0.5">
+                                    <span class="font-bold text-slate-500 uppercase text-[0.55rem] tracking-wider w-16">GSTIN:</span>
+                                    <span class="font-bold text-slate-950 font-mono" id="lbl-client-gstin">07AACCW9615J1ZY</span>
+                                    <span class="border border-black px-1 py-0.2 text-[0.52rem] font-bold font-mono ml-4" id="lbl-client-state-code-box">State Code : 07</span>
+                                </div>
+                                <div class="flex items-center gap-2">
+                                    <span class="font-bold text-slate-500 uppercase text-[0.55rem] tracking-wider w-16">State:</span>
+<span class="font-semibold text-slate-800" id="lbl-client-state">Delhi</span>
+                                </div>
+                            </div>
+
+                            <!-- 6. Products / Services Table -->
+                            <div class="overflow-x-auto border-b-2 border-black flex-1" id="payslip-table-grid">
+                                <table class="w-full text-left border-collapse table-auto" style="font-size: 0.6rem;">
+                                    <colgroup>
+                                        <col style="width: 6%;">
+                                        <col style="width: 22%;">
+                                        <col style="width: 6%;">
+                                        <col style="width: 8%;">
+                                        <col style="width: 10%;">
+                                        <col style="width: 14%;">
+                                        <col style="width: 8%;">
+                                        <col style="width: 12%;">
+                                        <col style="width: 14%;">
+                                    </colgroup>
+                                    <thead>
+                                        <tr class="bg-blue-50/30 text-[0.58rem] font-extrabold uppercase text-slate-800 tracking-wider">
+                                            <th rowspan="2" class="p-1.5 border-r border-b border-black text-center">Sr. No.</th>
+                                            <th rowspan="2" class="p-1.5 border-r border-b border-black">Name of Product</th>
+                                            <th rowspan="2" class="p-1.5 border-r border-b border-black text-center">QTY</th>
+                                            <th rowspan="2" class="p-1.5 border-r border-b border-black text-center">Unit</th>
+                                            <th rowspan="2" class="p-1.5 border-r border-b border-black text-right">Rate</th>
+                                            <th rowspan="2" class="p-1.5 border-r border-b border-black text-right bg-[#1D4ED8] text-white font-extrabold" id="lbl-taxable-value-hdr">Taxable Value</th>
+                                            <th colspan="2" class="border-r border-b border-black text-center py-0.5 font-extrabold">IGST</th>
+                                            <th rowspan="2" class="p-1.5 border-b text-right">Total</th>
+                                        </tr>
+                                        <tr class="bg-blue-50/30 text-[0.5rem] font-extrabold uppercase text-slate-800 tracking-wider border-b border-black">
+                                            <th class="p-1 border-r border-black text-center">Rate</th>
+                                            <th class="p-1 border-r border-black text-right pr-1.5">Amount</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="invoice-preview-rows" class="divide-y divide-slate-300 font-semibold text-slate-800 leading-normal">
+                                        <!-- Rendered dynamically via JS -->
+                                    </tbody>
+                                    <tfoot>
+                                        <tr class="border-t-2 border-black bg-slate-50 font-bold text-slate-900">
+                                            <td colspan="2" class="p-1.5 text-center font-extrabold border-r border-black">Total</td>
+                                            <td id="lbl-total-qty" class="p-1.5 text-center border-r border-black font-bold">1</td>
+                                            <td class="p-1.5 border-r border-black"></td>
+                                            <td class="p-1.5 border-r border-black"></td>
+                                            <td id="lbl-total-taxable" class="py-1 px-1 text-right border-r border-black font-bold">0.00</td>
+                                            <td class="py-1 px-1 border-r border-black"></td>
+                                            <td id="lbl-total-tax-amount" class="py-1 px-1 border-r border-black text-right font-mono font-bold">0.00</td>
+                                            <td id="lbl-total-invoice" class="py-1 px-1 text-right font-extrabold font-mono">0.00</td>
+                                        </tr>
+                                    </tfoot>
+                                </table>
+                            </div>
+                            
+                            <!-- 7. Bank Details & Totals Breakdown -->
+                            <div class="grid grid-cols-12 border-b-2 border-black bg-white" style="font-size: 0.62rem;">
+                                
+                                <!-- Left: Bank Details & Amount in Words -->
+                                <div class="col-span-7 border-r border-black flex flex-col justify-between p-2 gap-4">
+                                    <div class="flex flex-col gap-1.5">
+                                        <h4 class="font-extrabold text-[0.55rem] uppercase text-slate-500 tracking-wider">Total Invoice Amount in words:</h4>
+                                        <p class="font-bold text-slate-900 leading-relaxed text-xs italic" id="lbl-amount-words">Zero Rupees Only /-</p>
+                                    </div>
+                                    
+                                    <div class="flex flex-col border-t pt-2 border-slate-200">
+                                        <h4 class="font-extrabold text-blue-700 uppercase text-[0.58rem] tracking-wider flex items-center gap-1">
+                                            🏦 Bank and Payment Details
+                                        </h4>
+                                        <div class="grid grid-cols-12 gap-y-0.5 gap-x-2 mt-1.5 font-semibold text-slate-800">
+                                            <div class="col-span-4 text-slate-500 uppercase text-[0.5rem]">Account Name</div>
+                                            <div class="col-span-8 font-extrabold text-slate-950" id="lbl-bank-acc-name">[Company Legal Name]</div>
+                                            
+                                            <div class="col-span-4 text-slate-500 uppercase text-[0.5rem]">Account No.</div>
+                                            <div class="col-span-8 font-extrabold font-mono text-slate-950" id="lbl-bank-acc-no">[Bank Account Number]</div>
+                                            
+                                            <div class="col-span-4 text-slate-500 uppercase text-[0.5rem]">IFSC Code</div>
+                                            <div class="col-span-8 font-bold font-mono text-slate-950" id="lbl-bank-ifsc">[Bank IFSC Code]</div>
+                                            
+                                            <div class="col-span-4 text-slate-500 uppercase text-[0.5rem]">Bank Name</div>
+                                            <div class="col-span-8" id="lbl-bank-name">[Bank Name]</div>
+                                            
+                                            <div class="col-span-4 text-slate-500 uppercase text-[0.5rem]">Branch Name</div>
+                                            <div class="col-span-8" id="lbl-bank-branch">[Branch Name]</div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Right: Totals Grid matching screenshot -->
+                                <div class="col-span-5 flex flex-col justify-end divide-y divide-black font-semibold text-slate-800">
+                                    <div class="flex justify-between p-1.5">
+                                        <span>Total Amount Before Tax</span>
+                                        <span id="lbl-sum-before-tax" class="font-bold">0.00</span>
+                                    </div>
+                                    <div class="flex justify-between p-1.5">
+                                        <span>Add : IGST</span>
+                                        <span id="lbl-sum-tax-add" class="font-bold">0.00</span>
+                                    </div>
+                                    <div class="flex justify-between p-1.5">
+                                        <span>Total Tax Amount</span>
+                                        <span id="lbl-sum-tax-total" class="font-bold">0.00</span>
+                                    </div>
+                                    <div class="flex justify-between p-1.5">
+                                        <span>Round Off Value</span>
+                                        <span id="lbl-sum-roundoff" class="font-mono">0.00</span>
+                                    </div>
+                                    <div class="flex justify-between p-1.5 bg-slate-50/50 font-extrabold text-slate-950 border-t border-black">
+                                        <span>Final Invoice Amount</span>
+                                        <span class="font-black font-mono border-b-4 border-double border-slate-900" id="lbl-sum-final-invoice">₹ 0.00</span>
+                                    </div>
+                                    <div class="flex justify-between p-1.5 bg-slate-50/50 font-extrabold text-slate-950">
+                                        <span>Balance Due</span>
+                                        <span class="font-black font-mono border-b-4 border-double border-slate-900" id="lbl-sum-balance-due">₹ 0.00</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- 8. Terms, certified stamp, and signatures -->
+                            <div class="grid grid-cols-2 bg-white" style="font-size: 0.58rem;">
+                                <!-- Left: Terms -->
+                                <div class="p-2 border-r border-black font-semibold text-slate-500 leading-relaxed">
+                                    <p class="font-bold text-slate-700 uppercase tracking-widest text-[0.52rem] mb-1">Terms And Conditions</p>
+                                    <p>1. This is an electronically generated document. 2. All disputes are subject to Gautambuddha Nagar jurisdiction.</p>
+                                </div>
+                                
+                                <!-- Right: Signatory Card -->
+                                <div class="p-2 flex flex-col justify-between relative min-h-[90px]" id="prev-signatory-card">
+                                    <span class="font-medium text-slate-700 text-center block">Certified that the particular given above are true and correct</span>
+                                    <span class="font-bold text-slate-950 text-center block uppercase text-[0.52rem] mt-0.5" id="lbl-signatory-comp">For, <span data-company="fullLegalName">[Company Legal Name]</span></span>
+                                    
+                                    <!-- Digital signature wrapper -->
+                                    <div class="flex flex-col items-center justify-center mt-3 mb-1" id="prev-signature-box">
+                                        <!-- AAKASH GIRI signature cursive -->
+                                        <span class="font-cursive text-xl text-red-650/90 select-none cursor-default leading-none transform rotate-[-2deg]" id="prev-sig-font">Authorized Signatory</span>
+                                        <!-- Uploaded Signature Image (Hidden by default) -->
+                                        <img id="prev-sig-img" class="h-10 max-w-[120px] object-contain select-none cursor-default leading-none transform rotate-[-2deg] hidden" alt="Uploaded Signature">
+                                        <!-- Certified Stamp Text -->
+                                        <div class="text-[0.42rem] text-slate-400 font-mono text-center leading-none mt-1" id="lbl-digital-sign-stamp">
+                                            Digitally signed by Authorized Signatory<br>
+                                            Date: <span id="lbl-sig-date">2026.03.03 21:48:55</span> +05'30'
+                                        </div>
+                                    </div>
+                                    <span class="text-center font-extrabold tracking-widest uppercase text-[0.52rem] text-slate-400 block border-t pt-1 border-slate-100">Authorised Signatory</span>
+                                    
+                                    <!-- Company Seal Stamp (Dynamic) -->
+                                    <div id="prev-seal-container" class="absolute left-6 bottom-1 select-none opacity-40 pointer-events-none w-14 h-14" data-company="seal">
+                                        <!-- Injected dynamically via applyCompanyBranding -->
+                                    </div>
+                                </div>
+                            </div>
+                        
+                        </div> <!-- End of GST-style Outer Border Frame -->
+                    </div>
+                </div>
+
+                </div>
+
+            </div>
+
+        </main>
+    </div>
+
+    <!-- Toast container -->
+    <div id="toast-container" class="fixed bottom-6 right-6 z-[200] flex flex-col gap-3 max-w-sm pointer-events-none"></div>
+    {{ employees_data|json_script:"django-invoice-employees" }}
+    {{ invoices_data|json_script:"django-invoice-records" }}
+    {{ company_json|json_script:"company-settings-json" }}
+
+    <script src="{% static 'prototype/app.js' %}"></script>
+    <script>
+        // State variables
+        let selectedThemeColor = '#1D4ED8';
+        let showSignatureBlock = true;
+        let currentEditingId = null;
+        let currentDashboardTab = 'upcoming';
+        let currentStatusFilter = 'ALL';
+        let currentCompanyFilter = 'ALL';
+        
+        let invoiceState = {
+            // Invoice Metadata
+            invoiceNum: "QT/22",
+            invoiceDate: new Date().toISOString().split('T')[0], // current date as default
+            supplyState: "Delhi",
+            topic: "Sales Support Service Charge",
+            topicLabel: "Topic",
+
+            // Billed To (Client details)
+            clientName: "",
+            clientAddress: "",
+            clientGstin: "",
+            clientState: "",
+            clientStateCode: "",
+
+            // Product items
+            items: [
+                {
+                    name: "",
+                    qty: 1,
+                    unit: "Charge",
+                    rate: 0,
+                    igstRate: 18
+                }
+            ],
+
+            // Bank Details
+            accountName: "",
+            accountNo: "",
+            ifscCode: "",
+            bankName: "",
+            branchName: "",
+
+            // Signatory
+            signatoryName: "",
+            sigScript: "",
+
+            // Status and Signature Image Upload
+            status: "NONE",
+            sigImage: null
+        };
+
+        // Ensure state has generatedInvoices
+        if (typeof state !== 'undefined') {
+            state.generatedInvoices = state.generatedInvoices || [];
+        } else {
+            window.state = { employees: [], generatedInvoices: [] };
+        }
+
+        function normalizeInvoiceRecord(inv) {
+            const payload = inv && inv.payload ? inv.payload : {};
+            const items = payload.items || inv.items || [];
+            const totalAmount = Number(inv.finalTotal ?? inv.final_total ?? inv.totalAmount ?? payload.finalTotal ?? 0) || 0;
+            return {
+                id: String(inv.id ?? inv.invoiceNum ?? inv.invoice_number ?? payload.invoiceNum ?? ""),
+                employeeCode: inv.employeeCode || inv.employee_code || payload.employeeCode || "",
+                invoiceNum: inv.invoiceNum || inv.invoice_number || payload.invoiceNum || "",
+                invoiceDate: inv.invoiceDate || inv.invoice_date || payload.invoiceDate || new Date().toISOString().split('T')[0],
+                topic: inv.topic || payload.topic || "",
+                topicLabel: inv.topicLabel || payload.topicLabel || "Topic",
+                clientName: inv.clientName || inv.client_name || payload.clientName || "",
+                clientAddress: inv.clientAddress || inv.client_address || payload.clientAddress || "",
+                clientGstin: inv.clientGstin || inv.client_gstin || payload.clientGstin || "",
+                clientState: inv.clientState || inv.client_state || payload.clientState || "",
+                clientStateCode: inv.clientStateCode || inv.client_state_code || payload.clientStateCode || "",
+                supplyState: inv.supplyState || inv.supply_state || payload.supplyState || "",
+                items: Array.isArray(items) && items.length ? items : [{
+                    name: "",
+                    qty: 1,
+                    unit: "Charge",
+                    rate: 0,
+                    igstRate: 18
+                }],
+                accountName: inv.accountName || payload.accountName || "",
+                accountNo: inv.accountNo || payload.accountNo || "",
+                ifscCode: inv.ifscCode || payload.ifscCode || "",
+                bankName: inv.bankName || payload.bankName || "",
+                branchName: inv.branchName || payload.branchName || "",
+                signatoryName: inv.signatoryName || payload.signatoryName || "",
+                sigScript: inv.sigScript || payload.sigScript || "",
+                totalAmount: totalAmount,
+                itemCount: Number(inv.itemCount ?? (Array.isArray(items) ? items.length : 0)) || 0,
+                status: inv.status || payload.status || "UNPAID",
+                sigImage: inv.sigImage || payload.sigImage || null,
+                payload
+            };
+        }
+
+        document.addEventListener("DOMContentLoaded", () => {
+            try {
+                const empSource = document.getElementById("django-invoice-employees");
+                const invSource = document.getElementById("django-invoice-records");
+                const seededEmployees = empSource ? JSON.parse(empSource.textContent || "[]") : [];
+                const seededInvoices = invSource ? JSON.parse(invSource.textContent || "[]") : [];
+
+                if (Array.isArray(seededEmployees) && seededEmployees.length) {
+                    state.employees = seededEmployees;
+                }
+                if (Array.isArray(seededInvoices) && seededInvoices.length) {
+                    state.generatedInvoices = seededInvoices.map(normalizeInvoiceRecord);
+                }
+            } catch (e) {
+                console.warn("Unable to seed invoice data", e);
+            }
+        });
+
+        function switchDashboardTab(tab) {
+            currentDashboardTab = tab;
+            
+            const tabUpcoming = document.getElementById("tab-upcoming");
+            const tabPast = document.getElementById("tab-past");
+            
+            if (tab === 'upcoming') {
+                tabUpcoming.className = "pb-3 text-[#1D4ED8] border-b-2 border-[#1D4ED8] font-semibold transition-all cursor-pointer";
+                tabPast.className = "pb-3 text-slate-400 hover:text-[#0D2440] font-semibold transition-all cursor-pointer";
+            } else {
+                tabPast.className = "pb-3 text-[#1D4ED8] border-b-2 border-[#1D4ED8] font-semibold transition-all cursor-pointer";
+                tabUpcoming.className = "pb-3 text-slate-400 hover:text-[#0D2440] font-semibold transition-all cursor-pointer";
+            }
+            
+            renderGeneratedInvoices();
+        }
+
+        document.addEventListener("DOMContentLoaded", () => {
+            // Load backend company settings
+            try {
+                const companySource = document.getElementById("company-settings-json");
+                if (companySource) {
+                    const companySettings = JSON.parse(companySource.textContent || "{}");
+                    state.companySettings = Object.assign({}, DEFAULT_COMPANY_SETTINGS, state.companySettings, companySettings);
+                    if (typeof applyCompanyBranding === 'function') {
+                        applyCompanyBranding();
+                    }
+                }
+            } catch (e) {
+                console.warn("Unable to parse company-settings-json", e);
+            }
+
+            // Force check and initialize generatedInvoices after loadStateFromStorage
+            if (typeof state !== 'undefined') {
+                state.generatedInvoices = state.generatedInvoices || [];
+            }
+
+            // Populate Employee selector
+            updateSelectors();
+
+            // Bind triggers
+            document.getElementById("invoice-employee-select").addEventListener("change", handleEmployeeSelect);
+
+            document.getElementById("btn-print-invoice").addEventListener("click", () => {
+                const clientName = document.getElementById("lbl-client-name").textContent;
+                const invNum = document.getElementById("lbl-invoice-num").textContent;
+                
+                // Automatically save invoice to directory before printing
+                saveCurrentInvoiceQuietly();
+                
+                if (typeof Auditor !== 'undefined') {
+                    Auditor.log(`Printed Tax Invoice PDF for: ${clientName}. Invoice Num: ${invNum}. Theme Color: ${selectedThemeColor}`);
+                }
+                window.print();
+            });
+
+            // Styling dynamic active status inside brand themes
+            const dots = document.querySelectorAll('.theme-dot');
+            dots.forEach(d => {
+                if (d.classList.contains('active')) {
+                    d.innerHTML = '<span class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-[0.62rem] text-white font-bold">✓</span>';
+                }
+            });
+            
+            // Set initial theme color
+            const settings = state.companySettings || DEFAULT_COMPANY_SETTINGS;
+            const initialColor = settings.primaryColor || '#1D4ED8';
+            changeTheme(null, initialColor);
+            
+            // Render existing saved invoices
+            populateCompanyFilterDropdown();
+            renderGeneratedInvoices();
+
+            // Load shared invoice from query parameters if present
+            const urlParams = new URLSearchParams(window.location.search);
+            const viewId = urlParams.get('view');
+            if (viewId) {
+                setTimeout(() => {
+                    viewInvoice(viewId);
+                }, 100);
+            }
+        });
+
+        function updateSelectors() {
+            const select = document.getElementById("invoice-employee-select");
+            if (!select) return;
+
+            // Load active employees
+            const activeStaff = state.employees.filter(e => e.status === "Active");
+            select.innerHTML = `
+                <option value="">-- Select Employee (Ingest Payout) --</option>
+                ` + activeStaff.map(e => `
+                <option value="${e.id}">${e.name} [${e.id}]</option>
+            `).join("");
+
+            // Initialize compiler inputs with defaults
+            syncStateToInputs();
+            renderItemInputs();
+            recalculateInvoice();
+        }
+
+        function handleEmployeeSelect() {
+            const select = document.getElementById("invoice-employee-select");
+            const empId = select.value;
+            if (!empId) return;
+            
+            const emp = state.employees.find(e => e.id === empId);
+            if (emp) {
+                const calc = FinanceCalculator.calculate(emp);
+                
+                // Pre-fill Billed To details for ElectricPe as per requirements
+                invoiceState.clientName = "ElectricPe";
+                invoiceState.clientAddress = "Plot No-12-A, GR Flat No-264B-KH No-99/18 Late K L Vig Old New Delhi, West Delhi, Delhi, 110059";
+                invoiceState.clientGstin = "07AACCW9615J1ZY";
+                invoiceState.clientState = "Delhi";
+                invoiceState.clientStateCode = "07";
+                invoiceState.supplyState = "Delhi"; // Place of supply state matching receiver's state
+                invoiceState.topic = "Sales Support Service Charge";
+                
+                // Prefill bank and signatory details in whole
+                const settings = state.companySettings || DEFAULT_COMPANY_SETTINGS;
+                invoiceState.accountName = settings.accountName || settings.fullLegalName || "Company Legal Name";
+                invoiceState.accountNo = settings.accountNo || "[Bank Account Number]";
+                invoiceState.ifscCode = settings.ifscCode || "[Bank IFSC Code]";
+                invoiceState.bankName = settings.bankName || "[Bank Name]";
+                invoiceState.branchName = settings.branchName || "[Branch Name]";
+                invoiceState.signatoryName = settings.signatoryName || settings.shortName || "Authorized Signatory";
+                invoiceState.sigScript = settings.signatoryName || settings.shortName || "Authorized Signatory";
+                
+                // Reset items to single item representing employee payout
+                invoiceState.items = [
+                    {
+                        name: `Sales Support Service Charge - ${emp.name} (${emp.id})`,
+                        qty: 1,
+                        unit: "Charge",
+                        rate: calc.netPay,
+                        igstRate: 18
+                    }
+                ];
+
+                // Sync compiler inputs with state
+                syncStateToInputs();
+                renderItemInputs();
+                recalculateInvoice();
+                
+                if (typeof Toast !== 'undefined') {
+                    Toast.show(`Ingested payout details for ${emp.name} (₹ ${calc.netPay.toLocaleString('en-IN')})`);
+                }
+            }
+        }
+
+        function setInputValue(id, val) {
+            const el = document.getElementById(id);
+            if (el) {
+                el.value = val !== undefined && val !== null ? val : "";
+            }
+        }
+
+        function syncStateToInputs() {
+            setInputValue("inp-invoice-num", invoiceState.invoiceNum);
+            setInputValue("inp-invoice-date", invoiceState.invoiceDate);
+            setInputValue("inp-supply-state", invoiceState.supplyState);
+            setInputValue("inp-invoice-topic-label", invoiceState.topicLabel);
+            setInputValue("inp-invoice-topic", invoiceState.topic);
+
+            setInputValue("inp-client-name", invoiceState.clientName);
+            setInputValue("inp-client-address", invoiceState.clientAddress);
+            setInputValue("inp-client-gstin", invoiceState.clientGstin);
+            setInputValue("inp-client-state", invoiceState.clientState);
+            setInputValue("inp-client-state-code", invoiceState.clientStateCode);
+
+            setInputValue("inp-account-name", invoiceState.accountName);
+            setInputValue("inp-account-no", invoiceState.accountNo);
+            setInputValue("inp-ifsc", invoiceState.ifscCode);
+            setInputValue("inp-bank-name", invoiceState.bankName);
+            setInputValue("inp-branch-name", invoiceState.branchName);
+            setInputValue("inp-signatory-name", invoiceState.signatoryName);
+            setInputValue("inp-sig-script", invoiceState.sigScript);
+
+            setInputValue("inp-invoice-status", invoiceState.status || "UNPAID");
+            
+            const clearBtn = document.getElementById("btn-clear-sig-upload");
+            if (clearBtn) {
+                if (invoiceState.sigImage) {
+                    clearBtn.classList.remove("hidden");
+                } else {
+                    clearBtn.classList.add("hidden");
+                }
+            }
+        }
+
+        function updateField(key, val) {
+            invoiceState[key] = val;
+            recalculateInvoice();
+        }
+
+        function updateFieldFromPreview(key, val) {
+            invoiceState[key] = val;
+            const inputId = key === 'topic' ? 'inp-invoice-topic' : '';
+            if (inputId) {
+                const el = document.getElementById(inputId);
+                if (el) el.value = val;
+            }
+        }
+
+        function renderItemInputs() {
+            const container = document.getElementById("dynamic-items-container");
+            if (!container) return;
+            
+            container.innerHTML = invoiceState.items.map((item, index) => `
+                <div class="border border-slate-100 p-3 rounded-xl bg-slate-50/50 space-y-2 relative">
+                    <button type="button" onclick="removeItemRow(${index})" class="absolute top-2 right-2 text-slate-400 hover:text-red-500 font-bold text-xs">✕</button>
+                    <div class="flex flex-col gap-1">
+                        <label class="text-[0.6rem] text-slate-400 font-bold uppercase">Product Name / Description</label>
+                        <input type="text" value="${item.name}" oninput="updateItemField(${index}, 'name', this.value)" class="w-full px-2 py-1.5 rounded-lg border border-slate-200 text-xs focus:outline-none focus:border-qt-primary bg-white">
+                    </div>
+                    <div class="grid grid-cols-4 gap-2">
+                        <div class="flex flex-col gap-1 col-span-2">
+                            <label class="text-[0.6rem] text-slate-400 font-bold uppercase">Rate</label>
+                            <input type="number" value="${item.rate}" oninput="updateItemField(${index}, 'rate', this.value)" class="w-full px-2 py-1.5 rounded-lg border border-slate-200 text-xs focus:outline-none focus:border-qt-primary bg-white font-mono">
+                        </div>
+                        <div class="flex flex-col gap-1">
+                            <label class="text-[0.6rem] text-slate-400 font-bold uppercase">QTY</label>
+                            <input type="number" value="${item.qty}" oninput="updateItemField(${index}, 'qty', this.value)" class="w-full px-2 py-1.5 rounded-lg border border-slate-200 text-xs focus:outline-none focus:border-qt-primary bg-white font-mono">
+                        </div>
+                        <div class="flex flex-col gap-1">
+                            <label class="text-[0.6rem] text-slate-400 font-bold uppercase">Unit</label>
+                            <input type="text" value="${item.unit}" oninput="updateItemField(${index}, 'unit', this.value)" class="w-full px-2 py-1.5 rounded-lg border border-slate-200 text-xs focus:outline-none focus:border-qt-primary bg-white">
+                        </div>
+                    </div>
+                    <div class="grid grid-cols-2 gap-2">
+                        <div class="flex flex-col gap-1 col-span-2">
+                            <label class="text-[0.6rem] text-slate-400 font-bold uppercase">IGST Rate %</label>
+                            <input type="number" value="${item.igstRate}" oninput="updateItemField(${index}, 'igstRate', this.value)" class="w-full px-2 py-1.5 rounded-lg border border-slate-200 text-xs focus:outline-none focus:border-qt-primary bg-white font-mono">
+                        </div>
+                    </div>
+                </div>
+            `).join("");
+        }
+
+        function addItemRow() {
+            invoiceState.items.push({
+                name: "Sales Support Service Charge",
+                qty: 1,
+                unit: "Charge",
+                rate: 0,
+                igstRate: 18
+            });
+            renderItemInputs();
+            recalculateInvoice();
+        }
+
+        function removeItemRow(index) {
+            if (invoiceState.items.length <= 1) {
+                Toast.show("At least one line item is required.", "warning");
+                return;
+            }
+            invoiceState.items.splice(index, 1);
+            renderItemInputs();
+            recalculateInvoice();
+        }
+
+        function updateItemField(index, field, value) {
+            if (field === 'qty' || field === 'rate' || field === 'igstRate') {
+                invoiceState.items[index][field] = parseFloat(value) || 0;
+            } else {
+                invoiceState.items[index][field] = value;
+            }
+            recalculateInvoice();
+        }
+
+        function setElementText(id, text) {
+            const el = document.getElementById(id);
+            if (el) {
+                el.textContent = text !== undefined && text !== null ? text : "";
+            }
+        }
+
+        function recalculateInvoice() {
+            // Update single line corporate address in preview header
+            const headerAddressEl = document.getElementById("lbl-comp-address");
+            if (headerAddressEl) {
+                const settings = (typeof state !== 'undefined' && state.companySettings) ? state.companySettings : (typeof DEFAULT_COMPANY_SETTINGS !== 'undefined' ? DEFAULT_COMPANY_SETTINGS : {});
+                headerAddressEl.textContent = (settings.headOfficeAddress || '').replace(/\n/g, ', ');
+            }
+
+            // 1. Update preview fields for metadata and receiver
+            setElementText("lbl-invoice-num", invoiceState.invoiceNum);
+            setElementText("lbl-invoice-date", formatDate(invoiceState.invoiceDate));
+            setElementText("lbl-supply-state", invoiceState.supplyState);
+            setElementText("lbl-topic-header", invoiceState.topicLabel || "Topic");
+            setElementText("lbl-invoice-topic", invoiceState.topic);
+
+            setElementText("lbl-client-name", invoiceState.clientName);
+            setElementText("lbl-client-address", invoiceState.clientAddress);
+            setElementText("lbl-client-gstin", invoiceState.clientGstin);
+            setElementText("lbl-client-state-code-box", `State Code : ${invoiceState.clientStateCode || ""}`);
+            setElementText("lbl-client-state", invoiceState.clientState);
+
+            // 2. Update bank details
+            setElementText("lbl-bank-acc-name", invoiceState.accountName);
+            setElementText("lbl-bank-acc-no", invoiceState.accountNo);
+            setElementText("lbl-bank-ifsc", invoiceState.ifscCode);
+            setElementText("lbl-bank-name", invoiceState.bankName);
+            setElementText("lbl-bank-branch", invoiceState.branchName);
+
+            // 3. Update signatory details
+            const settings = state.companySettings || DEFAULT_COMPANY_SETTINGS;
+            setElementText("lbl-signatory-comp", `For, ${(settings.fullLegalName || 'Company Legal Name').toUpperCase()}`);
+            setElementText("prev-sig-font", invoiceState.sigScript || settings.shortName || "Authorized Signatory");
+            const digitStamp = document.getElementById("lbl-digital-sign-stamp");
+            if (digitStamp) {
+                digitStamp.innerHTML = `Digitally signed by ${invoiceState.signatoryName || settings.shortName || "Authorized Signatory"}<br>Date: <span id="lbl-sig-date">${formatSigDate(invoiceState.invoiceDate)}</span> +05'30'`;
+            } else {
+                setElementText("lbl-sig-date", formatSigDate(invoiceState.invoiceDate));
+            }
+ 
+            const sigFont = document.getElementById("prev-sig-font");
+            const sigImg = document.getElementById("prev-sig-img");
+            const activeSig = invoiceState.sigImage || settings.signatureImage;
+            if (activeSig) {
+                if (sigFont) {
+                    sigFont.style.display = "none";
+                    sigFont.classList.add("hidden");
+                }
+                if (sigImg) {
+                    sigImg.src = activeSig;
+                    sigImg.style.display = "block";
+                    sigImg.classList.remove("hidden");
+                }
+            } else {
+                if (sigFont) {
+                    sigFont.style.display = "block";
+                    sigFont.classList.remove("hidden");
+                }
+                if (sigImg) {
+                    sigImg.style.display = "none";
+                    sigImg.classList.add("hidden");
+                }
+            }
+
+            // Update status watermark stamp
+            const statusStamp = document.getElementById("invoice-status-stamp");
+            if (statusStamp) {
+                const status = invoiceState.status || "NONE";
+                if (status === "NONE") {
+                    statusStamp.style.display = "none";
+                } else {
+                    statusStamp.textContent = status;
+                    statusStamp.className = `absolute top-[28%] right-[10%] border-4 border-dashed rounded-xl px-5 py-2 text-2xl font-black uppercase tracking-widest -rotate-12 select-none pointer-events-none z-10 transition-all duration-200 ${
+                        status === 'PAID' 
+                        ? 'text-emerald-600 border-emerald-600 bg-emerald-50/50 bg-opacity-70' 
+                        : 'text-red-500 border-red-500 bg-red-50/50 bg-opacity-70'
+                    }`;
+                    statusStamp.style.display = "block";
+                }
+            }
+
+            // 4. Calculate line items
+            let totalQty = 0;
+            let totalTaxable = 0;
+            let totalTaxAmount = 0;
+            let totalInvoice = 0;
+
+            const rowsHTML = (invoiceState.items || []).map((item, index) => {
+                const taxableVal = (item.qty || 0) * (item.rate || 0);
+                const taxAmt = taxableVal * ((item.igstRate || 0) / 100);
+                const itemTotal = taxableVal + taxAmt;
+
+                totalQty += (item.qty || 0);
+                totalTaxable += taxableVal;
+                totalTaxAmount += taxAmt;
+                totalInvoice += itemTotal;
+
+                return `
+                    <tr class="border-b border-black">
+                        <td class="p-1.5 border-r border-black text-center">${index + 1}</td>
+                        <td class="p-1.5 border-r border-black font-bold">${item.name || ""}</td>
+                        <td class="p-1.5 border-r border-black text-center font-bold">${item.qty || 0}</td>
+                        <td class="p-1.5 border-r border-black text-center">${item.unit || ""}</td>
+                        <td class="py-1 px-1 border-r border-black text-right font-mono">${(item.rate || 0).toFixed(2)}</td>
+                        <td class="py-1 px-1 border-r border-black text-right font-mono">${taxableVal.toFixed(2)}</td>
+                        <td class="py-1 px-1 border-r border-black text-center font-mono">${item.igstRate || 0}%</td>
+                        <td class="py-1 px-1 border-r border-black text-right font-mono">${taxAmt.toFixed(2)}</td>
+                        <td class="py-1 px-1 text-right font-mono font-bold">${itemTotal.toFixed(2)}</td>
+                    </tr>
+                `;
+            }).join("");
+
+            // Add empty rows if items length is small to keep visual design consistent
+            let paddingRowsHTML = "";
+            const minRows = 3;
+            const itemsCount = invoiceState.items ? invoiceState.items.length : 0;
+            if (itemsCount < minRows) {
+                for (let i = itemsCount; i < minRows; i++) {
+                    paddingRowsHTML += `
+                        <tr class="border-b border-black h-[26px]">
+                            <td class="p-1.5 border-r border-black"></td>
+                            <td class="p-1.5 border-r border-black"></td>
+                            <td class="p-1.5 border-r border-black"></td>
+                            <td class="p-1.5 border-r border-black"></td>
+                            <td class="py-1 px-1 border-r border-black"></td>
+                            <td class="py-1 px-1 border-r border-black"></td>
+                            <td class="py-1 px-1 border-r border-black"></td>
+                            <td class="py-1 px-1 border-r border-black"></td>
+                            <td class="py-1 px-1"></td>
+                        </tr>
+                    `;
+                }
+            }
+
+            const previewRows = document.getElementById("invoice-preview-rows");
+            if (previewRows) previewRows.innerHTML = rowsHTML + paddingRowsHTML;
+
+            // 5. Update footer table totals
+            setElementText("lbl-total-qty", totalQty);
+            setElementText("lbl-total-taxable", totalTaxable.toFixed(2));
+            setElementText("lbl-total-tax-amount", totalTaxAmount.toFixed(2));
+            setElementText("lbl-total-invoice", totalInvoice.toFixed(2));
+
+            // 6. Update Right breakdown details
+            const roundOff = Math.round(totalInvoice) - totalInvoice;
+            const finalInvoiceAmount = Math.round(totalInvoice);
+
+            setElementText("lbl-sum-before-tax", totalTaxable.toFixed(2));
+            setElementText("lbl-sum-tax-add", totalTaxAmount.toFixed(2));
+            setElementText("lbl-sum-tax-total", totalTaxAmount.toFixed(2));
+            setElementText("lbl-sum-roundoff", roundOff.toFixed(2));
+            
+            const finalInvoiceEl = document.getElementById("lbl-sum-final-invoice");
+            if (finalInvoiceEl) {
+                finalInvoiceEl.textContent = `₹ ${finalInvoiceAmount.toLocaleString('en-IN', {minimumFractionDigits: 2})}`;
+            }
+            const balanceDueEl = document.getElementById("lbl-sum-balance-due");
+            if (balanceDueEl) {
+                balanceDueEl.textContent = `₹ ${finalInvoiceAmount.toLocaleString('en-IN', {minimumFractionDigits: 2})}`;
+            }
+
+            // 7. Update Words label
+            setElementText("lbl-amount-words", numberToIndianWords(finalInvoiceAmount));
+        }
+
+        function formatDate(dateStr) {
+            if (!dateStr) return "";
+            const parts = dateStr.split("-");
+            if (parts.length === 3) {
+                return `${parts[2]}-${parts[1]}-${parts[0]}`;
+            }
+            return dateStr;
+        }
+
+        function formatSigDate(dateStr) {
+            if (!dateStr) return "";
+            const dotted = dateStr.replace(/-/g, ".");
+            return `${dotted} 21:48:55`;
+        }
+
+        function numberToIndianWords(num) {
+            if (num === 0) return "Zero Rupees Only";
+            
+            const a = [
+                '', 'One', 'Two', 'Three', 'Four', 'Five', 'Six', 'Seven', 'Eight', 'Nine', 'Ten',
+                'Eleven', 'Twelve', 'Thirteen', 'Fourteen', 'Fifteen', 'Sixteen', 'Seventeen', 'Eighteen', 'Nineteen'
+            ];
+            const b = ['', '', 'Twenty', 'Thirty', 'Forty', 'Fifty', 'Sixty', 'Seventy', 'Eighty', 'Ninety'];
+            
+            function helper(n) {
+                let str = "";
+                if (n > 99) {
+                    str += a[Math.floor(n / 100)] + " Hundred ";
+                    n %= 100;
+                }
+                if (n > 19) {
+                    str += b[Math.floor(n / 10)] + " ";
+                    n %= 10;
+                }
+                if (n > 0) {
+                    str += a[n] + " ";
+                }
+                return str.trim();
+            }
+            
+            let str = "";
+            let crore = Math.floor(num / 10000000);
+            num %= 10000000;
+            let lakh = Math.floor(num / 100000);
+            num %= 100000;
+            let thousand = Math.floor(num / 1000);
+            num %= 1000;
+            let remaining = num;
+            
+            if (crore > 0) {
+                str += helper(crore) + " Crore ";
+            }
+            if (lakh > 0) {
+                str += helper(lakh) + " Lakh ";
+            }
+            if (thousand > 0) {
+                str += helper(thousand) + " Thousand ";
+            }
+            if (remaining > 0) {
+                str += helper(remaining) + " ";
+            }
+            
+            return "Rupees " + str.trim().replace(/\s+/g, ' ') + " Only";
+        }
+
+        // Branding adjustments
+        function changeTheme(dot, color) {
+            // Remove active dot border
+            const dots = document.querySelectorAll('.theme-dot');
+            dots.forEach(d => {
+                d.classList.remove('active');
+                d.innerHTML = '';
+            });
+            
+            // Add active class
+            if (dot) {
+                dot.classList.add('active');
+                dot.innerHTML = '<span class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-[0.62rem] text-white font-bold">✓</span>';
+            }
+            
+            selectedThemeColor = color;
+            
+            // Modify custom styles dynamically
+            const banner = document.getElementById("lbl-receiver-banner");
+            if (banner) banner.style.backgroundColor = color;
+            
+            const taxableHdr = document.getElementById("lbl-taxable-value-hdr");
+            if (taxableHdr) taxableHdr.style.backgroundColor = color;
+            
+            // Color the SVG logo circle, line, and letter "Q"
+            const logoSvg = document.querySelector("#prev-invoice-logo svg");
+            if (logoSvg) {
+                const circle = logoSvg.querySelector("circle");
+                const line = logoSvg.querySelector("line");
+                const textQ = logoSvg.querySelector("text"); // First text is Q
+                if (circle) circle.setAttribute("stroke", color);
+                if (line) line.setAttribute("stroke", color);
+                if (textQ) textQ.setAttribute("fill", color);
+            }
+            
+            // Color the final totals
+            const finalInvoice = document.getElementById("lbl-sum-final-invoice");
+            if (finalInvoice) finalInvoice.style.color = color;
+            const balanceDue = document.getElementById("lbl-sum-balance-due");
+            if (balanceDue) balanceDue.style.color = color;
+            
+            if (typeof Toast !== 'undefined') {
+                Toast.show(`Invoice theme color set to: ${color}`, "info");
+            }
+        }
+
+        function toggleStamp() {
+            const btn = document.getElementById("btn-toggle-stamp");
+            const box = document.getElementById("prev-signature-box");
+            
+            showSignatureBlock = !showSignatureBlock;
+            
+            if (showSignatureBlock) {
+                btn.classList.add("active");
+                btn.style.backgroundColor = "#eff6ff";
+                btn.style.color = "#1d4ed8";
+                btn.style.borderColor = "#bfdbfe";
+                box.style.display = "flex";
+                if (typeof Toast !== 'undefined') {
+                    Toast.show("Digital signature block added.");
+                }
+            } else {
+                btn.classList.remove("active");
+                btn.style.backgroundColor = "";
+                btn.style.color = "";
+                btn.style.borderColor = "";
+                box.style.display = "none";
+                if (typeof Toast !== 'undefined') {
+                    Toast.show("Digital signature block removed.", "warning");
+                }
+            }
+        }
+
+        function saveCurrentInvoice() {
+            recalculateInvoice();
+            const settings = state.companySettings || DEFAULT_COMPANY_SETTINGS;
+            
+            // Calculate financial totals
+            let totalQty = 0;
+            let totalTaxable = 0;
+            let totalTaxAmount = 0;
+            let totalInvoice = 0;
+            (invoiceState.items || []).forEach(item => {
+                const taxableVal = (item.qty || 0) * (item.rate || 0);
+                const taxAmt = taxableVal * ((item.igstRate || 0) / 100);
+                totalQty += (item.qty || 0);
+                totalTaxable += taxableVal;
+                totalTaxAmount += taxAmt;
+                totalInvoice += taxableVal + taxAmt;
+            });
+            const finalInvoiceAmount = Math.round(totalInvoice);
+
+            const payload = {
+                employeeCode: document.getElementById("invoice-employee-select")?.value || "",
+                employee_code: document.getElementById("invoice-employee-select")?.value || "",
+                invoiceNum: invoiceState.invoiceNum,
+                invoice_number: invoiceState.invoiceNum,
+                invoiceDate: invoiceState.invoiceDate,
+                invoice_date: invoiceState.invoiceDate,
+                topic: invoiceState.topic,
+                invoice_topic: invoiceState.topic,
+                clientName: invoiceState.clientName,
+                client_name: invoiceState.clientName,
+                clientAddress: invoiceState.clientAddress,
+                client_address: invoiceState.clientAddress,
+                clientGstin: invoiceState.clientGstin,
+                client_gstin: invoiceState.clientGstin,
+                clientState: invoiceState.clientState,
+                client_state: invoiceState.clientState,
+                clientStateCode: invoiceState.clientStateCode,
+                client_state_code: invoiceState.clientStateCode,
+                supplyState: invoiceState.supplyState,
+                supply_state: invoiceState.supplyState,
+                status: invoiceState.status || "UNPAID",
+                grossTotal: totalTaxable,
+                gross_total: totalTaxable,
+                taxTotal: totalTaxAmount,
+                tax_total: totalTaxAmount,
+                finalTotal: finalInvoiceAmount,
+                final_total: finalInvoiceAmount,
+                
+                // Source details
+                sourceCompany: settings.fullLegalName || "QT Consultancy Private Limited",
+                source_company: settings.fullLegalName || "QT Consultancy Private Limited",
+                gstinA: settings.gstin || "",
+                gstin_a: settings.gstin || "",
+                stateCodeA: settings.stateCode || "",
+                state_code_a: settings.stateCode || "",
+                website: settings.websiteUrl || "",
+                location: settings.headOfficeAddress || "",
+                
+                // Destination details
+                destinationCompany: invoiceState.clientName,
+                destination_company: invoiceState.clientName,
+                
+                // Invoice details
+                state: invoiceState.clientState,
+                reverseCharge: invoiceState.reverseCharge || "No",
+                reverse_charge: invoiceState.reverseCharge || "No",
+                stateCode: invoiceState.clientStateCode,
+                state_code: invoiceState.clientStateCode,
+                
+                // Financial summaries
+                taxableAmtBeforeTax: totalTaxable,
+                taxable_amt_before_tax: totalTaxable,
+                totalTaxAmt: totalTaxAmount,
+                total_tax_amt: totalTaxAmount,
+                finalInvoiceAmt: finalInvoiceAmount,
+                final_invoice_amt: finalInvoiceAmount,
+                balanceDue: finalInvoiceAmount,
+                balance_due: finalInvoiceAmount,
+                
+                items: JSON.parse(JSON.stringify(invoiceState.items)),
+                accountName: invoiceState.accountName,
+                accountNo: invoiceState.accountNo,
+                ifscCode: invoiceState.ifscCode,
+                bankName: invoiceState.bankName,
+                branchName: invoiceState.branchName,
+                signatoryName: invoiceState.signatoryName,
+                sigScript: invoiceState.sigScript,
+                sigImage: invoiceState.sigImage || null
+            };
+
+            fetch("/documents/invoices/", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    "X-Requested-With": "XMLHttpRequest"
+                },
+                body: JSON.stringify(payload)
+            }).then(async (response) => {
+                const data = await response.json().catch(() => ({}));
+                if (!response.ok || !data.ok) {
+                    throw new Error(data.error || "Unable to save invoice.");
+                }
+                Toast.show(`Invoice ${invoiceState.invoiceNum} saved successfully.`);
+                window.location.reload();
+            }).catch((err) => {
+                Toast.show(err.message, "danger");
+            });
+        }
+
+        function saveCurrentInvoiceQuietly() {
+            recalculateInvoice();
+            const settings = state.companySettings || DEFAULT_COMPANY_SETTINGS;
+            
+            // Calculate financial totals
+            let totalQty = 0;
+            let totalTaxable = 0;
+            let totalTaxAmount = 0;
+            let totalInvoice = 0;
+            (invoiceState.items || []).forEach(item => {
+                const taxableVal = (item.qty || 0) * (item.rate || 0);
+                const taxAmt = taxableVal * ((item.igstRate || 0) / 100);
+                totalQty += (item.qty || 0);
+                totalTaxable += taxableVal;
+                totalTaxAmount += taxAmt;
+                totalInvoice += taxableVal + taxAmt;
+            });
+            const finalInvoiceAmount = Math.round(totalInvoice);
+
+            const payload = {
+                employeeCode: document.getElementById("invoice-employee-select")?.value || "",
+                employee_code: document.getElementById("invoice-employee-select")?.value || "",
+                invoiceNum: invoiceState.invoiceNum,
+                invoice_number: invoiceState.invoiceNum,
+                invoiceDate: invoiceState.invoiceDate,
+                invoice_date: invoiceState.invoiceDate,
+                topic: invoiceState.topic,
+                invoice_topic: invoiceState.topic,
+                clientName: invoiceState.clientName,
+                client_name: invoiceState.clientName,
+                clientAddress: invoiceState.clientAddress,
+                client_address: invoiceState.clientAddress,
+                clientGstin: invoiceState.clientGstin,
+                client_gstin: invoiceState.clientGstin,
+                clientState: invoiceState.clientState,
+                client_state: invoiceState.clientState,
+                clientStateCode: invoiceState.clientStateCode,
+                client_state_code: invoiceState.clientStateCode,
+                supplyState: invoiceState.supplyState,
+                supply_state: invoiceState.supplyState,
+                status: invoiceState.status || "UNPAID",
+                grossTotal: totalTaxable,
+                gross_total: totalTaxable,
+                taxTotal: totalTaxAmount,
+                tax_total: totalTaxAmount,
+                finalTotal: finalInvoiceAmount,
+                final_total: finalInvoiceAmount,
+                
+                // Source details
+                sourceCompany: settings.fullLegalName || "QT Consultancy Private Limited",
+                source_company: settings.fullLegalName || "QT Consultancy Private Limited",
+                gstinA: settings.gstin || "",
+                gstin_a: settings.gstin || "",
+                stateCodeA: settings.stateCode || "",
+                state_code_a: settings.stateCode || "",
+                website: settings.websiteUrl || "",
+                location: settings.headOfficeAddress || "",
+                
+                // Destination details
+                destinationCompany: invoiceState.clientName,
+                destination_company: invoiceState.clientName,
+                
+                // Invoice details
+                state: invoiceState.clientState,
+                reverseCharge: invoiceState.reverseCharge || "No",
+                reverse_charge: invoiceState.reverseCharge || "No",
+                stateCode: invoiceState.clientStateCode,
+                state_code: invoiceState.clientStateCode,
+                
+                // Financial summaries
+                taxableAmtBeforeTax: totalTaxable,
+                taxable_amt_before_tax: totalTaxable,
+                totalTaxAmt: totalTaxAmount,
+                total_tax_amt: totalTaxAmount,
+                finalInvoiceAmt: finalInvoiceAmount,
+                final_invoice_amt: finalInvoiceAmount,
+                balanceDue: finalInvoiceAmount,
+                balance_due: finalInvoiceAmount,
+                
+                items: JSON.parse(JSON.stringify(invoiceState.items)),
+                accountName: invoiceState.accountName,
+                accountNo: invoiceState.accountNo,
+                ifscCode: invoiceState.ifscCode,
+                bankName: invoiceState.bankName,
+                branchName: invoiceState.branchName,
+                signatoryName: invoiceState.signatoryName,
+                sigScript: invoiceState.sigScript,
+                sigImage: invoiceState.sigImage || null
+            };
+
+            fetch("/documents/invoices/", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    "X-Requested-With": "XMLHttpRequest"
+                },
+                body: JSON.stringify(payload)
+            }).catch(() => {});
+            populateCompanyFilterDropdown();
+            renderGeneratedInvoices();
+        }
+
+        function showEditorForNew() {
+            createNewInvoice(true);
+            document.getElementById("invoice-dashboard-view").classList.add("hidden");
+            document.getElementById("invoice-editor-view").classList.remove("hidden");
+        }
+
+        function hideEditor() {
+            document.getElementById("invoice-editor-view").classList.add("hidden");
+            document.getElementById("invoice-dashboard-view").classList.remove("hidden");
+            renderGeneratedInvoices();
+        }
+
+        function filterInvoices(query) {
+            const container = document.getElementById("generated-invoices-list");
+            if (!container) return;
+
+            let list = state.generatedInvoices || [];
+            
+            // Tab filtering
+            if (currentDashboardTab === 'past') {
+                container.innerHTML = `
+                    <div class="text-center py-8 text-slate-400 text-xs col-span-2">
+                        No past drafts found.
+                    </div>
+                `;
+                const badge = document.getElementById("invoice-count-badge");
+                if (badge) badge.textContent = `Total: 0`;
+                return;
+            }
+
+            // Apply search query, status filter, and company filter
+            const filtered = list.filter(inv => {
+                const matchesSearch = 
+                    (inv.invoiceNum || "").toLowerCase().includes((query || "").toLowerCase()) ||
+                    (inv.clientName || "").toLowerCase().includes((query || "").toLowerCase()) ||
+                    (inv.invoiceDate || "").includes(query || "");
+                
+                const matchesStatus = 
+                    currentStatusFilter === 'ALL' || 
+                    (inv.status || 'UNPAID') === currentStatusFilter;
+                
+                const matchesCompany = 
+                    currentCompanyFilter === 'ALL' || 
+                    (inv.clientName || "").trim() === currentCompanyFilter.trim();
+                
+                return matchesSearch && matchesStatus && matchesCompany;
+            });
+
+            const badge = document.getElementById("invoice-count-badge");
+            if (badge) badge.textContent = `Total: ${filtered.length}`;
+
+            if (filtered.length === 0) {
+                container.innerHTML = `
+                    <div class="text-center py-8 text-slate-400 text-xs col-span-2">
+                        No matching invoices found.
+                    </div>
+                `;
+                return;
+            }
+
+            container.innerHTML = filtered.map(inv => `
+                <div onclick="viewInvoice('${inv.id}')" class="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 hover:border-slate-350 transition-all cursor-pointer">
+                    <div class="flex flex-col">
+                        <!-- Tag & Status -->
+                        <div class="flex flex-wrap items-center gap-2">
+                            <span class="bg-blue-50 text-blue-700 text-[0.62rem] font-black px-2.5 py-0.5 rounded-md border border-blue-200 uppercase tracking-widest inline-flex items-center gap-1">
+                                🏛️ INVOICE : ${inv.invoiceNum}
+                            </span>
+                            ${(() => {
+                                const status = inv.status || 'NONE';
+                                if (status === 'PAID') {
+                                    return `<span class="bg-emerald-50 text-emerald-700 border-emerald-250 text-[0.62rem] font-black px-2.5 py-0.5 rounded-md border uppercase tracking-widest inline-flex items-center gap-1">🟢 PAID</span>`;
+                                } else if (status === 'UNPAID') {
+                                    return `<span class="bg-red-50 text-red-700 border-red-250 text-[0.62rem] font-black px-2.5 py-0.5 rounded-md border uppercase tracking-widest inline-flex items-center gap-1">🔴 UNPAID</span>`;
+                                } else {
+                                    return `<span class="bg-slate-100 text-slate-650 border-slate-250 text-[0.62rem] font-black px-2.5 py-0.5 rounded-md border uppercase tracking-widest inline-flex items-center gap-1">⚪ NO MARK</span>`;
+                                }
+                            })()}
+                        </div>
+                        <!-- Title -->
+                        <h4 class="text-slate-900 font-extrabold text-sm mt-2 tracking-tight">
+                            ${inv.clientName}
+                        </h4>
+                        <!-- Sub-metadata row -->
+                        <div class="flex flex-wrap items-center gap-4 mt-2 text-slate-400 font-bold text-[0.62rem] uppercase tracking-wider">
+                            <span class="flex items-center gap-1">
+                                📅 ${inv.invoiceDate}
+                            </span>
+                            <span class="flex items-center gap-1">
+                                ⏱️ ₹ ${(Number(inv.totalAmount ?? inv.finalTotal ?? inv.final_total ?? 0)).toLocaleString('en-IN', {minimumFractionDigits: 2})}
+                            </span>
+                            <span class="flex items-center gap-1">
+                                👥 ${Number(inv.itemCount ?? inv.payload?.items?.length ?? inv.items?.length ?? 0)} ${(Number(inv.itemCount ?? inv.payload?.items?.length ?? inv.items?.length ?? 0) === 1) ? 'ITEM' : 'ITEMS'}
+                            </span>
+                        </div>
+                    </div>
+                    
+                    <!-- Actions -->
+                    <div class="flex flex-col gap-2 shrink-0 w-full sm:w-auto">
+                        <div class="flex gap-2">
+                            <button onclick="event.stopPropagation(); viewInvoice('${inv.id}')" class="flex-1 sm:flex-initial bg-slate-100 hover:bg-slate-200 text-slate-700 px-3.5 py-1.5 rounded-xl font-bold text-xs flex items-center justify-center gap-1.5 transition-colors">
+                                👁️ View
+                            </button>
+                            <button onclick="event.stopPropagation(); editInvoice('${inv.id}')" class="flex-1 sm:flex-initial bg-[#0D2440] hover:bg-slate-800 text-white px-3.5 py-1.5 rounded-xl font-bold text-xs flex items-center justify-center gap-1.5 transition-colors">
+                                📝 Edit
+                            </button>
+                        </div>
+                        <button onclick="event.stopPropagation(); deleteInvoice('${inv.id}')" class="w-full border border-red-200 hover:bg-red-50 text-red-650 px-4 py-1.5 rounded-xl font-bold text-xs flex items-center justify-center gap-1.5 transition-colors">
+                            🗑️ Delete
+                        </button>
+                    </div>
+                </div>
+            `).join("");
+        }
+
+        function renderGeneratedInvoices() {
+            filterInvoices("");
+        }
+
+        function setInvoiceEditorReadOnly(isReadOnly) {
+            const editor = document.getElementById("invoice-editor-view");
+            if (!editor) return;
+
+            const inputs = editor.querySelectorAll("input, select, textarea, button");
+            inputs.forEach(el => {
+                if (el.id === "btn-print-invoice") return;
+                if (el.id === "btn-save-invoice") {
+                    el.disabled = isReadOnly;
+                    el.classList.toggle("opacity-50", isReadOnly);
+                    el.classList.toggle("cursor-not-allowed", isReadOnly);
+                    return;
+                }
+                if (el.id === "btn-print-invoice") return;
+                if (el.tagName === "BUTTON" && el.onclick && String(el.onclick).includes("showEditorForNew")) return;
+                if (el.tagName === "BUTTON" && el.id !== "btn-save-invoice") {
+                    el.disabled = isReadOnly && (el.id === "btn-add-row" || el.id === "btn-remove-row" || el.id === "btn-clear-sig-upload");
+                }
+                if ("readOnly" in el) {
+                    el.readOnly = isReadOnly;
+                }
+                if ("disabled" in el && el.tagName !== "BUTTON") {
+                    el.disabled = isReadOnly;
+                }
+            });
+
+            const itemButtons = editor.querySelectorAll("[data-invoice-edit]");
+            itemButtons.forEach(btn => {
+                btn.disabled = isReadOnly;
+                btn.classList.toggle("pointer-events-none", isReadOnly);
+                btn.classList.toggle("opacity-50", isReadOnly);
+            });
+        }
+
+        function viewInvoice(id) {
+            editInvoice(id, true);
+            // Scroll preview card into view
+            setTimeout(() => {
+                const sheet = document.getElementById("invoice-sheet");
+                if (sheet) sheet.scrollIntoView({ behavior: 'smooth' });
+            }, 50);
+        }
+
+        function editInvoice(id, isReadOnly = false) {
+            const inv = state.generatedInvoices.find(i => String(i.id) === String(id));
+            const settings = state.companySettings || DEFAULT_COMPANY_SETTINGS;
+            if (inv) {
+                currentEditingId = String(id);
+                const defaultInvoice = {
+                    invoiceNum: (settings.logoInitials || "QT") + "/" + ((state && state.generatedInvoices) ? state.generatedInvoices.length + 21 : 22),
+                    invoiceDate: new Date().toISOString().split('T')[0],
+                    supplyState: "Delhi",
+                    topic: "Sales Support Service Charge",
+                    topicLabel: "Topic",
+                    clientName: "",
+                    clientAddress: "",
+                    clientGstin: "",
+                    clientState: "",
+                    clientStateCode: "",
+                    items: [
+                        {
+                            name: "",
+                            qty: 1,
+                            unit: "Charge",
+                            rate: 0,
+                            igstRate: 18
+                        }
+                    ],
+                    accountName: "",
+                    accountNo: "",
+                    ifscCode: "",
+                    bankName: "",
+                    branchName: "",
+                    signatoryName: "",
+                    sigScript: "",
+                    status: "NONE",
+                    sigImage: null
+                };
+                const merged = Object.assign({}, defaultInvoice, JSON.parse(JSON.stringify(inv)));
+                if (merged.reverseCharge && !merged.topic) {
+                    merged.topic = "Reverse Charge: " + merged.reverseCharge;
+                }
+                if (!merged.topicLabel) {
+                    merged.topicLabel = "Topic";
+                }
+                invoiceState = merged;
+                
+                // Sync to compiler inputs
+                syncStateToInputs();
+                renderItemInputs();
+                recalculateInvoice();
+                
+                // Show Editor
+                document.getElementById("invoice-dashboard-view").classList.add("hidden");
+                document.getElementById("invoice-editor-view").classList.remove("hidden");
+                setInvoiceEditorReadOnly(isReadOnly);
+                
+                Toast.show(
+                    isReadOnly
+                        ? `Viewing Invoice ${inv.invoiceNum} in read-only mode.`
+                        : `Editing Invoice ${inv.invoiceNum}. Make changes and click Save / Update.`,
+                    "info"
+                );
+                
+                // Enable save button
+                const saveBtn = document.getElementById("btn-save-invoice");
+                if (saveBtn) {
+                    saveBtn.disabled = isReadOnly;
+                    saveBtn.classList.toggle("opacity-50", isReadOnly);
+                    saveBtn.classList.toggle("cursor-not-allowed", isReadOnly);
+                    saveBtn.classList.toggle("hover:bg-slate-900", !isReadOnly);
+                }
+            }
+        }
+
+        function createNewInvoice(silent = false) {
+            currentEditingId = null;
+            setInvoiceEditorReadOnly(false);
+            
+            const settings = state.companySettings || DEFAULT_COMPANY_SETTINGS;
+            
+            // Reset to defaults
+            const invoiceCount = (state && state.generatedInvoices) ? state.generatedInvoices.length : 0;
+            invoiceState = {
+                invoiceNum: (settings.logoInitials || "QT") + "/" + (invoiceCount + 22),
+                invoiceDate: new Date().toISOString().split('T')[0],
+                supplyState: "Delhi",
+                topic: "Sales Support Service Charge",
+                topicLabel: "Topic",
+                clientName: "",
+                clientAddress: "",
+                clientGstin: "",
+                clientState: "",
+                clientStateCode: "",
+                items: [
+                    {
+                        name: "",
+                        qty: 1,
+                        unit: "Charge",
+                        rate: 0,
+                        igstRate: 18
+                    }
+                ],
+                accountName: settings.accountName || settings.fullLegalName || "Company Legal Name",
+                accountNo: settings.accountNo || "[Bank Account Number]",
+                ifscCode: settings.ifscCode || "[Bank IFSC Code]",
+                bankName: settings.bankName || "[Bank Name]",
+                branchName: settings.branchName || "[Branch Name]",
+                signatoryName: settings.signatoryName || settings.shortName || "Authorized Signatory",
+                sigScript: settings.signatoryName || settings.shortName || "Authorized Signatory",
+                status: "NONE",
+                sigImage: null
+            };
+            
+            const select = document.getElementById("invoice-employee-select");
+            if (select) select.value = "";
+
+            syncStateToInputs();
+            renderItemInputs();
+            recalculateInvoice();
+            if (!silent) {
+                Toast.show("Form reset. Ready to compile a new invoice.", "success");
+            }
+            
+            // Enable save button
+            const saveBtn = document.getElementById("btn-save-invoice");
+            if (saveBtn) {
+                saveBtn.disabled = false;
+                saveBtn.classList.remove("opacity-50", "cursor-not-allowed");
+                saveBtn.classList.add("hover:bg-slate-900");
+            }
+        }
+
+        function cancelEditingMode() {
+            createNewInvoice(true);
+            setInvoiceEditorReadOnly(false);
+            Toast.show("Exited editing mode. Ready to compile a new invoice.", "info");
+        }
+
+        function shareInvoice(id) {
+            const inv = state.generatedInvoices.find(i => i.id === id);
+            if (inv) {
+                const mockUrl = `${window.location.origin}${window.location.pathname}?view=${inv.id}`;
+                navigator.clipboard.writeText(mockUrl).then(() => {
+                    Toast.show(`Shareable URL copied to clipboard: ${mockUrl}`);
+                }).catch(() => {
+                    Toast.show(`Share link: ${mockUrl}`, "info");
+                });
+            }
+        }
+
+        function deleteInvoice(id) {
+            if (confirm("Are you sure you want to delete this invoice?")) {
+                const idx = state.generatedInvoices.findIndex(inv => String(inv.id) === String(id));
+                if (idx !== -1) {
+                    const invNum = state.generatedInvoices[idx].invoiceNum;
+                    state.generatedInvoices.splice(idx, 1);
+                    populateCompanyFilterDropdown();
+                    renderGeneratedInvoices();
+                    if (typeof Toast !== 'undefined') {
+                        Toast.show(`Invoice ${invNum} deleted successfully.`, "danger");
+                    }
+                    if (typeof Auditor !== 'undefined') {
+                        Auditor.log(`Deleted invoice: ${invNum}`);
+                    }
+                }
+            }
+        }
+
+        function simulateMailTransmittal() {
+            const clientName = document.getElementById("lbl-client-name").textContent;
+            const invNum = document.getElementById("lbl-invoice-num").textContent;
+            Toast.show(`Emailing secure Tax Invoice ${invNum} PDF to client: ${clientName}...`, "info");
+            setTimeout(() => {
+                Toast.show(`Tax Invoice successfully transmitted to ${clientName} corporate billing inbox.`);
+                if (typeof Auditor !== 'undefined') {
+                    Auditor.log(`Tax Invoice ${invNum} emailed to: ${clientName}.`);
+                }
+            }, 1500);
+        }
+
+        function simulateWhatsAppShare() {
+            const clientName = document.getElementById("lbl-client-name").textContent;
+            const invNum = document.getElementById("lbl-invoice-num").textContent;
+            Toast.show(`Compiling secure WhatsApp API link for client: ${clientName}...`, "info");
+            setTimeout(() => {
+                Toast.show(`WhatsApp delivery link compiled for Invoice ${invNum}.`);
+                if (typeof Auditor !== 'undefined') {
+                    Auditor.log(`WhatsApp delivery link compiled for Invoice ${invNum} (${clientName}).`);
+                }
+            }, 1200);
+        }
+
+        function handleSignatureUpload(input) {
+            if (input.files && input.files[0]) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    invoiceState.sigImage = e.target.result;
+                    document.getElementById("btn-clear-sig-upload").classList.remove("hidden");
+                    recalculateInvoice();
+                    Toast.show("Signature image uploaded successfully.");
+                };
+                reader.readAsDataURL(input.files[0]);
+            }
+        }
+
+        function clearSignatureUpload() {
+            invoiceState.sigImage = null;
+            document.getElementById("inp-sig-upload").value = "";
+            document.getElementById("btn-clear-sig-upload").classList.add("hidden");
+            recalculateInvoice();
+            Toast.show("Signature image cleared.", "warning");
+        }
+
+        function setStatusFilter(status) {
+            currentStatusFilter = status;
+            
+            // Update button active classes
+            const statuses = ['ALL', 'PAID', 'UNPAID', 'NONE'];
+            statuses.forEach(s => {
+                const btn = document.getElementById(`filter-status-${s.toLowerCase()}`);
+                if (btn) {
+                    if (s === status) {
+                        btn.classList.add('bg-slate-800', 'text-white');
+                        btn.classList.remove('text-slate-500', 'hover:text-slate-800');
+                    } else {
+                        btn.classList.remove('bg-slate-800', 'text-white');
+                        btn.classList.add('text-slate-500', 'hover:text-slate-800');
+                    }
+                }
+            });
+            
+            renderGeneratedInvoices();
+        }
+
+        function setCompanyFilter(company) {
+            currentCompanyFilter = company;
+            renderGeneratedInvoices();
+        }
+
+        function populateCompanyFilterDropdown() {
+            const select = document.getElementById("filter-company-select");
+            if (!select) return;
+            
+            const prevVal = select.value;
+            const clients = new Set();
+            if (state && state.generatedInvoices) {
+                state.generatedInvoices.forEach(inv => {
+                    if (inv.clientName) clients.add(inv.clientName.trim());
+                });
+            }
+            
+            let html = `<option value="ALL">All Clients</option>`;
+            Array.from(clients).sort().forEach(c => {
+                html += `<option value="${c}">${c}</option>`;
+            });
+            
+            select.innerHTML = html;
+            if (Array.from(clients).includes(prevVal)) {
+                select.value = prevVal;
+            } else {
+                select.value = "ALL";
+                currentCompanyFilter = "ALL";
+            }
+        }
+
+        function toggleSidebar() {
+            const sidebar = document.getElementById("app-sidebar");
+            if (sidebar) {
+                if (sidebar.classList.contains("hidden")) {
+                    sidebar.classList.remove("hidden");
+                    sidebar.classList.add("fixed", "inset-y-0", "left-0", "flex");
+                } else {
+                    sidebar.classList.add("hidden");
+                    sidebar.classList.remove("fixed", "inset-y-0", "left-0", "flex");
+                }
+            }
+        }
+    </script>
+</body>
+</html>

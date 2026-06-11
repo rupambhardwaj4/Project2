@@ -1,0 +1,42 @@
+<aside class="w-64 bg-qt-dark text-white flex flex-col justify-between p-6 flex-shrink-0 z-30 sticky top-0 h-screen">
+  <div>
+    <div class="flex items-center gap-2.5 mb-8">
+      <div class="w-8 h-8 bg-qt-medium rounded-lg flex items-center justify-center text-white font-extrabold text-sm" data-company="logo">
+        {{ company.logo_initials|default:"QT" }}
+      </div>
+      <span class="text-white font-bold text-base leading-none tracking-tight" data-company="shortName">{{ company.short_name|default:"QT Consultancy" }}</span>
+    </div>
+    <ul class="flex flex-col gap-1 list-none">
+      <li class="rounded-xl overflow-hidden {% if active_page == 'dashboard' %}bg-qt-primary{% else %}text-slate-400 hover:text-white hover:bg-slate-800/50{% endif %}">
+        <a href="{% url 'dashboard' %}" class="flex items-center gap-3 px-4 py-3 {% if active_page == 'dashboard' %}text-white{% else %}text-slate-400 hover:text-white{% endif %} font-medium text-sm transition-colors duration-200"><span>📊</span> Dashboard</a>
+      </li>
+      <li class="rounded-xl overflow-hidden {% if active_page == 'directory' %}bg-qt-primary{% else %}text-slate-400 hover:text-white hover:bg-slate-800/50{% endif %}">
+        <a href="{% url 'directory' %}" class="flex items-center gap-3 px-4 py-3 {% if active_page == 'directory' %}text-white{% else %}text-slate-400 hover:text-white{% endif %} font-medium text-sm transition-colors duration-200"><span>👥</span> Staff Directory</a>
+      </li>
+      <li class="rounded-xl overflow-hidden {% if active_page == 'payroll' %}bg-qt-primary{% else %}text-slate-400 hover:text-white hover:bg-slate-800/50{% endif %}">
+        <a href="{% url 'payroll' %}" class="flex items-center gap-3 px-4 py-3 {% if active_page == 'payroll' %}text-white{% else %}text-slate-400 hover:text-white{% endif %} font-medium text-sm transition-colors duration-200"><span>💰</span> Payroll Engine</a>
+      </li>
+      <li class="rounded-xl overflow-hidden text-slate-400 hover:text-white hover:bg-slate-800/50">
+        <a href="{% url 'invoices' %}" class="flex items-center gap-3 px-4 py-3 text-slate-400 hover:text-white font-medium text-sm transition-colors duration-200"><span>📄</span> Refrens Invoices</a>
+      </li>
+      <li class="rounded-xl overflow-hidden text-slate-400 hover:text-white hover:bg-slate-800/50">
+        <a href="{% url 'salaryslip' %}" class="flex items-center gap-3 px-4 py-3 text-slate-400 hover:text-white font-medium text-sm transition-colors duration-200"><span>🧾</span> Salary Slips</a>
+      </li>
+      <li class="rounded-xl overflow-hidden {% if active_page == 'settings' %}bg-qt-primary{% else %}text-slate-400 hover:text-white hover:bg-slate-800/50{% endif %}">
+        <a href="{% url 'settings' %}" class="flex items-center gap-3 px-4 py-3 {% if active_page == 'settings' %}text-white{% else %}text-slate-400 hover:text-white{% endif %} font-medium text-sm transition-colors duration-200"><span>⚙️</span> Settings</a>
+      </li>
+    </ul>
+  </div>
+  <div class="border-t border-slate-800 pt-5 flex flex-col gap-4">
+    <div class="flex items-center gap-3 px-2">
+      <div id="header-user-avatar" class="w-9 h-9 rounded-full bg-qt-primary flex items-center justify-center font-bold text-sm text-white">AD</div>
+      <div class="flex flex-col">
+        <span id="header-user-name" class="text-xs font-bold text-white leading-none">{{ request.user.get_short_name|default:request.user.get_username|default:"Admin User" }}</span>
+        <span class="text-[0.62rem] text-slate-500 font-semibold uppercase tracking-widest mt-1">HR & Finance Admin</span>
+      </div>
+    </div>
+    <a href="{% url 'logout' %}" id="btn-logout-sidebar" class="flex items-center justify-center gap-2 py-2.5 rounded-xl bg-slate-800 hover:bg-red-600 border border-slate-700 hover:border-red-600 text-white font-semibold text-xs tracking-wide transition-all duration-200">
+      <span>🚪</span> Sign Out
+    </a>
+  </div>
+</aside>

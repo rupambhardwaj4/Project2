@@ -1,0 +1,205 @@
+{% extends "base.html" %}
+{% block title %}QT Consultancy - Admin Command Center{% endblock %}
+{% block body %}
+<div class="flex min-h-screen w-full relative">
+  <!-- Decorative background ambient glow blobs -->
+  <div class="absolute top-[10%] left-[20%] w-[400px] h-[400px] bg-qt-primary/5 rounded-full blur-[110px] pointer-events-none -z-10 animate-pulse duration-[8000ms]"></div>
+  <div class="absolute bottom-[20%] right-[10%] w-[350px] h-[350px] bg-qt-medium/5 rounded-full blur-[90px] pointer-events-none -z-10 animate-pulse duration-[6000ms]"></div>
+
+  {% include "partials/sidebar.html" with active_page=active_page %}
+  
+  <main class="flex-1 flex flex-col min-h-screen overflow-x-hidden relative">
+    {% include "partials/header.html" %}
+    
+    <div class="p-6 md:p-8 flex-1 flex flex-col gap-6 md:gap-8">
+      
+      <!-- Welcome Greeting Hero Card -->
+      <div class="relative overflow-hidden bg-gradient-to-br from-slate-900 via-qt-dark to-slate-900 text-white rounded-3xl p-6 md:p-8 shadow-xl border border-slate-800/40">
+        <div class="absolute right-0 bottom-0 top-0 w-[45%] opacity-15 pointer-events-none bg-gradient-to-l from-qt-primary to-transparent z-0"></div>
+        <div class="relative z-10 flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
+          <div class="flex flex-col gap-2">
+            <span class="text-[9px] font-extrabold text-qt-primary bg-qt-light/20 px-3 py-1 rounded-full uppercase tracking-wider w-fit">HR & Payroll Hub</span>
+            <h1 class="text-xl md:text-2xl font-black tracking-tight">Welcome back, {{ request.user.first_name|default:request.user.username|default:"Admin User" }}! 👋</h1>
+            <p class="text-xs text-slate-300 max-w-xl font-medium leading-relaxed mt-1">Here is a quick overview of your organization's active staff list, payroll cycles, timesheets, and recent disbursements.</p>
+          </div>
+          <div class="flex items-center gap-6 bg-slate-800/40 border border-slate-700/30 backdrop-blur-md px-6 py-4 rounded-2xl shrink-0">
+            <div class="flex flex-col text-center">
+              <span class="text-[9px] font-bold text-slate-450 uppercase tracking-widest">Active Staff</span>
+              <span class="text-2xl font-black text-white mt-1">{{ active_employees }}</span>
+            </div>
+            <div class="w-[1px] h-8 bg-slate-700/60"></div>
+            <div class="flex flex-col text-center">
+              <span class="text-[9px] font-bold text-slate-450 uppercase tracking-widest">Inactive</span>
+              <span class="text-2xl font-black text-slate-400 mt-1">{{ inactive_employees }}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Stats Cards Grid -->
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+        <!-- Card 1 -->
+        <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm hover:shadow-md hover:-translate-y-1 hover:border-qt-primary/30 transition-all duration-300 flex items-center justify-between group cursor-pointer">
+          <div class="flex flex-col">
+            <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-2">Active Staff & Consultants</span>
+            <span class="text-2xl font-extrabold text-qt-dark leading-none">{{ active_employees }} / {{ total_employees }}</span>
+            <span class="text-[9px] font-bold text-green-600 bg-green-50 px-2 py-0.5 rounded-md mt-2 flex items-center gap-1 w-fit border border-green-200/30">
+              ↑ {{ total_employees|default:0 }} total profiles
+            </span>
+          </div>
+          <div class="w-12 h-12 bg-gradient-to-br from-blue-50 to-blue-100/50 border border-blue-100 text-blue-600 rounded-xl flex items-center justify-center text-xl shadow-inner group-hover:scale-110 group-hover:rotate-3 transition-transform duration-300">👥</div>
+        </div>
+        <!-- Card 2 -->
+        <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm hover:shadow-md hover:-translate-y-1 hover:border-green-300/30 transition-all duration-300 flex items-center justify-between group cursor-pointer">
+          <div class="flex flex-col">
+            <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-2">Timesheets Processed</span>
+            <span class="text-2xl font-extrabold text-qt-dark leading-none">{{ timesheets_processed }} / {{ total_employees }}</span>
+            <span class="text-[9px] font-bold text-green-600 bg-green-50 px-2 py-0.5 rounded-md mt-2 flex items-center gap-1 w-fit border border-green-200/30">
+              ↑ Live DB status
+            </span>
+          </div>
+          <div class="w-12 h-12 bg-gradient-to-br from-green-50 to-green-100/50 border border-green-100 text-green-655 rounded-xl flex items-center justify-center text-xl shadow-inner group-hover:scale-110 group-hover:rotate-3 transition-transform duration-300">📁</div>
+        </div>
+        <!-- Card 3 -->
+        <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm hover:shadow-md hover:-translate-y-1 hover:border-amber-300/30 transition-all duration-300 flex items-center justify-between group cursor-pointer">
+          <div class="flex flex-col">
+            <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-2">Last Payroll Run</span>
+            <span class="text-lg font-extrabold text-qt-dark leading-none my-1">{{ last_payroll_run }}</span>
+            <span class="text-[9px] font-bold text-slate-500 bg-slate-50 px-2 py-0.5 rounded-md mt-2 flex items-center gap-1 w-fit border border-slate-200/30">
+              🗓 Current month cycle
+            </span>
+          </div>
+          <div class="w-12 h-12 bg-gradient-to-br from-amber-50 to-amber-100/50 border border-amber-100 text-amber-500 rounded-xl flex items-center justify-center text-xl shadow-inner group-hover:scale-110 group-hover:rotate-3 transition-transform duration-300">💰</div>
+        </div>
+        <!-- Card 4 -->
+        <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm hover:shadow-md hover:-translate-y-1 hover:border-purple-300/30 transition-all duration-300 flex items-center justify-between group cursor-pointer">
+          <div class="flex flex-col">
+            <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-2">General Disbursements</span>
+            <span class="text-lg font-extrabold text-qt-dark leading-none my-1">{{ total_payroll }}</span>
+            <span class="text-[9px] font-bold text-purple-655 bg-purple-50 px-2 py-0.5 rounded-md mt-2 flex items-center gap-1 w-fit border border-purple-200/30">
+              ↑ Approved ledger
+            </span>
+          </div>
+          <div class="w-12 h-12 bg-gradient-to-br from-purple-50 to-purple-100/50 border border-purple-100 text-purple-655 rounded-xl flex items-center justify-center text-xl shadow-inner group-hover:scale-110 group-hover:rotate-3 transition-transform duration-300">📈</div>
+        </div>
+      </div>
+
+      <!-- Content Row: Visual Analytics & Operations/Timelines -->
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 md:gap-8 items-start">
+        
+        <!-- Left Panel: Department stats -->
+        <div class="lg:col-span-8 bg-white border border-slate-200 p-6 rounded-2xl shadow-sm flex flex-col gap-4">
+          <div class="flex justify-between items-center border-b border-slate-100 pb-4">
+            <h3 class="text-xs font-bold text-qt-dark uppercase tracking-wider flex items-center gap-2">
+              <span class="w-2 h-4 bg-qt-primary rounded-full"></span>
+              📊 Corporate Staff by Department
+            </h3>
+          </div>
+          {{ department_stats_json|json_script:"dept-stats-data" }}
+          <div id="dashboard-chart-svg" class="w-full flex items-center justify-center py-4 min-h-[260px] overflow-x-auto select-none"></div>
+        </div>
+
+        <!-- Right Panel: Quick operations -->
+        <div class="lg:col-span-4 flex flex-col gap-6 md:gap-8">
+          <!-- Quick Operations -->
+          <div class="bg-white border border-slate-200 p-6 rounded-2xl shadow-sm flex flex-col">
+            <h3 class="text-xs font-bold text-qt-dark uppercase tracking-wider mb-4 flex items-center gap-2">
+              <span class="w-2 h-4 bg-qt-primary rounded-full"></span>
+              ⚡ Quick Operations
+            </h3>
+            <div class="flex flex-col gap-3">
+              <a href="{% url 'payroll' %}" class="flex items-center gap-3.5 p-3.5 rounded-xl bg-slate-50 border border-slate-200/80 hover:border-qt-primary hover:bg-qt-light/20 transition-all duration-200 group active:scale-[0.98]">
+                <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-green-50 to-green-100/50 border border-green-100 text-green-600 flex items-center justify-center text-lg shrink-0 group-hover:scale-110 transition-transform">
+                  💰
+                </div>
+                <div class="flex flex-col text-left">
+                  <span class="text-xs font-bold text-qt-dark group-hover:text-qt-primary transition-colors">Run Payroll Engine</span>
+                  <span class="text-[9px] text-slate-400 font-semibold mt-0.5">Process salaries and export ledgers</span>
+                </div>
+              </a>
+              <a href="{% url 'directory' %}" class="flex items-center gap-3.5 p-3.5 rounded-xl bg-slate-50 border border-slate-200/80 hover:border-qt-primary hover:bg-qt-light/20 transition-all duration-200 group active:scale-[0.98]">
+                <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-50 to-blue-100/50 border border-blue-100 text-blue-600 flex items-center justify-center text-lg shrink-0 group-hover:scale-110 transition-transform">
+                  👥
+                </div>
+                <div class="flex flex-col text-left">
+                  <span class="text-xs font-bold text-qt-dark group-hover:text-qt-primary transition-colors">Staff Registry</span>
+                  <span class="text-[9px] text-slate-400 font-semibold mt-0.5">Manage consultant records & profile directory</span>
+                </div>
+              </a>
+              <a href="{% url 'invoices' %}" class="flex items-center gap-3.5 p-3.5 rounded-xl bg-slate-50 border border-slate-200/80 hover:border-qt-primary hover:bg-qt-light/20 transition-all duration-200 group active:scale-[0.98]">
+                <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-purple-50 to-purple-100/50 border border-purple-100 text-purple-655 flex items-center justify-center text-lg shrink-0 group-hover:scale-110 transition-transform">
+                  📄
+                </div>
+                <div class="flex flex-col text-left">
+                  <span class="text-xs font-bold text-qt-dark group-hover:text-qt-primary transition-colors">Refrens Invoices</span>
+                  <span class="text-[9px] text-slate-400 font-semibold mt-0.5">Generate client invoices & track payments</span>
+                </div>
+              </a>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+</div>
+
+<script>
+document.addEventListener("DOMContentLoaded", () => {
+  const target = document.getElementById("dashboard-chart-svg");
+  const dataEl = document.getElementById("dept-stats-data");
+  let data = [];
+  try { data = JSON.parse(dataEl.textContent || "[]"); } catch (e) { data = []; }
+
+  if (!data.length) {
+    target.innerHTML = `
+      <div class="text-center text-slate-400 py-12 text-xs font-semibold bg-slate-50/50 rounded-2xl border border-dashed border-slate-200 w-full">
+        <span class="text-2xl block mb-2">📊</span>
+        No department statistics available yet.
+      </div>
+    `;
+    return;
+  }
+
+  const max = Math.max(...data.map(item => item.count), 1);
+  const barWidth = 72;
+  const gap = 24;
+  const width = data.length * (barWidth + gap) + 40;
+  const height = 240;
+  
+  // Horizontal grid line coordinates
+  const yLines = [50, 100, 150];
+  const gridLines = yLines.map(y => `
+    <line x1="10" y1="${y}" x2="${width - 10}" y2="${y}" stroke="#f1f5f9" stroke-width="1.5" stroke-dasharray="4 4"></line>
+  `).join("");
+
+  const svg = [
+    `<svg viewBox="0 0 ${width} ${height}" class="w-full max-w-4xl">`,
+    gridLines,
+    ...data.map((item, i) => {
+      const x = 20 + i * (barWidth + gap);
+      const h = Math.max(24, Math.round((item.count / max) * 130));
+      const y = 180 - h;
+      return `
+        <g class="cursor-pointer group">
+          <!-- Rounded Pillar Bar with Dynamic Gradient -->
+          <rect x="${x}" y="${y}" rx="12" width="${barWidth}" height="${h}" fill="url(#grad-${i})" class="transition-all duration-300 hover:opacity-90"></rect>
+          <!-- Count text -->
+          <text x="${x + barWidth / 2}" y="${y - 8}" text-anchor="middle" class="fill-slate-655 text-[11px] font-extrabold font-sans">${item.count}</text>
+          <!-- Label text -->
+          <text x="${x + barWidth / 2}" y="${208}" text-anchor="middle" class="fill-slate-500 text-[10px] font-bold font-sans">${item.name.length > 11 ? item.name.slice(0, 10) + "…" : item.name}</text>
+          <defs>
+            <linearGradient id="grad-${i}" x1="0" x2="0" y1="0" y2="1">
+              <stop offset="0%" stop-color="var(--qt-primary)"></stop>
+              <stop offset="100%" stop-color="var(--qt-dark)"></stop>
+            </linearGradient>
+          </defs>
+        </g>
+      `;
+    }).join(""),
+    `</svg>`
+  ].join("");
+
+  target.innerHTML = svg;
+});
+</script>
+{% endblock %}

@@ -1,0 +1,1724 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+{% load static %}
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>QT Consultancy - Payroll Engine</title>
+    
+    <!-- Synchronous theme loader from localStorage -->
+    <script>
+      (function() {
+          const cached = localStorage.getItem("qt_consultancy_state");
+          let primaryColor = '#88BDF2';
+          let darkColor = '#384959';
+          if (cached) {
+              try {
+                  const state = JSON.parse(cached);
+                  const settings = state.companySettings || state.settings;
+                  if (settings) {
+                      primaryColor = settings.primaryColor || settings.themeColor || primaryColor;
+                      darkColor = settings.sidebarColor || settings.themeColorDark || darkColor;
+                  }
+              } catch(e) {}
+          }
+          document.documentElement.style.setProperty('--qt-primary', primaryColor);
+          document.documentElement.style.setProperty('--qt-dark', darkColor);
+          document.documentElement.style.setProperty('--primary', primaryColor);
+          document.documentElement.style.setProperty('--bg-sidebar', darkColor);
+          window.qtTheme = { primaryColor, darkColor };
+      })();
+    </script>
+
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+      tailwind.config = {
+        theme: {
+          extend: {
+            colors: {
+              qt: {
+                light: '#BDDDFC',    // Very Light Pastel Blue
+                medium: '#6A89A7',   // Muted Steel/Blue-grey
+                primary: 'var(--qt-primary)',  // Dynamic
+                dark: 'var(--qt-dark)',     // Dynamic
+                darker: '#26323d'    // Slightly darker Charcoal
+              }
+            },
+            fontFamily: {
+              sans: ['Poppins', 'Inter', 'sans-serif']
+            }
+          }
+        }
+      }
+    </script>
+
+    <!-- Google Fonts Poppins & Inter -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- SheetJS Excel Library -->
+    <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+    <link rel="stylesheet" href="{% static 'prototype/styles.css' %}"> <!-- Helper classes -->
+</head>
+<body class="bg-slate-50 font-sans text-qt-dark antialiased">
+    {{ payroll_rows_json|json_script:"django-payroll-rows" }}
+
+    <div class="flex min-h-screen w-full">
+        
+        <!-- Left Sidebar component -->
+        <aside class="w-64 bg-qt-dark text-white flex flex-col justify-between p-6 flex-shrink-0 z-30 sticky top-0 h-screen">
+            <div>
+                <!-- Brand logo -->
+                <div class="flex items-center gap-2.5 mb-8">
+                    <div class="w-8 h-8 bg-qt-medium rounded-lg flex items-center justify-center text-white font-extrabold text-sm" data-company="logo">
+                        QT
+                    </div>
+                    <span class="text-white font-bold text-base leading-none tracking-tight" data-company="shortName">QT Consultancy</span>
+                </div>
+                
+                <!-- Menu -->
+                <ul class="flex flex-col gap-1 list-none">
+                    <li class="rounded-xl overflow-hidden text-slate-400 hover:text-white hover:bg-slate-800/50">
+                        <a href="/dashboard/" class="flex items-center gap-3 px-4 py-3 text-slate-400 font-medium text-sm transition-colors duration-200">
+                            <span>📊</span> Dashboard
+                        </a>
+                    </li>
+                    <li class="rounded-xl overflow-hidden text-slate-400 hover:text-white hover:bg-slate-800/50">
+                        <a href="/employees/" class="flex items-center gap-3 px-4 py-3 text-slate-400 font-medium text-sm transition-colors duration-200">
+                            <span>👥</span> Staff Directory
+                        </a>
+                    </li>
+                    
+                    <li class="rounded-xl overflow-hidden bg-qt-primary">
+                        <a href="/payroll/" class="flex items-center gap-3 px-4 py-3 text-white font-medium text-sm transition-colors duration-200">
+                            <span>💰</span> Payroll Engine
+                        </a>
+                    </li>
+                    <li class="rounded-xl overflow-hidden text-slate-400 hover:text-white hover:bg-slate-800/50">
+                        <a href="/documents/invoices/" class="flex items-center gap-3 px-4 py-3 text-slate-400 hover:text-white font-medium text-sm transition-colors duration-200">
+                            <span>📄</span> Refrens Invoices
+                        </a>
+                    </li>
+                    <li class="rounded-xl overflow-hidden text-slate-400 hover:text-white hover:bg-slate-800/50">
+                        <a href="/salary-slip/" class="flex items-center gap-3 px-4 py-3 text-slate-400 hover:text-white font-medium text-sm transition-colors duration-200">
+                            <span>🧾</span> Salary Slips
+                        </a>
+                    </li>
+                    <li class="rounded-xl overflow-hidden text-slate-400 hover:text-white hover:bg-slate-800/50">
+                        <a href="/settings/" class="flex items-center gap-3 px-4 py-3 text-slate-400 hover:text-white font-medium text-sm transition-colors duration-200">
+                            <span>⚙️</span> Settings
+                        </a>
+                    </li>
+                </ul>
+            </div>
+            
+            <!-- User avatar on bottom -->
+            <div class="border-t border-slate-800 pt-5 flex flex-col gap-4">
+                <div class="flex items-center gap-3 px-2">
+                    <div id="header-user-avatar" class="w-9 h-9 rounded-full bg-qt-primary flex items-center justify-center font-bold text-sm text-white">AD</div>
+                    <div class="flex flex-col">
+                        <span id="header-user-name" class="text-xs font-bold text-white leading-none">Admin User</span>
+                        <span class="text-[0.62rem] text-slate-500 font-semibold uppercase tracking-wider mt-1">HR & Finance Admin</span>
+                    </div>
+                </div>
+                <button id="btn-logout-sidebar" class="flex items-center justify-center gap-2 py-2.5 rounded-xl bg-slate-800 hover:bg-red-600 border border-slate-700 hover:border-red-600 text-white font-semibold text-xs tracking-wide transition-all duration-200">
+                    <span>🚪</span> Sign Out
+                </button>
+            </div>
+        </aside>
+
+        <!-- Main Workspace -->
+        <main class="flex-1 flex flex-col min-h-screen overflow-x-hidden">
+            
+            <!-- Header -->
+            <header class="h-[70px] bg-white border-b border-slate-200 px-8 flex items-center justify-between sticky top-0 z-25">
+                <div class="header-title">
+                    <h2 class="text-lg font-bold text-qt-dark tracking-tight"><span data-company="shortName">QT Consultancy</span> Payroll Engine Workspace</h2>
+                </div>
+                <div class="flex items-center gap-5">
+                    <div class="bg-qt-light text-qt-primary text-xs font-bold px-4 py-1.5 rounded-full border border-blue-200 flex items-center gap-2">
+                        <span class="w-1.5 h-1.5 bg-qt-primary rounded-full animate-pulse"></span>
+                        Active Period: June 2026
+                    </div>
+                    <div id="nav-system-time" class="text-xs font-medium text-slate-400">02/06/2026 | 15:30</div>
+                </div>
+            </header>
+
+            <!-- Workspace View -->
+            <div class="p-8 flex-1 flex flex-col gap-6">
+                
+                <!-- Action Banner -->
+                <div class="bg-gradient-to-r from-qt-primary to-qt-dark p-6 rounded-2xl text-white shadow-md flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
+                    <div class="flex flex-col max-w-xl">
+                        <h3 class="text-lg font-extrabold">Run June 2026 General Payroll Disbursement</h3>
+                        <p class="text-xs text-slate-300 mt-2 leading-relaxed">Evaluate base contracts, overtime thresholds (consulting hours over 160 computed at 1.5x hourly rates), allowance indexes, and flat tax brackets (15%) for all active employee profiles.</p>
+                    </div>
+                    <div class="flex flex-wrap gap-2.5 shrink-0">
+                        <button id="btn-bulk-payroll-trigger" class="px-6 py-3 bg-slate-800 hover:bg-slate-700 text-white rounded-xl font-bold text-xs shadow-md transition-all duration-200 cursor-pointer">
+                            📤 Bulk Upload Data
+                        </button>
+                        <button id="btn-download-payroll-excel" class="px-6 py-3 bg-white hover:bg-qt-light text-qt-dark hover:text-qt-primary rounded-xl font-bold text-xs shadow-md transition-all duration-200 cursor-pointer">
+                            📥 Download Excel Report
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Matrix sheet -->
+                <div class="bg-white border border-slate-200 rounded-2xl shadow-sm overflow-hidden">
+                    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 p-6 border-b border-slate-100">
+                        <h3 class="text-sm font-bold uppercase tracking-wider text-qt-dark">Calculations Matrix Summary</h3>
+                        <div class="flex flex-wrap gap-2">
+                            <button id="btn-download-payroll-csv" class="px-4 py-2 rounded-xl border border-slate-200 text-slate-400 font-bold text-xs bg-slate-50 cursor-not-allowed transition-all duration-200" disabled>
+                                📥 Export CSV Ledger
+                            </button>
+                            <button id="btn-distribute-slips" class="px-4 py-2 rounded-xl border border-slate-200 text-slate-400 font-bold text-xs bg-slate-50 cursor-not-allowed transition-all duration-200" disabled>
+                                📧 Distribute Payslips via Mail
+                            </button>
+                        </div>
+                    </div>
+
+                     <div class="overflow-x-auto">
+                        <table class="w-full text-left border-collapse">
+                            <thead>
+                                <tr class="bg-slate-55/40 border-b border-slate-200 text-[0.6rem] font-bold uppercase text-slate-400 tracking-wider">
+                                    <th class="px-4 py-3">Agent ID</th>
+                                    <th class="px-4 py-3">Candidate Name</th>
+                                    <th class="px-4 py-3">Designation</th>
+                                    <th class="px-4 py-3">Location</th>
+                                    <th class="px-4 py-3 text-center">Working Days</th>
+                                    <th class="px-4 py-3 text-right">Total Salary</th>
+                                    <th class="px-4 py-3 text-right">Per Day</th>
+                                    <th class="px-4 py-3 text-right">Incentive</th>
+                                    <th class="px-4 py-3 text-right">Candidate Payout</th>
+                                    <th class="px-4 py-3 text-right">TDS (1%)</th>
+                                    <th class="px-4 py-3 text-right">Net</th>
+                                    <th class="px-4 py-3 text-right">Service Charge</th>
+                                    <th class="px-4 py-3 text-right">Vendor Payout</th>
+                                    <th class="px-4 py-3 text-right">GST (18%)</th>
+                                    <th class="px-4 py-3 text-right">Total Payment</th>
+                                    <th class="px-4 py-3 text-center">Status</th>
+                                    <th class="px-4 py-3">UTR</th>
+                                    <th class="px-4 py-3 text-center">Action</th>
+                                </tr>
+                            </thead>
+                            <tbody id="payroll-table-body" class="divide-y divide-slate-100 text-xs font-medium text-slate-700">
+                                <!-- Injected via JS -->
+                            </tbody>
+                            <tfoot>
+                                <tr class="bg-slate-50 font-bold text-[0.7rem] text-slate-800">
+                                    <td colspan="8" class="px-4 py-4 text-xs font-extrabold text-qt-dark">General Disbursements Totals:</td>
+                                    <td id="pay-total-gross" class="px-4 py-4 text-right font-extrabold">₹0.00</td>
+                                    <td id="pay-total-taxes" class="px-4 py-4 text-right text-red-600 font-extrabold">₹0.00</td>
+                                    <td colspan="4" class="px-4 py-4"></td>
+                                    <td id="pay-total-net" class="px-4 py-4 text-right text-qt-primary font-black">₹0.00</td>
+                                    <td colspan="3" class="px-4 py-4"></td>
+                                </tr>
+                            </tfoot>
+                        </table>
+                    </div>
+    <!-- Bulk Upload Modal Overlay -->
+    <div id="bulk-upload-modal" class="fixed inset-0 bg-slate-950/60 backdrop-blur-sm z-[150] hidden items-center justify-center p-6 opacity-0 transition-opacity duration-300">
+        <div class="bg-white w-full max-w-[640px] rounded-2xl overflow-hidden shadow-2xl border border-slate-200 transform scale-95 transition-transform duration-300 ease-out flex flex-col max-h-[90vh]">
+            <div class="bg-qt-dark p-6 text-white relative flex-shrink-0">
+                <button id="bulk-modal-close-btn" class="absolute top-4 right-6 text-slate-400 hover:text-white text-3xl font-light leading-none">&times;</button>
+                <h3 class="text-lg font-bold">📤 Bulk Payroll Data Import</h3>
+            </div>
+            
+            <div class="p-6 overflow-y-auto flex-1 space-y-6 text-xs text-slate-600">
+                <!-- Template & Drag Area -->
+                <div id="bulk-upload-step-1" class="space-y-4">
+                    <div class="flex justify-between items-center bg-slate-50 p-4 rounded-xl border border-slate-200">
+                        <div class="pr-4">
+                            <h4 class="font-bold text-qt-dark text-xs">Excel Template</h4>
+                            <p class="text-[0.68rem] text-slate-400 mt-0.5">Download the template to format your vendor staff list correctly.</p>
+                        </div>
+                        <button type="button" onclick="downloadPayrollTemplate()" class="px-4 py-2 bg-[#0F172A] hover:bg-slate-800 text-white rounded-lg font-bold text-[0.68rem] flex items-center gap-1.5 transition-colors cursor-pointer shrink-0">
+                            📥 Download Template
+                        </button>
+                    </div>
+
+                    <!-- Drag and Drop Area -->
+                    <div id="drag-drop-area" class="border-2 border-dashed border-slate-200 hover:border-qt-primary bg-slate-50/50 hover:bg-qt-light/10 rounded-2xl p-8 flex flex-col items-center justify-center gap-3 transition-all cursor-pointer">
+                        <div class="w-12 h-12 rounded-full bg-slate-100 flex items-center justify-center text-xl text-slate-400">
+                            📄
+                        </div>
+                        <div class="text-center">
+                            <p class="font-bold text-slate-700">Drag and drop your spreadsheet here</p>
+                            <p class="text-[0.65rem] text-slate-400 mt-1">Supports .xlsx and .csv files (max 5MB)</p>
+                        </div>
+                        <span class="text-slate-300 text-[0.68rem]">or</span>
+                        <input type="file" id="bulk-file-input" accept=".xlsx, .csv" class="hidden">
+                        <button type="button" onclick="document.getElementById('bulk-file-input').click()" class="px-4 py-2 border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 rounded-lg font-bold text-[0.68rem] transition-colors">
+                            Browse File
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Progress Section -->
+                <div id="bulk-progress-container" class="hidden space-y-2.5">
+                    <div class="flex justify-between items-center">
+                        <span class="font-bold text-slate-700">Uploading and parsing file...</span>
+                        <span id="bulk-progress-percent" class="font-bold text-qt-primary">0%</span>
+                    </div>
+                    <div class="w-full bg-slate-100 h-2 rounded-full overflow-hidden">
+                        <div id="bulk-progress-bar" class="bg-qt-primary h-full transition-all duration-300" style="width: 0%"></div>
+                    </div>
+                </div>
+
+                <!-- Validation & Summary Section -->
+                <div id="bulk-summary-container" class="hidden space-y-4">
+                    <h4 class="font-bold text-qt-dark text-xs uppercase tracking-wider">Import Validation Summary</h4>
+                    
+                    <!-- Stats Grid -->
+                    <div class="grid grid-cols-4 gap-3">
+                        <div class="bg-slate-50 border border-slate-200 p-3 rounded-xl text-center">
+                            <span class="text-[0.62rem] text-slate-400 uppercase font-bold tracking-wider">Total Records</span>
+                            <span id="stat-total-records" class="block text-base font-extrabold text-slate-900 mt-1">0</span>
+                        </div>
+                        <div class="bg-emerald-50/50 border border-emerald-100 p-3 rounded-xl text-center">
+                            <span class="text-[0.62rem] text-emerald-600 uppercase font-bold tracking-wider">Ready</span>
+                            <span id="stat-valid-records" class="block text-base font-extrabold text-emerald-700 mt-1">0</span>
+                        </div>
+                        <div class="bg-red-50/50 border border-red-100 p-3 rounded-xl text-center">
+                            <span class="text-[0.62rem] text-red-500 uppercase font-bold tracking-wider">Failed</span>
+                            <span id="stat-failed-records" class="block text-base font-extrabold text-red-600 mt-1">0</span>
+                        </div>
+                        <div class="bg-amber-50/50 border border-amber-100 p-3 rounded-xl text-center">
+                            <span class="text-[0.62rem] text-amber-600 uppercase font-bold tracking-wider">Warnings</span>
+                            <span id="stat-warning-records" class="block text-base font-extrabold text-amber-700 mt-1">0</span>
+                        </div>
+                    </div>
+
+                    <!-- Actions for summary -->
+                    <div id="error-report-container" class="hidden justify-between items-center bg-red-50/30 p-3.5 rounded-xl border border-red-100">
+                        <span class="text-[0.68rem] text-red-600 font-semibold pr-2">
+                            ⚠️ Some rows failed validation. Fix the errors and re-upload.
+                        </span>
+                        <button type="button" onclick="downloadErrorReport()" class="px-3.5 py-1.5 bg-red-600 hover:bg-red-700 text-white rounded-lg font-bold text-[0.65rem] transition-colors cursor-pointer shrink-0">
+                            📥 Download Error Report
+                        </button>
+                    </div>
+
+                    <!-- Detailed Table -->
+                    <div class="border border-slate-200 rounded-xl overflow-hidden max-h-[200px] overflow-y-auto">
+                        <table class="w-full text-left border-collapse" style="font-size: 0.68rem;">
+                            <thead class="sticky top-0 bg-slate-50 z-10">
+                                <tr class="bg-slate-50 border-b border-slate-200 text-[0.62rem] font-bold text-slate-400 uppercase tracking-wider">
+                                    <th class="p-2.5 text-center w-12">Row</th>
+                                    <th class="p-2.5 w-20">Agent ID</th>
+                                    <th class="p-2.5 w-28">Name</th>
+                                    <th class="p-2.5 w-24">Status</th>
+                                    <th class="p-2.5">Validation details / Errors</th>
+                                </tr>
+                            </thead>
+                            <tbody id="bulk-validation-rows" class="divide-y divide-slate-100 font-medium text-slate-700">
+                                <!-- Dynamic rows -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Footer Buttons -->
+            <div class="p-6 bg-slate-50 border-t border-slate-200 flex gap-3 justify-end flex-shrink-0">
+                <button type="button" id="btn-cancel-bulk-modal" class="px-5 py-2.5 bg-white hover:bg-slate-150 border border-slate-200 hover:border-slate-350 rounded-xl text-slate-550 font-bold text-xs transition-all cursor-pointer">Cancel</button>
+                <button type="button" id="btn-import-bulk" class="px-5 py-2.5 bg-slate-200 text-slate-400 rounded-xl font-bold text-xs cursor-not-allowed transition-all" disabled>Import Data</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Processing Steps Modal overlays -->
+    <div id="processing-modal" class="fixed inset-0 bg-slate-950/60 backdrop-blur-sm z-[150] hidden items-center justify-center p-6 opacity-0 transition-opacity duration-300">
+        <div id="processing-modal-body" class="bg-white w-full max-w-[460px] rounded-2xl p-8 shadow-2xl border border-slate-200 text-center flex flex-col items-center transform scale-95 transition-transform duration-300 ease-out">
+            <!-- Populated dynamically via JS step calculators -->
+        </div>
+    </div>
+
+    </div>
+
+    <!-- Edit Payroll Profile Modal Overlay -->
+    <div id="edit-payroll-modal" class="fixed inset-0 bg-slate-950/60 backdrop-blur-sm z-[150] hidden items-center justify-center p-6 opacity-0 transition-opacity duration-300">
+        <div class="bg-white w-full max-w-[560px] rounded-2xl overflow-hidden shadow-2xl border border-slate-200 transform scale-95 transition-transform duration-300 ease-out">
+            <div class="bg-qt-dark p-6 text-white relative">
+                <button id="edit-payroll-close-btn" class="absolute top-4 right-6 text-slate-400 hover:text-white text-3xl font-light leading-none">&times;</button>
+                <h3 class="text-lg font-bold">✏️ Edit Payroll Profile: <span id="edit-payroll-title-id"></span></h3>
+            </div>
+            
+            <form id="edit-payroll-form" class="p-6 space-y-4 max-h-[80vh] overflow-y-auto text-xs">
+                <input type="hidden" id="edit-payroll-id">
+                
+                <div class="grid grid-cols-2 gap-4">
+                    <div class="flex flex-col gap-1.5">
+                        <label for="edit-payroll-name" class="font-semibold text-qt-dark">Candidate Name</label>
+                        <input type="text" id="edit-payroll-name" required class="px-3 py-2.5 rounded-lg border border-slate-200 focus:outline-none focus:border-qt-primary bg-slate-50">
+                    </div>
+                    <div class="flex flex-col gap-1.5">
+                        <label for="edit-payroll-designation" class="font-semibold text-qt-dark">Designation</label>
+                        <input type="text" id="edit-payroll-designation" required class="px-3 py-2.5 rounded-lg border border-slate-200 focus:outline-none focus:border-qt-primary bg-slate-50">
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-2 gap-4">
+                    <div class="flex flex-col gap-1.5">
+                        <label for="edit-payroll-location" class="font-semibold text-qt-dark">Location</label>
+                        <input type="text" id="edit-payroll-location" required class="px-3 py-2.5 rounded-lg border border-slate-200 focus:outline-none focus:border-qt-primary bg-slate-50">
+                    </div>
+                    <div class="flex flex-col gap-1.5">
+                        <label for="edit-payroll-state" class="font-semibold text-qt-dark">State</label>
+                        <input type="text" id="edit-payroll-state" required class="px-3 py-2.5 rounded-lg border border-slate-200 focus:outline-none focus:border-qt-primary bg-slate-50">
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-3 gap-3">
+                    <div class="flex flex-col gap-1.5">
+                        <label for="edit-payroll-salary" class="font-semibold text-qt-dark">Total Salary (₹)</label>
+                        <input type="number" id="edit-payroll-salary" required class="px-3 py-2.5 rounded-lg border border-slate-200 focus:outline-none focus:border-qt-primary bg-slate-50">
+                    </div>
+                    <div class="flex flex-col gap-1.5">
+                        <label for="edit-payroll-perday" class="font-semibold text-qt-dark">Per Day (₹)</label>
+                        <input type="number" id="edit-payroll-perday" required class="px-3 py-2.5 rounded-lg border border-slate-200 focus:outline-none focus:border-qt-primary bg-slate-50">
+                    </div>
+                    <div class="flex flex-col gap-1.5">
+                        <label for="edit-payroll-days" class="font-semibold text-qt-dark">Working Days</label>
+                        <input type="number" id="edit-payroll-days" required class="px-3 py-2.5 rounded-lg border border-slate-200 focus:outline-none focus:border-qt-primary bg-slate-50">
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-3 gap-3">
+                    <div class="flex flex-col gap-1.5">
+                        <label for="edit-payroll-incentive" class="font-semibold text-qt-dark">Incentive (₹)</label>
+                        <input type="number" id="edit-payroll-incentive" class="px-3 py-2.5 rounded-lg border border-slate-200 focus:outline-none focus:border-qt-primary bg-slate-50">
+                    </div>
+                    <div class="flex flex-col gap-1.5">
+                        <label for="edit-payroll-service" class="font-semibold text-qt-dark">Service Charge (₹)</label>
+                        <input type="number" id="edit-payroll-service" class="px-3 py-2.5 rounded-lg border border-slate-200 focus:outline-none focus:border-qt-primary bg-slate-50">
+                    </div>
+                    <div class="flex flex-col gap-1.5">
+                        <label for="edit-payroll-status" class="font-semibold text-qt-dark">Payment Status</label>
+                        <select id="edit-payroll-status" class="px-3 py-2.5 rounded-lg border border-slate-200 focus:outline-none focus:border-qt-primary bg-slate-50">
+                            <option value="Paid">Paid</option>
+                            <option value="Pending">Pending</option>
+                            <option value="Processing">Processing</option>
+                            <option value="Hold">Hold</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-2 gap-4">
+                    <div class="flex flex-col gap-1.5">
+                        <label for="edit-payroll-utr" class="font-semibold text-qt-dark">UTR Code</label>
+                        <input type="text" id="edit-payroll-utr" class="px-3 py-2.5 rounded-lg border border-slate-200 focus:outline-none focus:border-qt-primary bg-slate-50">
+                    </div>
+                    <div class="flex flex-col gap-1.5">
+                        <label for="edit-payroll-email" class="font-semibold text-qt-dark">Gmail ID</label>
+                        <input type="email" id="edit-payroll-email" required class="px-3 py-2.5 rounded-lg border border-slate-200 focus:outline-none focus:border-qt-primary bg-slate-50">
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-2 gap-4">
+                    <div class="flex flex-col gap-1.5">
+                        <label for="edit-payroll-phone" class="font-semibold text-qt-dark">Mobile Number</label>
+                        <input type="text" id="edit-payroll-phone" required class="px-3 py-2.5 rounded-lg border border-slate-200 focus:outline-none focus:border-qt-primary bg-slate-50">
+                    </div>
+                    <div class="flex flex-col gap-1.5">
+                        <label for="edit-payroll-active" class="font-semibold text-qt-dark">Active Status</label>
+                        <select id="edit-payroll-active" class="px-3 py-2.5 rounded-lg border border-slate-200 focus:outline-none focus:border-qt-primary bg-slate-50">
+                            <option value="Active">Active</option>
+                            <option value="Inactive">Inactive</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="flex flex-col gap-1.5">
+                    <label for="edit-payroll-remark" class="font-semibold text-qt-dark">Remark</label>
+                    <input type="text" id="edit-payroll-remark" class="px-3 py-2.5 rounded-lg border border-slate-200 focus:outline-none focus:border-qt-primary bg-slate-50">
+                </div>
+
+                <div class="flex gap-3 justify-end border-t border-slate-100 pt-4 mt-6">
+                    <button type="button" id="btn-edit-payroll-cancel" class="px-5 py-2.5 bg-slate-100 hover:bg-slate-200 rounded-xl text-slate-550 font-bold text-xs transition-all cursor-pointer">Cancel</button>
+                    <button type="submit" class="px-5 py-2.5 bg-qt-primary hover:bg-qt-dark text-white rounded-xl font-bold text-xs shadow-md shadow-qt-primary/10 transition-all cursor-pointer">Save Changes</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Toast container -->
+    <div id="toast-container" class="fixed bottom-6 right-6 z-[200] flex flex-col gap-3 max-w-sm pointer-events-none"></div>
+
+    <script src="{% static 'prototype/app.js' %}"></script>
+    <script>
+        document.addEventListener("DOMContentLoaded", () => {
+            renderPayroll();
+
+            // Bind triggers
+            document.getElementById("btn-download-payroll-excel").addEventListener("click", exportActivePayrollToExcel);
+            document.getElementById("btn-download-payroll-csv").addEventListener("click", exportActivePayrollToCSV);
+            document.getElementById("btn-distribute-slips").addEventListener("click", simulateAutomatedEmailSlips);
+
+            // Bulk Upload triggers
+            const bulkModal = document.getElementById("bulk-upload-modal");
+            const bulkTrigger = document.getElementById("btn-bulk-payroll-trigger");
+            const bulkClose = document.getElementById("bulk-modal-close-btn");
+            const bulkCancel = document.getElementById("btn-cancel-bulk-modal");
+            const bulkImport = document.getElementById("btn-import-bulk");
+            const bulkModalContainer = bulkModal.querySelector("div");
+
+            const openBulkModal = () => {
+                resetBulkModalState();
+                bulkModal.classList.remove("hidden");
+                bulkModal.classList.add("flex");
+                setTimeout(() => {
+                    bulkModal.classList.remove("opacity-0");
+                    bulkModal.classList.add("opacity-100");
+                    bulkModalContainer.classList.remove("scale-95");
+                    bulkModalContainer.classList.add("scale-100");
+                }, 10);
+            };
+
+            const closeBulkModal = () => {
+                bulkModal.classList.remove("opacity-100");
+                bulkModal.classList.add("opacity-0");
+                bulkModalContainer.classList.remove("scale-100");
+                bulkModalContainer.classList.add("scale-95");
+                setTimeout(() => {
+                    bulkModal.classList.add("hidden");
+                    bulkModal.classList.remove("flex");
+                    resetBulkModalState();
+                }, 300);
+            };
+
+            bulkTrigger.addEventListener("click", openBulkModal);
+            bulkClose.addEventListener("click", closeBulkModal);
+            bulkCancel.addEventListener("click", closeBulkModal);
+
+            // Drag and Drop listeners
+            const dropArea = document.getElementById("drag-drop-area");
+            ['dragenter', 'dragover'].forEach(eventName => {
+                dropArea.addEventListener(eventName, e => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    dropArea.classList.add('bg-qt-light/20', 'border-qt-primary');
+                }, false);
+            });
+
+            ['dragleave', 'drop'].forEach(eventName => {
+                dropArea.addEventListener(eventName, e => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    dropArea.classList.remove('bg-qt-light/20', 'border-qt-primary');
+                }, false);
+            });
+
+            dropArea.addEventListener('drop', e => {
+                const dt = e.dataTransfer;
+                if (dt && dt.files.length > 0) {
+                    handleUploadedFile(dt.files[0]);
+                }
+            }, false);
+
+            document.getElementById("bulk-file-input").addEventListener("change", e => {
+                if (e.target.files && e.target.files.length > 0) {
+                    handleUploadedFile(e.target.files[0]);
+                }
+            });
+
+            bulkImport.addEventListener("click", () => {
+                if (parsedRows.length === 0) return;
+                const payrollPeriod = state.currentPeriod || "June 2026";
+                fetch("/payroll/", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                        "X-Requested-With": "XMLHttpRequest"
+                    },
+                    body: JSON.stringify({
+                        period: payrollPeriod,
+                        rows: parsedRows
+                    })
+                }).then(async (response) => {
+                    const data = await response.json().catch(() => ({}));
+                    if (!response.ok || !data.ok) {
+                        throw new Error(data.error || "Unable to save payroll upload.");
+                    }
+                    Auditor.log(`Imported ${parsedRows.length} vendor staff profiles via bulk payroll Excel/CSV file.`);
+                    Toast.show("Payroll data imported successfully.", "success");
+                    closeBulkModal();
+                    window.location.reload();
+                }).catch((err) => {
+                    Toast.show(err.message, "danger");
+                });
+            });
+
+            // Enable buttons if runs history exists
+            if (state.payrollRuns.length > 0) {
+                enableButtons();
+            }
+
+            // Edit modal listeners
+            document.getElementById("edit-payroll-close-btn").addEventListener("click", closeEditPayrollModal);
+            document.getElementById("btn-edit-payroll-cancel").addEventListener("click", closeEditPayrollModal);
+
+            document.getElementById("edit-payroll-form").addEventListener("submit", (e) => {
+                e.preventDefault();
+                const id = document.getElementById("edit-payroll-id").value;
+                const empIndex = payrollRows.findIndex(emp => emp.id === id);
+                if (empIndex > -1) {
+                    const name = document.getElementById("edit-payroll-name").value.trim();
+                    const department = document.getElementById("edit-payroll-designation").value.trim();
+                    const location = document.getElementById("edit-payroll-location").value.trim();
+                    const stateVal = document.getElementById("edit-payroll-state").value.trim();
+                    const baseSalary = parseFloat(document.getElementById("edit-payroll-salary").value) || 0;
+                    const perDayPayment = parseFloat(document.getElementById("edit-payroll-perday").value) || 0;
+                    const workingDays = parseFloat(document.getElementById("edit-payroll-days").value) || 0;
+                    const incentive = parseFloat(document.getElementById("edit-payroll-incentive").value) || 0;
+                    const serviceCharge = parseFloat(document.getElementById("edit-payroll-service").value) || 0;
+                    const paymentStatus = document.getElementById("edit-payroll-status").value;
+                    const utr = document.getElementById("edit-payroll-utr").value.trim();
+                    const email = document.getElementById("edit-payroll-email").value.trim();
+                    const phone = document.getElementById("edit-payroll-phone").value.trim();
+                    const activeStatus = document.getElementById("edit-payroll-active").value;
+                    const remark = document.getElementById("edit-payroll-remark").value.trim();
+
+                    const workingDaysNum = parseFloat(workingDays) || 0;
+                    const computedPayout = workingDaysNum * perDayPayment + incentive;
+                    const tds = computedPayout * 0.01;
+                    const net = computedPayout - tds;
+                    const vendorPayout = computedPayout + serviceCharge;
+                    const gst = vendorPayout * 0.18;
+                    const computedTotalPayment = vendorPayout + gst;
+
+                    const payload = {
+                        id,
+                        name,
+                        department,
+                        location,
+                        state: stateVal,
+                        email,
+                        phone,
+                        baseSalary,
+                        workingDays,
+                        perDayPayment,
+                        incentive,
+                        candidatePayout: computedPayout,
+                        tds,
+                        net,
+                        serviceCharge,
+                        vendorPayout,
+                        gst,
+                        totalPayment: computedTotalPayment,
+                        gross_pay: computedPayout,
+                        net_pay: net,
+                        paymentStatus,
+                        status: activeStatus,
+                        activeStatus,
+                        utr,
+                        remark,
+                        isVendorStaff: true,
+                        timesheetStatus: activeStatus === "Active" ? "Uploaded" : "Pending"
+                    };
+                    fetch("/payroll/", {
+                        method: "POST",
+                        headers: {
+                            "Content-Type": "application/json",
+                            "X-Requested-With": "XMLHttpRequest"
+                        },
+                        body: JSON.stringify({
+                            period: state.currentPeriod || "June 2026",
+                            rows: [payload]
+                        })
+                    }).then(async (response) => {
+                        const data = await response.json().catch(() => ({}));
+                        if (!response.ok || !data.ok) {
+                            throw new Error(data.error || "Unable to save payroll.");
+                        }
+                        Auditor.log(`Manually updated vendor payroll profile: ${name} [${id}].`);
+                        Toast.show(`Successfully updated payroll for ${name}.`);
+                        closeEditPayrollModal();
+                        window.location.reload();
+                    }).catch((err) => {
+                        Toast.show(err.message, "danger");
+                    });
+                }
+            });
+        });
+
+        function enableButtons() {
+            const csvBtn = document.getElementById("btn-download-payroll-csv");
+            const mailBtn = document.getElementById("btn-distribute-slips");
+
+            csvBtn.removeAttribute("disabled");
+            csvBtn.className = "px-4 py-2 rounded-xl border border-slate-200 hover:border-qt-primary bg-white text-slate-500 hover:text-qt-primary font-bold text-xs transition-all duration-200";
+            
+            mailBtn.removeAttribute("disabled");
+            mailBtn.className = "px-4 py-2 rounded-xl bg-qt-primary hover:bg-qt-dark text-white font-bold text-xs shadow-md shadow-qt-primary/10 transition-all duration-200";
+        }
+
+        function renderPayroll() {
+            const container = document.getElementById("payroll-table-body");
+            if (!container) return;
+
+            let totalGross = 0;
+            let totalTaxes = 0;
+            let totalNet = 0;
+
+            container.innerHTML = payrollRows.map(e => {
+                // Determine vendor/corporate mappings
+                const workingDays = e.isVendorStaff ? (parseFloat(e.workingDays) || 0) : ((parseFloat(e.hoursWorked) || 0) / 8);
+                const perDayPayment = e.isVendorStaff ? (parseFloat(e.perDayPayment) || 0) : (parseFloat(e.hourlyRate) || 0);
+                const incentive = e.isVendorStaff ? (parseFloat(e.incentive) || 0) : (parseFloat(e.allowance) || 0);
+                const serviceCharge = e.isVendorStaff ? (parseFloat(e.serviceCharge) || 0) : 0;
+
+                const candidatePayout = workingDays * perDayPayment + incentive;
+                const tds = e.isVendorStaff ? (parseFloat(e.tds) || (candidatePayout * 0.01)) : (parseFloat(e.deductions) || (candidatePayout * 0.01));
+                const net = candidatePayout - tds;
+                const vendorPayout = candidatePayout + serviceCharge;
+                const gst = vendorPayout * 0.18;
+                const totalPayment = vendorPayout + gst;
+
+                const statusVal = e.isVendorStaff ? (e.paymentStatus || e.status) : (e.paymentStatus || "Pending");
+                const utrVal = e.utr || "—";
+                const locationVal = e.location || e.centre || e.department || "—";
+                const designationVal = e.department || "—";
+                const totalSalaryVal = e.baseSalary || 0;
+
+                totalGross += candidatePayout;
+                totalTaxes += tds;
+                totalNet += totalPayment;
+
+                const sheetClass = e.timesheetStatus === "Uploaded" ? "bg-green-100 text-green-800" : "bg-amber-100 text-amber-800";
+                const rowStyle = "";
+                
+                let paymentStatusClass = "bg-slate-100 text-slate-800";
+                const statLower = String(statusVal || "").toLowerCase();
+                if (statLower === "paid") {
+                    paymentStatusClass = "bg-green-100 text-green-800";
+                } else if (statLower === "pending" || statLower === "unpaid") {
+                    paymentStatusClass = "bg-red-100 text-red-800";
+                } else if (statLower === "processing") {
+                    paymentStatusClass = "bg-blue-100 text-blue-800";
+                } else if (statLower === "hold") {
+                    paymentStatusClass = "bg-amber-100 text-amber-800";
+                }
+
+                return `
+                    <tr style="${rowStyle}" class="border-b border-slate-100 hover:bg-slate-50/50 transition-colors">
+                        <td class="px-4 py-3 font-bold text-qt-primary">${e.id}</td>
+                        <td class="px-4 py-3 font-bold text-qt-dark">${e.name}</td>
+                        <td class="px-4 py-3 text-slate-500">${designationVal}</td>
+                        <td class="px-4 py-3 text-slate-500">${locationVal}</td>
+                        <td class="px-4 py-3 text-center font-bold text-qt-dark">${workingDays} days</td>
+                        <td class="px-4 py-3 text-right font-bold text-slate-600">₹${totalSalaryVal.toLocaleString([], { minimumFractionDigits: 2 })}</td>
+                        <td class="px-4 py-3 text-right font-bold text-slate-600">₹${perDayPayment.toLocaleString([], { minimumFractionDigits: 2 })}</td>
+                        <td class="px-4 py-3 text-right font-bold text-green-600">₹${incentive.toLocaleString([], { minimumFractionDigits: 2 })}</td>
+                        <td class="px-4 py-3 text-right font-bold text-slate-800">₹${candidatePayout.toLocaleString([], { minimumFractionDigits: 2 })}</td>
+                        <td class="px-4 py-3 text-right font-bold text-red-650">₹${tds.toLocaleString([], { minimumFractionDigits: 2 })}</td>
+                        <td class="px-4 py-3 text-right font-bold text-qt-dark">₹${net.toLocaleString([], { minimumFractionDigits: 2 })}</td>
+                        <td class="px-4 py-3 text-right font-bold text-slate-500">₹${serviceCharge.toLocaleString([], { minimumFractionDigits: 2 })}</td>
+                        <td class="px-4 py-3 text-right font-bold text-slate-800">₹${vendorPayout.toLocaleString([], { minimumFractionDigits: 2 })}</td>
+                        <td class="px-4 py-3 text-right font-bold text-red-600">₹${gst.toLocaleString([], { minimumFractionDigits: 2 })}</td>
+                        <td class="px-4 py-3 text-right font-black text-qt-primary">₹${totalPayment.toLocaleString([], { minimumFractionDigits: 2 })}</td>
+                        <td class="px-4 py-3 text-center"><span class="px-2.5 py-0.5 rounded font-bold text-[0.6rem] uppercase tracking-wider ${paymentStatusClass}">${statusVal}</span></td>
+                        <td class="px-4 py-3 text-slate-550 font-mono">${utrVal}</td>
+                        <td class="px-4 py-3 text-center" onclick="event.stopPropagation();">
+                            <div class="flex items-center justify-center gap-1.5">
+                                <a href="/salary-slip/?id=${e.id}" class="text-green-600 hover:text-green-800 bg-green-50 hover:bg-green-100 p-1.5 rounded transition-colors" title="View Salary Slip">📄</a>
+                                <button onclick="event.stopPropagation(); editVendorPayroll('${e.id}')" class="text-blue-500 hover:text-blue-700 bg-blue-50 hover:bg-blue-100 p-1.5 rounded transition-colors" title="Edit Payroll">✏️</button>
+                                <button onclick="event.stopPropagation(); deleteVendorPayroll('${e.id}')" class="text-red-500 hover:text-red-700 bg-red-50 hover:bg-red-100 p-1.5 rounded transition-colors" title="Delete Profile">🗑️</button>
+                            </div>
+                        </td>
+                    </tr>
+                `;
+            }).join("");
+
+            document.getElementById("pay-total-gross").textContent = `₹${totalGross.toLocaleString([], { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+            document.getElementById("pay-total-taxes").textContent = `₹${totalTaxes.toLocaleString([], { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+            document.getElementById("pay-total-net").textContent = `₹${totalNet.toLocaleString([], { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+        }
+
+        function showPayrollProcessWizard() {
+            const pendingCount = payrollRows.filter(e => e.timesheetStatus === "Pending" && e.status === "Active").length;
+            
+            let extraNotice = "";
+            if (pendingCount > 0) {
+                extraNotice = `
+                <div class="mt-4 p-3 rounded-xl bg-amber-50 border border-amber-100 text-[0.72rem] text-amber-800 leading-normal text-left">
+                    <strong>Attention Required:</strong> ${pendingCount} active employees have pending timesheet logs. The engine will evaluate baseline contract hours (0 hrs) for their profiles.
+                </div>`;
+            }
+
+            const overlay = document.getElementById("processing-modal");
+            const modalBody = document.getElementById("processing-modal-body");
+            
+            overlay.classList.remove("hidden");
+            overlay.classList.add("flex");
+            setTimeout(() => {
+                overlay.classList.remove("opacity-0");
+                overlay.classList.add("opacity-100");
+                modalBody.classList.remove("scale-95");
+                modalBody.classList.add("scale-100");
+            }, 10);
+
+            modalBody.innerHTML = `
+                <div class="w-14 h-14 bg-qt-light text-qt-primary rounded-full flex items-center justify-center text-2xl font-bold mb-4">⚙️</div>
+                <h4 class="font-extrabold text-qt-dark text-base mb-2">Run Corporate Payroll Ingestion</h4>
+                <p class="text-slate-400 text-xs leading-relaxed max-w-sm">
+                    Initiating automated pay summaries calculations for the active <b>June 2026</b> accounting ledger.
+                </p>
+                ${extraNotice}
+                <div class="mt-6 flex gap-3 w-full justify-center">
+                    <button class="px-5 py-2.5 bg-slate-100 hover:bg-slate-200 rounded-xl text-slate-550 font-bold text-xs transition-colors" onclick="closeWizard()">Cancel</button>
+                    <button class="px-5 py-2.5 bg-qt-primary hover:bg-qt-dark text-white rounded-xl font-bold text-xs shadow-md shadow-qt-primary/10 transition-colors" onclick="runCalculationsSequence()">Confirm & Process</button>
+                </div>
+            `;
+        }
+
+        const closeWizard = () => {
+            const overlay = document.getElementById("processing-modal");
+            const modalBody = document.getElementById("processing-modal-body");
+            overlay.classList.remove("opacity-100");
+            overlay.classList.add("opacity-0");
+            modalBody.classList.remove("scale-100");
+            modalBody.classList.add("scale-95");
+            setTimeout(() => {
+                overlay.classList.add("hidden");
+                overlay.classList.remove("flex");
+            }, 300);
+        };
+
+        function runCalculationsSequence() {
+            const modalBody = document.getElementById("processing-modal-body");
+            
+            const steps = [
+                "Connecting payroll engine core...",
+                "Retrieving corporate contract benchmarks...",
+                "Scanning uploaded timesheet data...",
+                "Computing statutory tax brackets and outlays...",
+                "Finalizing accounting disbursements logs..."
+            ];
+
+            let currentStep = 0;
+            
+            const runStep = () => {
+                if (currentStep < steps.length) {
+                    modalBody.innerHTML = `
+                        <div class="animate-spin rounded-full h-10 w-10 border-4 border-slate-100 border-t-qt-primary mb-6"></div>
+                        <h4 class="font-extrabold text-qt-dark text-base mb-2">Processing Payroll...</h4>
+                        <p class="text-qt-primary text-xs font-bold transition-all duration-200 min-h-[16px]">
+                            ${steps[currentStep]}
+                        </p>
+                        <div class="w-full bg-slate-100 h-1.5 rounded-full overflow-hidden mt-6">
+                            <div class="bg-qt-primary h-full transition-all duration-300" style="width: ${((currentStep+1)/steps.length)*100}%"></div>
+                        </div>
+                    `;
+                    currentStep++;
+                    setTimeout(runStep, 600);
+                } else {
+                    finalizePayrollExecution();
+                }
+            };
+
+            runStep();
+        }
+
+        function finalizePayrollExecution() {
+            let totalNet = 0;
+            let processedCount = 0;
+
+            payrollRows.forEach(e => {
+                if (e.status === "Active") {
+                    const calc = FinanceCalculator.calculate(e);
+                    totalNet += calc.netPay;
+                    processedCount++;
+                }
+            });
+
+            const newRun = {
+                id: "PAY-R" + (state.payrollRuns.length + 1).toString().padStart(3, "0"),
+                timestamp: new Date().toISOString(),
+                totalNetPay: totalNet,
+                staffCount: processedCount,
+                period: state.currentPeriod
+            };
+
+            state.payrollRuns.unshift(newRun);
+
+            const modalBody = document.getElementById("processing-modal-body");
+            modalBody.innerHTML = `
+                <div class="w-16 h-16 bg-green-100 text-green-600 rounded-full flex items-center justify-center text-3xl font-bold mb-5">✓</div>
+                <h4 class="font-extrabold text-qt-dark text-base mb-2">Payroll Run Completed</h4>
+                <p class="text-slate-400 text-xs leading-relaxed max-w-sm">
+                    Payroll ledger <b>${newRun.id}</b> generated. Total disbursement of <b>₹${totalNet.toLocaleString([], {minimumFractionDigits: 2})}</b> approved for <b>${processedCount}</b> active consultants.
+                </p>
+                <div class="mt-6 flex w-full justify-center">
+                    <button class="px-6 py-2.5 bg-qt-primary hover:bg-qt-dark text-white rounded-xl font-bold text-xs shadow-md shadow-qt-primary/10 transition-colors" onclick="closeWizard()">Close Panel</button>
+                </div>
+            `;
+
+            Toast.show(`Successfully executed payroll: ${newRun.id} created.`);
+            Auditor.log(`Executed payroll calculations for June 2026. disbursement approved: ₹${totalNet.toFixed(2)} [Ledger: ${newRun.id}].`);
+            
+            enableButtons();
+            renderPayroll();
+        }
+
+        document.addEventListener("DOMContentLoaded", () => {
+            try {
+                const source = document.getElementById("django-payroll-rows");
+                const seededRows = source ? JSON.parse(source.textContent || "[]") : [];
+                if (Array.isArray(seededRows) && seededRows.length) {
+                    payrollRows = seededRows.map(row => ({
+                        id: row.id,
+                        name: row.name,
+                        department: row.location,
+                        location: row.location,
+                        status: row.status,
+                        baseSalary: row.base_salary || row.candidate_payout || row.gross_pay || 0,
+                        workingDays: row.working_days,
+                        incentive: row.incentive,
+                        allowance: row.incentive,
+                        deductions: row.tds,
+                        candidatePayout: row.candidate_payout,
+                        gross_pay: row.gross_pay || row.candidate_payout || 0,
+                        serviceCharge: row.service_charge,
+                        gstAmount: row.gst,
+                        netPay: row.net,
+                        net_pay: row.net_pay || row.net || 0,
+                        totalPayment: row.total_payment,
+                        tds: row.tds,
+                        utr: row.utr,
+                        designation: row.designation,
+                        isVendorStaff: true,
+                        paymentStatus: row.status
+                    }));
+                    renderPayroll();
+                }
+            } catch (e) {
+                console.warn("Unable to seed payroll rows", e);
+            }
+        });
+
+        function exportActivePayrollToCSV() {
+            const settings = state.companySettings || DEFAULT_COMPANY_SETTINGS;
+            const companyPrefix = (settings.shortName || 'Company').replace(/\s+/g, '_');
+            const headers = "EmployeeID,EmployeeName,Department,BaseSalary,OvertimePay,Allowance,Deductions,GrossPay,Taxes,NetPay,Period\n";
+            
+            const rows = payrollRows.map(e => {
+                const calc = FinanceCalculator.calculate(e);
+                return `${e.id},${e.name},${e.department},${e.baseSalary},${calc.overtimePay},${e.allowance},${e.deductions},${calc.grossPay},${calc.taxAmount},${calc.netPay},June 2026`;
+            }).join("\n");
+
+            const csvContent = "data:text/csv;charset=utf-8," + encodeURIComponent(headers + rows);
+            const link = document.createElement("a");
+            link.setAttribute("href", csvContent);
+            link.setAttribute("download", `${companyPrefix}_Payroll_Report_June_2026.csv`);
+            document.body.appendChild(link);
+            link.click();
+            link.remove();
+
+            Toast.show("Payroll CSV report downloaded successfully.");
+            Auditor.log("Administrator exported processed payroll ledger CSV reports.");
+        }
+
+        function exportActivePayrollToExcel() {
+            if (payrollRows.length === 0) {
+                if (typeof Toast !== 'undefined') {
+                    Toast.show("No payroll data available to export.", "warning");
+                }
+                return;
+            }
+
+            const headers = [
+                "Agent ID", "Candidate Name", "Designation", "Location", "Working Days", 
+                "Total Salary", "Per Day", "Incentive", "Candidate Payout", "TDS (1%)", 
+                "Net", "Service Charge", "Vendor Payout", "GST (18%)", "Total Payment", 
+                "Status", "UTR", "Remark"
+            ];
+
+            const data = [headers];
+
+            payrollRows.forEach(e => {
+                const workingDays = e.isVendorStaff ? (parseFloat(e.workingDays) || 0) : ((parseFloat(e.hoursWorked) || 0) / 8);
+                const perDayPayment = e.isVendorStaff ? (parseFloat(e.perDayPayment) || 0) : (parseFloat(e.hourlyRate) || 0);
+                const incentive = e.isVendorStaff ? (parseFloat(e.incentive) || 0) : (parseFloat(e.allowance) || 0);
+                const serviceCharge = e.isVendorStaff ? (parseFloat(e.serviceCharge) || 0) : 0;
+
+                const candidatePayout = workingDays * perDayPayment + incentive;
+                const tds = e.isVendorStaff ? (parseFloat(e.tds) || (candidatePayout * 0.01)) : (parseFloat(e.deductions) || (candidatePayout * 0.01));
+                const net = candidatePayout - tds;
+                const vendorPayout = candidatePayout + serviceCharge;
+                const gst = vendorPayout * 0.18;
+                const totalPayment = vendorPayout + gst;
+
+                const statusVal = e.isVendorStaff ? (e.paymentStatus || e.status) : (e.paymentStatus || "Pending");
+                const utrVal = e.utr || "";
+                const locationVal = e.location || e.centre || e.department || "";
+                const designationVal = e.department || "";
+                const totalSalaryVal = e.baseSalary || 0;
+                const remarkVal = e.remark || "";
+
+                data.push([
+                    e.id,
+                    e.name,
+                    designationVal,
+                    locationVal,
+                    workingDays,
+                    totalSalaryVal,
+                    perDayPayment,
+                    incentive,
+                    candidatePayout,
+                    tds,
+                    net,
+                    serviceCharge,
+                    vendorPayout,
+                    gst,
+                    totalPayment,
+                    statusVal,
+                    utrVal,
+                    remarkVal
+                ]);
+            });
+
+            // Create workbook and write file
+            const settings = state.companySettings || DEFAULT_COMPANY_SETTINGS;
+            const companyPrefix = (settings.shortName || 'Company').replace(/\s+/g, '_');
+            const ws = XLSX.utils.aoa_to_sheet(data);
+            const wb = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(wb, ws, "Payroll Summary");
+            XLSX.writeFile(wb, `${companyPrefix}_Payroll_Report_June_2026.xlsx`);
+
+            if (typeof Toast !== 'undefined') {
+                Toast.show("Payroll Excel ledger downloaded successfully.");
+            }
+            Auditor.log("Administrator exported processed payroll ledger Excel reports.");
+        }
+
+        function simulateAutomatedEmailSlips() {
+            const overlay = document.getElementById("processing-modal");
+            const modalBody = document.getElementById("processing-modal-body");
+            
+            overlay.classList.remove("hidden");
+            overlay.classList.add("flex");
+            setTimeout(() => {
+                overlay.classList.remove("opacity-0");
+                overlay.classList.add("opacity-100");
+                modalBody.classList.remove("scale-95");
+                modalBody.classList.add("scale-100");
+            }, 10);
+            
+            const activeStaff = payrollRows.filter(e => e.status === "Active");
+            let idx = 0;
+
+            const sendNext = () => {
+                if (idx < activeStaff.length) {
+                    const emp = activeStaff[idx];
+                    modalBody.innerHTML = `
+                        <div class="animate-spin rounded-full h-10 w-10 border-4 border-slate-100 border-t-blue-500 mb-6"></div>
+                        <h4 class="font-extrabold text-qt-dark text-base mb-2">Distributing Digital Payslips</h4>
+                        <p class="text-slate-400 text-xs leading-relaxed max-w-sm">
+                            Transmitting secure, encrypted payslip attachments to corporate consultant inboxes...
+                        </p>
+                        <div class="mt-6 p-4 rounded-xl border border-slate-100 bg-slate-50 flex flex-col text-center w-full">
+                            <span class="text-[0.62rem] font-bold text-slate-400 uppercase tracking-widest block">Recipient Inboxes</span>
+                            <span class="font-bold text-blue-600 text-sm mt-1">${emp.name}</span>
+                            <span class="text-slate-400 text-[0.7rem] mt-0.5">${emp.email}</span>
+                        </div>
+                        <div class="text-[0.65rem] font-semibold text-slate-400 tracking-wider uppercase mt-4">
+                            Employee: ${idx+1} of ${activeStaff.length}
+                        </div>
+                    `;
+                    idx++;
+                    setTimeout(sendNext, 400);
+                } else {
+                    const settings = state.companySettings || DEFAULT_COMPANY_SETTINGS;
+                    modalBody.innerHTML = `
+                        <div class="w-16 h-16 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center text-3xl font-bold mb-5">📧</div>
+                        <h4 class="font-extrabold text-qt-dark text-base mb-2">Payslips Delivered</h4>
+                        <p class="text-slate-400 text-xs leading-relaxed max-w-sm">
+                            All ${activeStaff.length} active employee payslip folders have been processed and distributed via ${settings.shortName || 'QT Consultancy'} Corporate HR SMTP servers.
+                        </p>
+                        <div class="mt-6 flex w-full justify-center">
+                            <button class="px-6 py-2.5 bg-qt-primary hover:bg-qt-dark text-white rounded-xl font-bold text-xs shadow-md shadow-qt-primary/10 transition-colors" onclick="closeWizard()">Close</button>
+                        </div>
+                    `;
+                    Toast.show("All digital payslips successfully delivered.");
+                    Auditor.log(`Distributed secure payroll payslips to all ${activeStaff.length} active corporate staff profiles.`);
+                }
+            };
+
+            sendNext();
+        }
+
+         // Payroll page data cache
+        let payrollRows = [];
+
+         // Bulk Importer logic for Payroll
+        let parsedRows = [];
+        let errorReportData = [];
+
+        function downloadPayrollTemplate() {
+            const data = [
+                [
+                    "CANDIDATE NAME", "AGENT ID", "LOCATION", "STATE", "WORKING DAYS", 
+                    "DESIGNATION", "TOTAL SALARY", "PER DAY PAYMENT", "INCENTIVE", "CANDIDATE PAYOUT", 
+                    "TDS (1%)", "NET", "ACCOUNT NUMBER", "IFSC CODE", "BANK", 
+                    "UTR", "STATUS", "GMAIL ID", "MOB NO", "ACTIVE STATUS", 
+                    "REMARK", "SERVICE CHARGE", "VENDOR PAYOUT", "GST (18%)", "TOTAL PAYMENT"
+                ],
+                [
+                    "Rahul Sharma", "AG001", "Gurgaon", "Haryana", 26, 
+                    "Telecaller", 26000, 1000, 2000, 28000, 
+                    280, 27720, "123456789012", "HDFC0001234", "HDFC Bank", 
+                    "UTR123456", "Paid", "rahul@gmail.com", "9876543210", "Active", 
+                    "Monthly Payment", 1500, 29500, 5310, 34810
+                ],
+                [
+                    "Priya Verma", "AG002", "Delhi", "Delhi", 25, 
+                    "Recruiter", 30000, 1200, 1500, 31500, 
+                    315, 31185, "123456789013", "ICIC0004567", "ICICI Bank", 
+                    "UTR123457", "Pending", "priya@gmail.com", "9876543211", "Active", 
+                    "Pending Approval", 1800, 33300, 5994, 39294
+                ]
+            ];
+
+            const settings = state.companySettings || DEFAULT_COMPANY_SETTINGS;
+            const companyPrefix = (settings.shortName || 'Company').replace(/\s+/g, '_');
+
+            const ws = XLSX.utils.aoa_to_sheet(data);
+            const wb = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(wb, ws, "Template");
+            XLSX.writeFile(wb, `${companyPrefix}_Vendor_Payroll_Template.xlsx`);
+            
+            if (typeof Toast !== 'undefined') {
+                Toast.show("Vendor template downloaded.");
+            }
+        }
+
+        function handleUploadedFile(file) {
+            if (!file) return;
+            const ext = file.name.split('.').pop().toLowerCase();
+            if (ext !== 'xlsx' && ext !== 'csv') {
+                if (typeof Toast !== 'undefined') {
+                    Toast.show("Unsupported format. Please upload .xlsx or .csv files.", "danger");
+                }
+                return;
+            }
+
+            const step1 = document.getElementById("bulk-upload-step-1");
+            const progressContainer = document.getElementById("bulk-progress-container");
+            const summaryContainer = document.getElementById("bulk-summary-container");
+            
+            step1.classList.add("hidden");
+            progressContainer.classList.remove("hidden");
+            summaryContainer.classList.add("hidden");
+
+            const progressBar = document.getElementById("bulk-progress-bar");
+            const progressPercent = document.getElementById("bulk-progress-percent");
+
+            let progress = 0;
+            progressBar.style.width = "0%";
+            progressPercent.textContent = "0%";
+            
+            const interval = setInterval(() => {
+                progress += 20;
+                progressBar.style.width = progress + "%";
+                progressPercent.textContent = progress + "%";
+                
+                if (progress >= 100) {
+                    clearInterval(interval);
+                    parseAndValidateFile(file);
+                }
+            }, 80);
+        }
+
+        function parseAndValidateFile(file) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const data = new Uint8Array(e.target.result);
+                    const workbook = XLSX.read(data, {type: 'array'});
+                    const sheetName = workbook.SheetNames[0];
+                    const sheet = workbook.Sheets[sheetName];
+                    const rows = XLSX.utils.sheet_to_json(sheet, {header: 1});
+                    
+                    if (rows.length <= 1) {
+                        throw new Error("The spreadsheet is empty or has no data rows.");
+                    }
+
+                    // Validate headers exactly
+                    const REQUIRED_HEADERS = [
+                        "CANDIDATE NAME", "AGENT ID", "LOCATION", "STATE", "WORKING DAYS", 
+                        "DESIGNATION", "TOTAL SALARY", "PER DAY PAYMENT", "INCENTIVE", "CANDIDATE PAYOUT", 
+                        "TDS (1%)", "NET", "ACCOUNT NUMBER", "IFSC CODE", "BANK", 
+                        "UTR", "STATUS", "GMAIL ID", "MOB NO", "ACTIVE STATUS", 
+                        "REMARK", "SERVICE CHARGE", "VENDOR PAYOUT", "GST (18%)", "TOTAL PAYMENT"
+                    ];
+                    const headers = rows[0].map(h => String(h || "").trim().toUpperCase());
+                    let headersValid = true;
+                    if (headers.length < REQUIRED_HEADERS.length) {
+                        headersValid = false;
+                    } else {
+                        for (let i = 0; i < REQUIRED_HEADERS.length; i++) {
+                            const cleanHeader = headers[i].replace(/\s+/g, '').replace(/\(1%\)/, '1%').replace(/\(18%\)/, '18%');
+                            const cleanRequired = REQUIRED_HEADERS[i].replace(/\s+/g, '').replace(/\(1%\)/, '1%').replace(/\(18%\)/, '18%');
+                            if (cleanHeader !== cleanRequired) {
+                                headersValid = false;
+                                break;
+                            }
+                        }
+                    }
+                    if (!headersValid) {
+                        throw new Error("Template columns do not match the required format or order.");
+                    }
+
+                    validateData(rows);
+                } catch (err) {
+                    if (typeof Toast !== 'undefined') {
+                        Toast.show(err.message, "danger");
+                    }
+                    resetBulkModalState();
+                }
+            };
+            reader.readAsArrayBuffer(file);
+        }
+
+        function validateData(rows) {
+            const dataRows = rows.slice(1);
+            parsedRows = [];
+            errorReportData = [];
+
+            let total = dataRows.length;
+            let validCount = 0;
+            let failedCount = 0;
+            let warningCount = 0;
+
+            const existingAgentIds = new Set(payrollRows.map(e => e.id.toLowerCase()));
+            const uploadedAgentIds = new Set();
+            
+            const tableBody = document.getElementById("bulk-validation-rows");
+            tableBody.innerHTML = "";
+
+            dataRows.forEach((row, index) => {
+                const rowNum = index + 2;
+                
+                // Map columns
+                const name = String(row[0] || "").trim();
+                const agentId = String(row[1] || "").trim();
+                const location = String(row[2] || "").trim();
+                const stateVal = String(row[3] || "").trim();
+                const workingDaysVal = row[4];
+                const designation = String(row[5] || "").trim();
+                const totalSalaryVal = row[6];
+                const perDayPaymentVal = row[7];
+                const incentiveVal = row[8];
+                const candidatePayoutVal = row[9];
+                const tdsVal = row[10];
+                const netVal = row[11];
+                const accNum = String(row[12] || "").trim();
+                let ifsc = String(row[13] || "").trim();
+                const bank = String(row[14] || "").trim();
+                const utr = String(row[15] || "").trim();
+                const status = String(row[16] || "").trim();
+                const gmailId = String(row[17] || "").trim();
+                const mobNo = String(row[18] || "").trim();
+                const activeStatus = String(row[19] || "").trim();
+                const remark = String(row[20] || "").trim();
+                const serviceChargeVal = row[21];
+                const vendorPayoutVal = row[22];
+                const gstVal = row[23];
+                const totalPaymentVal = row[24];
+                const basicPayVal = row[25];
+                const hraVal = row[26];
+                const otherAllowanceVal = row[27];
+                const statBonusVal = row[28];
+                const attendanceBonusVal = row[29];
+                const leaveEncashmentVal = row[30];
+                const performanceIncentiveVal = row[31];
+                const extraPaymentVal = row[32];
+                const shipmentIncentiveVal = row[33];
+                const mobileAllowanceVal = row[34];
+                const mealIncentiveVal = row[35];
+                const groupIncentiveVal = row[36];
+                const nightAllowanceVal = row[37];
+                const nationalHolidayPayVal = row[38];
+                const retentionBonusVal = row[39];
+                const arrearPaymentVal = row[40];
+                const esiVal = row[41];
+                const pfVal = row[42];
+                const lwfVal = row[43];
+                const mealDebitVal = row[44];
+                const refyneDebitVal = row[45];
+                const advanceSalaryVal = row[46];
+                const ptVal = row[47];
+                const eBikeDebitVal = row[48];
+                const advancePaymentsInWeeksVal = row[49];
+                const shipmentDebitVal = row[50];
+                const accommodationRecoveryVal = row[51];
+                const noticePeriodDeductionVal = row[52];
+                const codLossVal = row[53];
+                const tshirtRecoveryVal = row[54];
+                const ewfDeductionVal = row[55];
+
+                let errors = [];
+                let warnings = [];
+
+                // 1. Candidate Name Required
+                if (!name) errors.push("CANDIDATE NAME is required.");
+
+                // 2. Agent ID Required & Unique
+                if (!agentId) {
+                    errors.push("AGENT ID is required.");
+                } else {
+                    const agentIdLower = agentId.toLowerCase();
+                    if (existingAgentIds.has(agentIdLower)) {
+                        errors.push(`AGENT ID '${agentId}' already exists in system.`);
+                    }
+                    if (uploadedAgentIds.has(agentIdLower)) {
+                        errors.push(`Duplicate AGENT ID '${agentId}' in the upload sheet.`);
+                    }
+                    uploadedAgentIds.add(agentIdLower);
+                }
+
+                // 3. Location Required
+                if (!location) errors.push("LOCATION is required.");
+
+                // 4. State Required
+                if (!stateVal) errors.push("STATE is required.");
+
+                // 5. Working Days Required, Numeric
+                const workingDays = parseFloat(workingDaysVal);
+                if (workingDaysVal === undefined || workingDaysVal === null || workingDaysVal === "") {
+                    errors.push("WORKING DAYS is required.");
+                } else if (isNaN(workingDays)) {
+                    errors.push("WORKING DAYS must be numeric.");
+                }
+
+                // 6. Designation Required
+                if (!designation) errors.push("DESIGNATION is required.");
+
+                // 7. Total Salary Required, Numeric
+                const totalSalary = parseFloat(totalSalaryVal);
+                if (totalSalaryVal === undefined || totalSalaryVal === null || totalSalaryVal === "") {
+                    errors.push("TOTAL SALARY is required.");
+                } else if (isNaN(totalSalary)) {
+                    errors.push("TOTAL SALARY must be numeric.");
+                }
+
+                // 8. Per Day Payment Required, Numeric
+                const perDayPayment = parseFloat(perDayPaymentVal);
+                if (perDayPaymentVal === undefined || perDayPaymentVal === null || perDayPaymentVal === "") {
+                    errors.push("PER DAY PAYMENT is required.");
+                } else if (isNaN(perDayPayment)) {
+                    errors.push("PER DAY PAYMENT must be numeric.");
+                }
+
+                // 9. Incentive Optional, Numeric
+                let incentive = 0;
+                if (incentiveVal !== undefined && incentiveVal !== null && incentiveVal !== "") {
+                    incentive = parseFloat(incentiveVal);
+                    if (isNaN(incentive)) errors.push("INCENTIVE must be numeric.");
+                }
+
+                // 10. Candidate Payout Required, Numeric
+                const candidatePayout = parseFloat(candidatePayoutVal);
+                if (candidatePayoutVal === undefined || candidatePayoutVal === null || candidatePayoutVal === "") {
+                    errors.push("CANDIDATE PAYOUT is required.");
+                } else if (isNaN(candidatePayout)) {
+                    errors.push("CANDIDATE PAYOUT must be numeric.");
+                }
+
+                // 11. TDS (1%) Optional, Numeric
+                let tds = 0;
+                if (tdsVal !== undefined && tdsVal !== null && tdsVal !== "") {
+                    tds = parseFloat(tdsVal);
+                    if (isNaN(tds)) errors.push("TDS (1%) must be numeric.");
+                }
+
+                // 12. NET Optional, Numeric
+                let net = 0;
+                if (netVal !== undefined && netVal !== null && netVal !== "") {
+                    net = parseFloat(netVal);
+                    if (isNaN(net)) errors.push("NET must be numeric.");
+                }
+
+                // 13. Account Number Required
+                if (!accNum) errors.push("ACCOUNT NUMBER is required.");
+
+                // 14. IFSC Code Required & Format
+                const ifscRegex = /^[A-Z]{4}0[A-Z0-9]{6}$/i;
+                if (!ifsc) {
+                    errors.push("IFSC CODE is required.");
+                } else if (!ifscRegex.test(ifsc)) {
+                    errors.push("Invalid IFSC CODE format.");
+                } else if (/[a-z]/.test(ifsc)) {
+                    warnings.push("IFSC code contained lowercase letters and was auto-capitalized.");
+                    ifsc = ifsc.toUpperCase();
+                }
+
+                // 15. Bank Name Required
+                if (!bank) errors.push("BANK is required.");
+
+                // 16. Status Allowed Values: Paid, Pending, Processing, Hold
+                const allowedStatuses = ["paid", "pending", "processing", "hold"];
+                if (!status) {
+                    errors.push("STATUS is required.");
+                } else if (!allowedStatuses.includes(status.toLowerCase())) {
+                    errors.push("STATUS must be Paid, Pending, Processing, or Hold.");
+                }
+
+                // 17. Gmail ID Required & Valid Email format
+                const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+                if (!gmailId) {
+                    errors.push("GMAIL ID is required.");
+                } else if (!emailRegex.test(gmailId)) {
+                    errors.push("Invalid GMAIL ID email format.");
+                }
+
+                // 18. Mob No Required & 10 digits
+                if (!mobNo) {
+                    errors.push("MOB NO is required.");
+                } else if (!/^\d{10}$/.test(mobNo)) {
+                    errors.push("MOB NO must be a valid 10-digit number.");
+                }
+
+                // 19. Active Status Allowed Values: Active, Inactive
+                const allowedActive = ["active", "inactive"];
+                if (!activeStatus) {
+                    errors.push("ACTIVE STATUS is required.");
+                } else if (!allowedActive.includes(activeStatus.toLowerCase())) {
+                    errors.push("ACTIVE STATUS must be Active or Inactive.");
+                }
+
+                // 20. Service Charge Optional, Numeric
+                let serviceCharge = 0;
+                if (serviceChargeVal !== undefined && serviceChargeVal !== null && serviceChargeVal !== "") {
+                    serviceCharge = parseFloat(serviceChargeVal);
+                    if (isNaN(serviceCharge)) errors.push("SERVICE CHARGE must be numeric.");
+                }
+
+                // 21. Vendor Payout Optional, Numeric
+                let vendorPayout = 0;
+                if (vendorPayoutVal !== undefined && vendorPayoutVal !== null && vendorPayoutVal !== "") {
+                    vendorPayout = parseFloat(vendorPayoutVal);
+                    if (isNaN(vendorPayout)) errors.push("VENDOR PAYOUT must be numeric.");
+                }
+
+                // 22. GST (18%) Optional, Numeric
+                let gst = 0;
+                if (gstVal !== undefined && gstVal !== null && gstVal !== "") {
+                    gst = parseFloat(gstVal);
+                    if (isNaN(gst)) errors.push("GST (18%) must be numeric.");
+                }
+
+                // 23. Total Payment Optional, Numeric
+                let totalPayment = 0;
+                if (totalPaymentVal !== undefined && totalPaymentVal !== null && totalPaymentVal !== "") {
+                    totalPayment = parseFloat(totalPaymentVal);
+                    if (isNaN(totalPayment)) errors.push("TOTAL PAYMENT must be numeric.");
+                }
+
+                // Perform warning calculations if basic numeric fields are valid
+                if (errors.length === 0) {
+                    // Auto-calculation validations
+                    const calculatedPayout = workingDays * perDayPayment + incentive;
+                    if (Math.abs(calculatedPayout - candidatePayout) > 1) {
+                        warnings.push(`CANDIDATE PAYOUT (₹${candidatePayout}) differs from computed (₹${calculatedPayout}).`);
+                    }
+
+                    const computedTds = candidatePayout * 0.01;
+                    if (tdsVal !== undefined && tdsVal !== null && tdsVal !== "") {
+                        if (Math.abs(tds - computedTds) > 1) {
+                            warnings.push(`TDS (₹${tds}) differs from computed 1% (₹${computedTds.toFixed(2)}).`);
+                        }
+                    }
+
+                    const computedNet = candidatePayout - computedTds;
+                    if (netVal !== undefined && netVal !== null && netVal !== "") {
+                        if (Math.abs(net - computedNet) > 1) {
+                            warnings.push(`NET (₹${net}) differs from computed (₹${computedNet.toFixed(2)}).`);
+                        }
+                    }
+
+                    const computedVendorPayout = candidatePayout + serviceCharge;
+                    if (vendorPayoutVal !== undefined && vendorPayoutVal !== null && vendorPayoutVal !== "") {
+                        if (Math.abs(vendorPayout - computedVendorPayout) > 1) {
+                            warnings.push(`VENDOR PAYOUT (₹${vendorPayout}) differs from computed (₹${computedVendorPayout}).`);
+                        }
+                    }
+
+                    const activeVendorPayout = vendorPayoutVal !== undefined && vendorPayoutVal !== null && vendorPayoutVal !== "" ? vendorPayout : computedVendorPayout;
+                    const computedGst = activeVendorPayout * 0.18;
+                    if (gstVal !== undefined && gstVal !== null && gstVal !== "") {
+                        if (Math.abs(gst - computedGst) > 1) {
+                            warnings.push(`GST (₹${gst}) differs from computed 18% (₹${computedGst.toFixed(2)}).`);
+                        }
+                    }
+
+                    const activeGst = gstVal !== undefined && gstVal !== null && gstVal !== "" ? gst : computedGst;
+                    const computedTotal = activeVendorPayout + activeGst;
+                    if (totalPaymentVal !== undefined && totalPaymentVal !== null && totalPaymentVal !== "") {
+                        if (Math.abs(totalPayment - computedTotal) > 1) {
+                            warnings.push(`TOTAL PAYMENT (₹${totalPayment}) differs from computed (₹${computedTotal.toFixed(2)}).`);
+                        }
+                    }
+                }
+
+                const isValid = errors.length === 0;
+
+                if (isValid) {
+                    if (warnings.length > 0) {
+                        warningCount++;
+                    } else {
+                        validCount++;
+                    }
+
+                    const workingDays = parseFloat(workingDaysVal) || 0;
+                    const computedPayout = workingDays * perDayPayment + incentive;
+                    const tds = computedPayout * 0.01;
+                    const net = computedPayout - tds;
+                    const serviceCharge = parseFloat(serviceChargeVal) || 0;
+                    const vendorPayout = computedPayout + serviceCharge;
+                    const gst = vendorPayout * 0.18;
+                    const computedTotalPayment = vendorPayout + gst;
+
+                    parsedRows.push({
+                        id: agentId,
+                        name: name,
+                        email: gmailId,
+                        phone: mobNo,
+                        department: designation,
+                        role: "Consultant",
+                        status: activeStatus.toLowerCase() === "active" ? "Active" : "Inactive",
+                        baseSalary: totalSalary,
+                        hourlyRate: perDayPayment,
+                        allowance: incentive,
+                        deductions: tds,
+                        hoursWorked: workingDays * 8, // map days to hours (8 hrs/day)
+                        timesheetStatus: activeStatus.toLowerCase() === "active" ? "Uploaded" : "Pending",
+                        basicPay: parseFloat(totalSalaryVal) || 0,
+                        hra: parseFloat(hraVal) || 0,
+                        otherAllowance: parseFloat(otherAllowanceVal) || 0,
+                        statBonus: parseFloat(statBonusVal) || 0,
+                        attendanceBonus: parseFloat(attendanceBonusVal) || 0,
+                        leaveEncashment: parseFloat(leaveEncashmentVal) || 0,
+                        performanceIncentive: parseFloat(performanceIncentiveVal) || 0,
+                        extraPayment: parseFloat(extraPaymentVal) || 0,
+                        shipmentIncentive: parseFloat(shipmentIncentiveVal) || 0,
+                        mobileAllowance: parseFloat(mobileAllowanceVal) || 0,
+                        mealIncentive: parseFloat(mealIncentiveVal) || 0,
+                        groupIncentive: parseFloat(groupIncentiveVal) || 0,
+                        nightAllowance: parseFloat(nightAllowanceVal) || 0,
+                        nationalHolidayPay: parseFloat(nationalHolidayPayVal) || 0,
+                        retentionBonus: parseFloat(retentionBonusVal) || 0,
+                        arrearPayment: parseFloat(arrearPaymentVal) || 0,
+                        esi: parseFloat(esiVal) || 0,
+                        pf: parseFloat(pfVal) || 0,
+                        lwf: parseFloat(lwfVal) || 0,
+                        mealDebit: parseFloat(mealDebitVal) || 0,
+                        refyneDebit: parseFloat(refyneDebitVal) || 0,
+                        advanceSalary: parseFloat(advanceSalaryVal) || 0,
+                        pt: parseFloat(ptVal) || 0,
+                        eBikeDebit: parseFloat(eBikeDebitVal) || 0,
+                        advancePaymentsInWeeks: parseFloat(advancePaymentsInWeeksVal) || 0,
+                        shipmentDebit: parseFloat(shipmentDebitVal) || 0,
+                        accommodationRecovery: parseFloat(accommodationRecoveryVal) || 0,
+                        noticePeriodDeduction: parseFloat(noticePeriodDeductionVal) || 0,
+                        codLoss: parseFloat(codLossVal) || 0,
+                        tshirtRecovery: parseFloat(tshirtRecoveryVal) || 0,
+                        ewfDeduction: parseFloat(ewfDeductionVal) || 0,
+                        basicPayLabel: "Basic Pay",
+                        grossTotal: computedPayout,
+                        
+                        // Vendor staff specific flags & metrics
+                        isVendorStaff: true,
+                        location: location,
+                        state: stateVal,
+                        workingDays: workingDays,
+                        perDayPayment: perDayPayment,
+                        incentive: incentive,
+                        candidatePayout: candidatePayout || computedPayout,
+                        candidate_payout: candidatePayout || computedPayout,
+                        gross_pay: candidatePayout || computedPayout,
+                        tds: tds,
+                        net: net,
+                        net_pay: net,
+                        accountNumber: accNum,
+                        ifscCode: ifsc,
+                        bankName: bank,
+                        utr: utr,
+                        paymentStatus: status.charAt(0).toUpperCase() + status.slice(1).toLowerCase(),
+                        activeStatus: activeStatus.charAt(0).toUpperCase() + activeStatus.slice(1).toLowerCase(),
+                        remark: remark,
+                        serviceCharge: serviceCharge,
+                        vendorPayout: vendorPayout,
+                        gst: gst,
+                        totalPayment: totalPayment || computedTotalPayment
+                    });
+                } else {
+                    failedCount++;
+                    errors.forEach(err => {
+                        errorReportData.push({
+                            row: rowNum,
+                            agentId: agentId || "N/A",
+                            name: name || "N/A",
+                            error: err
+                        });
+                    });
+                }
+
+                // Row output HTML
+                let statusHTML = "";
+                let detailsHTML = "";
+                let rowClass = "border-b border-slate-100 hover:bg-slate-50";
+
+                if (!isValid) {
+                    statusHTML = `<span class="bg-red-50 text-red-700 border border-red-200 px-2 py-0.5 rounded text-[0.62rem] font-bold">❌ INVALID</span>`;
+                    detailsHTML = `<span class="text-red-500 font-semibold">${errors.join(" | ")}</span>`;
+                    rowClass = "bg-red-50/20 hover:bg-red-50/40 border-b border-red-100/50";
+                } else if (warnings.length > 0) {
+                    statusHTML = `<span class="bg-amber-50 text-amber-700 border border-amber-200 px-2 py-0.5 rounded text-[0.62rem] font-bold">⚠️ WARNING</span>`;
+                    detailsHTML = `<span class="text-amber-600 font-semibold">${warnings.join(" | ")}</span>`;
+                } else {
+                    statusHTML = `<span class="bg-emerald-50 text-emerald-700 border border-emerald-200 px-2 py-0.5 rounded text-[0.62rem] font-bold">✓ VALID</span>`;
+                    detailsHTML = `<span class="text-slate-400">Ready to import.</span>`;
+                }
+
+                const tr = document.createElement("tr");
+                tr.className = rowClass;
+                tr.innerHTML = `
+                    <td class="p-2.5 text-center font-semibold text-slate-400">${rowNum}</td>
+                    <td class="p-2.5 font-bold">${agentId || "—"}</td>
+                    <td class="p-2.5 font-bold text-slate-800">${name || "—"}</td>
+                    <td class="p-2.5">${statusHTML}</td>
+                    <td class="p-2.5 text-[0.68rem] leading-normal">${detailsHTML}</td>
+                `;
+                tableBody.appendChild(tr);
+            });
+
+            // Update Statistics
+            document.getElementById("stat-total-records").textContent = total;
+            document.getElementById("stat-valid-records").textContent = validCount + warningCount;
+            document.getElementById("stat-failed-records").textContent = failedCount;
+            document.getElementById("stat-warning-records").textContent = warningCount;
+
+            document.getElementById("bulk-progress-container").classList.add("hidden");
+            document.getElementById("bulk-summary-container").classList.remove("hidden");
+
+            const importBtn = document.getElementById("btn-import-bulk");
+            const errorReportContainer = document.getElementById("error-report-container");
+            if (failedCount > 0) {
+                errorReportContainer.classList.remove("hidden");
+                errorReportContainer.classList.add("flex");
+                importBtn.disabled = true;
+                importBtn.className = "px-5 py-2.5 bg-slate-200 text-slate-400 rounded-xl font-bold text-xs cursor-not-allowed transition-all";
+            } else {
+                errorReportContainer.classList.add("hidden");
+                errorReportContainer.classList.remove("flex");
+                importBtn.disabled = false;
+                importBtn.className = "px-5 py-2.5 bg-qt-primary hover:bg-qt-dark text-white rounded-xl font-bold text-xs shadow-md shadow-qt-primary/10 transition-all cursor-pointer";
+            }
+        }
+
+        function downloadErrorReport() {
+            if (errorReportData.length === 0) return;
+
+            const headers = "Row Number,Agent ID,Candidate Name,Error Description\n";
+            const rows = errorReportData.map(err => {
+                const escapedName = err.name.replace(/"/g, '""');
+                const escapedError = err.error.replace(/"/g, '""');
+                return `${err.row},${err.agentId},"${escapedName}","${escapedError}"`;
+            }).join("\n");
+
+            const settings = state.companySettings || DEFAULT_COMPANY_SETTINGS;
+            const companyPrefix = (settings.shortName || 'Company').replace(/\s+/g, '_');
+            const csvContent = "data:text/csv;charset=utf-8," + encodeURIComponent(headers + rows);
+            const link = document.createElement("a");
+            link.setAttribute("href", csvContent);
+            link.setAttribute("download", `${companyPrefix}_Payroll_Import_Error_Report.csv`);
+            document.body.appendChild(link);
+            link.click();
+            link.remove();
+            
+            if (typeof Toast !== 'undefined') {
+                Toast.show("Error report CSV downloaded.");
+            }
+        }
+
+        function resetBulkModalState() {
+            parsedRows = [];
+            errorReportData = [];
+            
+            document.getElementById("bulk-file-input").value = "";
+            
+            document.getElementById("bulk-upload-step-1").classList.remove("hidden");
+            document.getElementById("bulk-progress-container").classList.add("hidden");
+            document.getElementById("bulk-summary-container").classList.add("hidden");
+            
+            const errorReportContainer = document.getElementById("error-report-container");
+            errorReportContainer.classList.add("hidden");
+            errorReportContainer.classList.remove("flex");
+            
+            const importBtn = document.getElementById("btn-import-bulk");
+            importBtn.disabled = true;
+            importBtn.className = "px-5 py-2.5 bg-slate-200 text-slate-400 rounded-xl font-bold text-xs cursor-not-allowed transition-all";
+        }
+
+        function editVendorPayroll(id) {
+            const emp = payrollRows.find(e => e.id === id);
+            if (!emp) return;
+
+            document.getElementById("edit-payroll-id").value = emp.id;
+            document.getElementById("edit-payroll-title-id").textContent = emp.id;
+            document.getElementById("edit-payroll-name").value = emp.name || "";
+            document.getElementById("edit-payroll-designation").value = emp.department || "";
+            document.getElementById("edit-payroll-location").value = emp.location || emp.centre || "";
+            document.getElementById("edit-payroll-state").value = emp.state || "";
+            document.getElementById("edit-payroll-salary").value = emp.baseSalary || emp.totalSalary || 0;
+            document.getElementById("edit-payroll-perday").value = emp.perDayPayment || emp.hourlyRate || 0;
+            document.getElementById("edit-payroll-days").value = emp.workingDays || ((emp.hoursWorked || 0) / 8) || 0;
+            document.getElementById("edit-payroll-incentive").value = emp.incentive || emp.allowance || 0;
+            document.getElementById("edit-payroll-service").value = emp.serviceCharge || 0;
+            document.getElementById("edit-payroll-status").value = emp.paymentStatus || emp.status || "Pending";
+            document.getElementById("edit-payroll-utr").value = emp.utr || "";
+            document.getElementById("edit-payroll-email").value = emp.email || "";
+            document.getElementById("edit-payroll-phone").value = emp.phone || "";
+            document.getElementById("edit-payroll-active").value = emp.status || "Active";
+            document.getElementById("edit-payroll-remark").value = emp.remark || "";
+
+            const modal = document.getElementById("edit-payroll-modal");
+            const modalContainer = modal.querySelector("div");
+            modal.classList.remove("hidden");
+            modal.classList.add("flex");
+            setTimeout(() => {
+                modal.classList.remove("opacity-0");
+                modal.classList.add("opacity-100");
+                modalContainer.classList.remove("scale-95");
+                modalContainer.classList.add("scale-100");
+            }, 10);
+        }
+
+        function closeEditPayrollModal() {
+            const modal = document.getElementById("edit-payroll-modal");
+            const modalContainer = modal.querySelector("div");
+            modal.classList.remove("opacity-100");
+            modal.classList.add("opacity-0");
+            modalContainer.classList.remove("scale-100");
+            modalContainer.classList.add("scale-95");
+            setTimeout(() => {
+                modal.classList.add("hidden");
+                modal.classList.remove("flex");
+            }, 300);
+        }
+
+        function deleteVendorPayroll(id) {
+            if (confirm(`Are you sure you want to delete the payroll profile for ${id}?`)) {
+                payrollRows = payrollRows.filter(e => e.id !== id);
+                Auditor.log(`Deleted payroll profile: ${id}.`);
+                Toast.show("Payroll profile deleted.");
+                renderPayroll();
+            }
+        }
+    </script>
+</body>
+</html>

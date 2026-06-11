@@ -1,0 +1,361 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>QT Consultancy - Admin Dashboard</title>
+    
+    <!-- Synchronous theme loader from localStorage -->
+    <script>
+      (function() {
+          const cached = localStorage.getItem("qt_consultancy_state");
+          let primaryColor = '#88BDF2';
+          let darkColor = '#384959';
+          if (cached) {
+              try {
+                  const state = JSON.parse(cached);
+                  const settings = state.companySettings || state.settings;
+                  if (settings) {
+                      primaryColor = settings.primaryColor || settings.themeColor || primaryColor;
+                      darkColor = settings.sidebarColor || settings.themeColorDark || darkColor;
+                  }
+              } catch(e) {}
+          }
+          document.documentElement.style.setProperty('--qt-primary', primaryColor);
+          document.documentElement.style.setProperty('--qt-dark', darkColor);
+          document.documentElement.style.setProperty('--primary', primaryColor);
+          document.documentElement.style.setProperty('--bg-sidebar', darkColor);
+          window.qtTheme = { primaryColor, darkColor };
+      })();
+    </script>
+
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+      tailwind.config = {
+        theme: {
+          extend: {
+            colors: {
+              qt: {
+                light: '#BDDDFC',    // Very Light Pastel Blue
+                medium: '#6A89A7',   // Muted Steel/Blue-grey
+                primary: 'var(--qt-primary)',  // Dynamic
+                dark: 'var(--qt-dark)',     // Dynamic
+                darker: '#26323d'    // Slightly darker Charcoal
+              }
+            },
+            fontFamily: {
+              sans: ['Poppins', 'Inter', 'sans-serif']
+            }
+          }
+        }
+      }
+    </script>
+
+    <!-- Google Fonts Poppins & Inter -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    
+    <link rel="stylesheet" href="styles.css"> <!-- Helper classes and custom styles -->
+</head>
+<body class="bg-slate-50 font-sans text-qt-dark antialiased">
+
+    <div class="flex min-h-screen w-full">
+        
+        <!-- Left Sidebar component -->
+        <aside class="w-64 bg-qt-dark text-white flex flex-col justify-between p-6 flex-shrink-0 z-30 sticky top-0 h-screen">
+            <div>
+                <!-- Brand logo -->
+                <div class="flex items-center gap-2.5 mb-8">
+                    <div class="w-8 h-8 bg-qt-medium rounded-lg flex items-center justify-center text-white font-extrabold text-sm" data-company="logo">
+                        QT
+                    </div>
+                    <span class="text-white font-bold text-base leading-none tracking-tight" data-company="shortName">QT Consultancy</span>
+                </div>
+                
+                <!-- Menu -->
+                <ul class="flex flex-col gap-1 list-none">
+                    <li class="rounded-xl overflow-hidden bg-qt-primary">
+                        <a href="dashboard.html" class="flex items-center gap-3 px-4 py-3 text-white font-medium text-sm transition-colors duration-200">
+                            <span>📊</span> Dashboard
+                        </a>
+                    </li>
+                    <li class="rounded-xl overflow-hidden text-slate-400 hover:text-white hover:bg-slate-800/50">
+                        <a href="directory.html" class="flex items-center gap-3 px-4 py-3 text-slate-400 hover:text-white font-medium text-sm transition-colors duration-200">
+                            <span>👥</span> Staff Directory
+                        </a>
+                    </li>
+                    
+                    <li class="rounded-xl overflow-hidden text-slate-400 hover:text-white hover:bg-slate-800/50">
+                        <a href="payroll.html" class="flex items-center gap-3 px-4 py-3 text-slate-400 hover:text-white font-medium text-sm transition-colors duration-200">
+                            <span>💰</span> Payroll Engine
+                        </a>
+                    </li>
+                    <li class="rounded-xl overflow-hidden text-slate-400 hover:text-white hover:bg-slate-800/50">
+                        <a href="invoices.html" class="flex items-center gap-3 px-4 py-3 text-slate-400 hover:text-white font-medium text-sm transition-colors duration-200">
+                            <span>📄</span> Refrens Invoices
+                        </a>
+                    </li>
+                    <li class="rounded-xl overflow-hidden text-slate-400 hover:text-white hover:bg-slate-800/50">
+                        <a href="salaryslip.html" class="flex items-center gap-3 px-4 py-3 text-slate-400 hover:text-white font-medium text-sm transition-colors duration-200">
+                            <span>🧾</span> Salary Slips
+                        </a>
+                    </li>
+                    <li class="rounded-xl overflow-hidden text-slate-400 hover:text-white hover:bg-slate-800/50">
+                        <a href="settings.html" class="flex items-center gap-3 px-4 py-3 text-slate-400 hover:text-white font-medium text-sm transition-colors duration-200">
+                            <span>⚙️</span> Settings
+                        </a>
+                    </li>
+                </ul>
+            </div>
+            
+            <!-- User avatar on bottom -->
+            <div class="border-t border-slate-800 pt-5 flex flex-col gap-4">
+                <div class="flex items-center gap-3 px-2">
+                    <div id="header-user-avatar" class="w-9 h-9 rounded-full bg-qt-primary flex items-center justify-center font-bold text-sm text-white">AD</div>
+                    <div class="flex flex-col">
+                        <span id="header-user-name" class="text-xs font-bold text-white leading-none">Admin User</span>
+                        <span class="text-[0.62rem] text-slate-500 font-semibold uppercase tracking-widest mt-1">HR & Finance Admin</span>
+                    </div>
+                </div>
+                <button id="btn-logout-sidebar" class="flex items-center justify-center gap-2 py-2.5 rounded-xl bg-slate-800 hover:bg-red-600 border border-slate-700 hover:border-red-600 text-white font-semibold text-xs tracking-wide transition-all duration-200">
+                    <span>🚪</span> Sign Out
+                </button>
+            </div>
+        </aside>
+
+        <!-- Main Workspace -->
+        <main class="flex-1 flex flex-col min-h-screen overflow-x-hidden">
+            
+            <!-- Header -->
+            <header class="h-[70px] bg-white border-b border-slate-200 px-8 flex items-center justify-between sticky top-0 z-25">
+                <div class="header-title">
+                    <h2 class="text-lg font-bold text-qt-dark tracking-tight"><span data-company="shortName">QT Consultancy</span> HR & Payroll Hub</h2>
+                </div>
+                <div class="flex items-center gap-5">
+                    <div class="bg-qt-light text-qt-primary text-xs font-bold px-4 py-1.5 rounded-full border border-blue-200 flex items-center gap-2">
+                        <span class="w-1.5 h-1.5 bg-qt-primary rounded-full animate-pulse"></span>
+                        Active Period: June 2026
+                    </div>
+                    <div id="nav-system-time" class="text-xs font-medium text-slate-400">02/06/2026 | 15:30</div>
+                </div>
+            </header>
+
+            <!-- Workspace View -->
+            <div class="p-8 flex-1 flex flex-col gap-8">
+                
+                <!-- Metrics -->
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+                    
+                    <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all duration-200 flex items-center justify-between">
+                        <div class="flex flex-col">
+                            <span class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Active Staff & Consultants</span>
+                            <span id="stat-active-employees" class="text-3xl font-extrabold text-qt-dark leading-none">0 / 0</span>
+                            <span class="text-[0.68rem] font-semibold text-green-500 mt-2 flex items-center gap-1">↑ 100% operational</span>
+                        </div>
+                        <div class="w-12 h-12 bg-qt-light text-qt-primary rounded-xl flex items-center justify-center text-xl shadow-inner">👥</div>
+                    </div>
+                    
+                    <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all duration-200 flex items-center justify-between">
+                        <div class="flex flex-col">
+                            <span class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Timesheets Processed</span>
+                            <span id="stat-timesheet-status" class="text-3xl font-extrabold text-qt-dark leading-none">0 / 0</span>
+                            <span class="text-[0.68rem] font-semibold text-green-500 mt-2 flex items-center gap-1">↑ Logs Ingested</span>
+                        </div>
+                        <div class="w-12 h-12 bg-green-55/10 text-green-600 rounded-xl flex items-center justify-center text-xl shadow-inner">📁</div>
+                    </div>
+                    
+                    <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all duration-200 flex items-center justify-between">
+                        <div class="flex flex-col">
+                            <span class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Last Payroll Run</span>
+                            <span id="stat-payroll-date" class="text-xl font-extrabold text-qt-dark leading-none my-1.5">Never</span>
+                            <span class="text-[0.68rem] font-semibold text-slate-400 mt-2 flex items-center gap-1">📅 Current month cycle</span>
+                        </div>
+                        <div class="w-12 h-12 bg-amber-50 text-amber-500 rounded-xl flex items-center justify-center text-xl shadow-inner">💰</div>
+                    </div>
+                    
+                    <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all duration-200 flex items-center justify-between">
+                        <div class="flex flex-col">
+                            <span class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">General Disbursements</span>
+                            <span id="stat-total-payroll" class="text-xl font-extrabold text-qt-dark leading-none my-1.5">₹0.00</span>
+                            <span class="text-[0.68rem] font-semibold text-green-500 mt-2 flex items-center gap-1">↑ Approved ledger</span>
+                        </div>
+                        <div class="w-12 h-12 bg-purple-50 text-purple-600 rounded-xl flex items-center justify-center text-xl shadow-inner">📈</div>
+                    </div>
+
+                </div>
+
+                <!-- Panels Grid -->
+                <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+                    
+                    <!-- SVG Chart Card -->
+                    <div class="lg:col-span-8 bg-white border border-slate-200 p-6 rounded-2xl shadow-sm flex flex-col gap-4">
+                        <div class="flex justify-between items-center border-b border-slate-100 pb-4">
+                            <h3 class="text-sm font-bold text-qt-dark uppercase tracking-wider flex items-center gap-2">
+                                📊 Corporate Staff by Department
+                            </h3>
+                        </div>
+                        <div id="dashboard-chart-svg" class="w-full flex items-center justify-center py-6 min-h-[220px]">
+                            <!-- SVG Injected via JS -->
+                        </div>
+                    </div>
+
+                    <!-- Shortcut grids & logs -->
+                    <div class="lg:col-span-4 bg-white border border-slate-200 p-6 rounded-2xl shadow-sm flex flex-col gap-6">
+                        <div>
+                            <h3 class="text-sm font-bold text-qt-dark uppercase tracking-wider mb-4 flex items-center gap-2">
+                                ⚡ Quick Operations
+                            </h3>
+                            <div class="grid grid-cols-2 gap-3">
+                                <a href="timesheets.html" class="flex flex-col items-center justify-center gap-2 p-4 rounded-xl bg-slate-50 border border-slate-200 hover:border-qt-primary hover:bg-qt-light/30 transition-all duration-200 text-center group">
+                                    <span class="text-xl">📁</span>
+                                    <span class="text-[0.72rem] font-bold text-qt-dark group-hover:text-qt-primary">Ingest Timesheets</span>
+                                </a>
+                                <a href="payroll.html" class="flex flex-col items-center justify-center gap-2 p-4 rounded-xl bg-slate-50 border border-slate-200 hover:border-qt-primary hover:bg-qt-light/30 transition-all duration-200 text-center group">
+                                    <span class="text-xl">💰</span>
+                                    <span class="text-[0.72rem] font-bold text-qt-dark group-hover:text-qt-primary">Run Payroll</span>
+                                </a>
+                                <a href="directory.html" class="flex flex-col items-center justify-center gap-2 p-4 rounded-xl bg-slate-50 border border-slate-200 hover:border-qt-primary hover:bg-qt-light/30 transition-all duration-200 text-center group">
+                                    <span class="text-xl">👥</span>
+                                    <span class="text-[0.72rem] font-bold text-qt-dark group-hover:text-qt-primary">Staff Registry</span>
+                                </a>
+                                <a href="invoices.html" class="flex flex-col items-center justify-center gap-2 p-4 rounded-xl bg-slate-50 border border-slate-200 hover:border-qt-primary hover:bg-qt-light/30 transition-all duration-200 text-center group">
+                                    <span class="text-xl">📄</span>
+                                    <span class="text-[0.72rem] font-bold text-qt-dark group-hover:text-qt-primary">Refrens Invoice</span>
+                                </a>
+                            </div>
+                        </div>
+                        
+                        <div class="border-t border-slate-100 pt-6">
+                            <h4 class="text-xs font-bold uppercase tracking-wider text-slate-400 mb-4">Recent System Events</h4>
+                            <div id="recent-logs-list" class="flex flex-col gap-2 overflow-y-auto max-h-[180px]">
+                                <!-- Snippets Rendered via JS -->
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+
+            </div>
+
+        </main>
+    </div>
+
+    <!-- Toast container for notifications -->
+    <div id="toast-container" class="fixed bottom-6 right-6 z-[200] flex flex-col gap-3 max-w-sm pointer-events-none"></div>
+
+    <script src="app.js"></script>
+    <script>
+        document.addEventListener("DOMContentLoaded", () => {
+            // Update stats
+            const activeCount = state.employees.filter(e => e.status === "Active").length;
+            const totalCount = state.employees.length;
+            const timesheetDone = state.employees.filter(e => e.timesheetStatus === "Uploaded" && e.status === "Active").length;
+            const totalActiveEligible = state.employees.filter(e => e.status === "Active").length;
+            
+            let lastRunDate = "Never";
+            if (state.payrollRuns.length > 0) {
+                const lastRun = new Date(state.payrollRuns[0].timestamp);
+                lastRunDate = lastRun.toLocaleDateString();
+            }
+
+            const totalInvoiced = state.payrollRuns.reduce((sum, run) => sum + run.totalNetPay, 0);
+
+            document.getElementById("stat-active-employees").textContent = `${activeCount} / ${totalCount}`;
+            document.getElementById("stat-timesheet-status").textContent = `${timesheetDone} / ${totalActiveEligible}`;
+            document.getElementById("stat-payroll-date").textContent = lastRunDate;
+            document.getElementById("stat-total-payroll").textContent = `₹${totalInvoiced.toLocaleString([], { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+
+            // Render snippets
+            const logsContainer = document.getElementById("recent-logs-list");
+            const logs = state.auditLogs.slice(0, 4);
+            logsContainer.innerHTML = logs.map(l => {
+                const date = new Date(l.timestamp);
+                return `
+                    <div class="py-2.5 px-3 border border-slate-100 rounded-xl bg-slate-50 text-[0.72rem] leading-normal flex flex-col">
+                        <span class="text-slate-400 font-semibold text-[0.62rem]">${date.toLocaleTimeString()}</span>
+                        <div class="font-medium text-qt-dark mt-1">${l.message}</div>
+                    </div>
+                `;
+            }).join("");
+
+            // Render SVG Headcount chart
+            renderDepartmentChart();
+        });
+
+        function renderDepartmentChart() {
+            const svgContainer = document.getElementById("dashboard-chart-svg");
+            if (!svgContainer) return;
+
+            const depts = {};
+            state.employees.forEach(e => {
+                if (e.status === "Active") {
+                    depts[e.department] = (depts[e.department] || 0) + 1;
+                }
+            });
+
+            const labels = Object.keys(depts);
+            const values = Object.values(depts);
+            const total = values.reduce((s, v) => s + v, 0);
+
+            if (total === 0) {
+                svgContainer.innerHTML = `<p class="text-xs font-semibold text-slate-400">No active employees found to chart.</p>`;
+                return;
+            }
+
+            const width = 360;
+            const height = 180;
+            const barWidth = 42;
+            const maxVal = Math.max(...values, 1);
+
+            let svgMarkup = `<svg viewBox="0 0 ${width} ${height}" style="width: 100%; height: 100%;">`;
+            
+            // Draw Grid lines
+            for (let i = 0; i <= 4; i++) {
+                const y = 20 + i * (height - 60) / 4;
+                const labelVal = Math.round(maxVal - i * maxVal / 4);
+                svgMarkup += `
+                    <line x1="30" y1="${y}" x2="${width - 10}" y2="${y}" stroke="#f1f5f9" stroke-width="1" />
+                    <text x="5" y="${y + 3}" font-size="8" fill="#94a3b8" font-weight="600" font-family="Poppins">${labelVal}</text>
+                `;
+            }
+
+            // Draw Bars
+            const spacing = (width - 60 - labels.length * barWidth) / (labels.length - 1 || 1);
+            
+            labels.forEach((dept, idx) => {
+                const val = depts[dept];
+                const barHeight = (val / maxVal) * (height - 60);
+                const x = 35 + idx * (barWidth + spacing);
+                const y = height - 40 - barHeight;
+
+                // Set labels text-x offset for clean fit
+                let displayDept = dept;
+                if (dept === "Human Resources") displayDept = "HR";
+                if (dept === "Systems Engineering") displayDept = "Systems";
+                if (dept === "Client Services") displayDept = "Services";
+
+                svgMarkup += `
+                    <rect x="${x}" y="${y}" width="${barWidth}" height="${barHeight}" rx="5" fill="url(#barGrad)" style="transition: all 0.3s ease;">
+                        <title>${dept}: ${val} Active</title>
+                    </rect>
+                    <text x="${x + barWidth/2}" y="${height - 20}" font-size="9" fill="#64748b" font-weight="700" text-anchor="middle" font-family="Poppins">${displayDept}</text>
+                    <text x="${x + barWidth/2}" y="${y - 6}" font-size="9" fill="var(--qt-dark)" font-weight="800" text-anchor="middle" font-family="Poppins">${val}</text>
+                `;
+            });
+
+            svgMarkup += `
+                <defs>
+                    <linearGradient id="barGrad" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="0%" stop-color="var(--qt-primary)" />
+                        <stop offset="100%" stop-color="var(--qt-dark)" />
+                    </linearGradient>
+                </defs>
+            </svg>`;
+
+            svgContainer.innerHTML = svgMarkup;
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,1322 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description"
+        content="QT Consultancy provides strategic HR solutions, Pan-India recruitment, payroll compliance, and manpower migration for modern logistics, e-commerce, and manufacturing.">
+    <title>QT Consultancy</title>
+    <link rel="icon" type="image/x-icon" href="/assests/logo.jpeg">
+
+    <!-- 
+        =======================================================================
+        PROJECT: QT Consultancy (OPC) Pvt Ltd Professional Web Portal
+        THEME: Professional Blue (#E7F0FA, #7BA4D0, #2E5E99, #0D2440)
+        STACK: Tailwind CSS, Poppins Google Font, Font Awesome 6.4.0
+        =======================================================================
+    -->
+
+    <!-- Synchronous theme loader from localStorage -->
+    <script>
+      (function() {
+          const cached = localStorage.getItem("qt_consultancy_state");
+          let primaryColor = '#88BDF2';
+          let darkColor = '#384959';
+          if (cached) {
+              try {
+                  const state = JSON.parse(cached);
+                  const settings = state.companySettings || state.settings;
+                  if (settings) {
+                      primaryColor = settings.primaryColor || settings.themeColor || primaryColor;
+                      darkColor = settings.sidebarColor || settings.themeColorDark || darkColor;
+                  }
+              } catch(e) {}
+          }
+          document.documentElement.style.setProperty('--qt-primary', primaryColor);
+          document.documentElement.style.setProperty('--qt-dark', darkColor);
+          document.documentElement.style.setProperty('--primary', primaryColor);
+          document.documentElement.style.setProperty('--bg-sidebar', darkColor);
+          window.qtTheme = { primaryColor, darkColor };
+      })();
+    </script>
+
+    <!-- Tailwind CSS Engine -->
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <!-- Google Fonts: Poppins (Regular, Medium, Semi-Bold, Bold) -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&display=swap"
+        rel="stylesheet">
+
+    <!-- Font Awesome for Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <!-- Tailwind Custom Configuration -->
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        brand: {
+                            light: '#BDDDFC',     // Very light sky blue (pastel)
+                            accent: 'var(--qt-primary)',    // Muted medium blue (steel)
+                            medium: 'var(--qt-primary)',    // Strong professional blue (sky)
+                            dark: 'var(--qt-dark)',      // Deep navy blue (slate)
+                            slate: '#26323d'      // Dark mode gray-slate
+                        }
+                    },
+                    fontFamily: {
+                        sans: ['Poppins', 'sans-serif'],
+                    },
+                    animation: {
+                        'scroll': 'scroll 35s linear infinite',
+                        'float': 'float 6s ease-in-out infinite',
+                        'fade-in-up': 'fadeInUp 0.8s ease-out forwards',
+                        'pulse-slow': 'pulse 4s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+                    },
+                    keyframes: {
+                        scroll: {
+                            '0%': { transform: 'translateX(0)' },
+                            '100%': { transform: 'translateX(-50%)' },
+                        },
+                        float: {
+                            '0%, 100%': { transform: 'translateY(0)' },
+                            '50%': { transform: 'translateY(-20px)' },
+                        },
+                        fadeInUp: {
+                            '0%': { opacity: '0', transform: 'translateY(20px)' },
+                            '100%': { opacity: '1', transform: 'translateY(0)' },
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        /* Base Styling & Smooth Scrolling */
+        html {
+            scroll-behavior: smooth;
+        }
+
+        body {
+            overflow-x: hidden;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+        }
+
+        /* Custom Scrollbar for modern browsers */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: #f1f1f1;
+        }
+
+        .dark ::-webkit-scrollbar-track {
+            background: #1a1a1a;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: #88BDF2;
+            border-radius: 4px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: #384959;
+        }
+
+        /* Navigation Styles */
+        .active-link {
+            color: #88BDF2 !important;
+            font-weight: 600;
+            border-bottom: 2px solid #88BDF2;
+        }
+
+        .glass-nav {
+            backdrop-filter: blur(12px);
+            background-color: rgba(56, 73, 89, 0.95);
+        }
+
+        /* Section Transition */
+        .section-fade {
+            animation: fadeInUp 0.6s ease-out;
+        }
+
+        /* Gradient Text Helper */
+        .text-gradient {
+            background: linear-gradient(90deg, #88BDF2, #6A89A7);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        /* Mask for smooth Carousel fades */
+        .carousel-mask {
+            mask-image: linear-gradient(to right, transparent, black 15%, black 85%, transparent);
+        }
+
+        /* Counter Styling */
+        .stat-card:hover .stat-icon {
+            transform: scale(1.1) rotate(5deg);
+        }
+    </style>
+</head>
+
+<body class="font-sans bg-white dark:bg-[#050B14] text-brand-dark dark:text-gray-300 transition-colors duration-500">
+
+    <!-- 
+        HEADER & NAVIGATION
+        =======================================================================
+    -->
+    <header
+        class="fixed w-full top-0 z-[100] glass-nav border-b border-white/10 transition-all duration-300 transform-gpu"
+        id="main-nav">
+        <nav class="container mx-auto px-4 md:px-8 py-4 flex justify-between items-center transition-all duration-300"
+            id="nav-container">
+            <!-- Brand Identity -->
+            <div class="flex items-center gap-3 cursor-pointer group" onclick="showSection('home')">
+                <div id="nav-logo" data-company="logo"
+                    class="w-11 h-11 bg-brand-accent rounded-xl flex items-center justify-center text-white font-bold text-2xl shadow-lg group-hover:rotate-12 transition-all duration-300">
+                    QT</div>
+                <div class="flex flex-col">
+                    <span class="text-white text-xl font-bold tracking-tight leading-none" data-company="shortName">QT Consultancy</span>
+                    <span
+                        class="text-brand-accent text-[10px] uppercase font-bold tracking-[0.2em] mt-1 opacity-80">Strategic
+                        HR Partners</span>
+                </div>
+            </div>
+
+            <!-- Main Navigation Desktop -->
+            <div class="hidden lg:flex items-center space-x-8">
+                <a href="javascript:void(0)" onclick="showSection('home')"
+                    class="nav-link text-white/90 hover:text-brand-accent transition text-sm font-medium tracking-wide active-link"
+                    id="nav-home">Home</a>
+
+                <a href="#expertise" onclick="showSection('home')"
+                    class="nav-link text-white/90 hover:text-brand-accent transition text-sm font-medium tracking-wide flex items-center gap-1"
+                    id="nav-expertise">
+                    Expertise
+                </a>
+
+                <!-- Services Mega-Menu Dropdown Simulation -->
+                <div class="relative group">
+                    <a href="javascript:void(0)" onclick="showSection('services')"
+                        class="nav-link text-white/90 hover:text-brand-accent transition text-sm font-medium tracking-wide flex items-center gap-1"
+                        id="nav-services">
+                        Services <i
+                            class="fas fa-chevron-down text-[10px] mt-1 group-hover:rotate-180 transition-transform"></i>
+                    </a>
+
+                    <div
+                        class="absolute top-full left-0 mt-4 w-64 bg-white dark:bg-brand-dark rounded-xl shadow-2xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-300 border border-brand-medium/10 overflow-hidden">
+                        <div class="p-4 space-y-1">
+                            <a href="javascript:void(0)" onclick="showSection('services')"
+                                class="block px-4 py-3 text-sm hover:bg-brand-light dark:hover:bg-gray-800 rounded-lg transition dark:text-gray-200">
+                                <i class="fas fa-users-viewfinder mr-2 text-brand-medium"></i> Pan-India Recruitment
+                            </a>
+                            <a href="javascript:void(0)" onclick="showSection('services')"
+                                class="block px-4 py-3 text-sm hover:bg-brand-light dark:hover:bg-gray-800 rounded-lg transition dark:text-gray-200">
+                                <i class="fas fa-file-invoice-dollar mr-2 text-brand-medium"></i> Payroll & Compliance
+                            </a>
+                            <a href="javascript:void(0)" onclick="showSection('services')"
+                                class="block px-4 py-3 text-sm hover:bg-brand-light dark:hover:bg-gray-800 rounded-lg transition dark:text-gray-200">
+                                <i class="fas fa-passport mr-2 text-brand-medium"></i> Manpower Migration
+                            </a>
+                            <a href="javascript:void(0)" onclick="showSection('services')"
+                                class="block px-4 py-3 text-sm hover:bg-brand-light dark:hover:bg-gray-800 rounded-lg transition dark:text-gray-200">
+                                <i class="fas fa-shield-heart mr-2 text-brand-medium"></i> Benefits Admin
+                            </a>
+                        </div>
+                    </div>
+                </div>
+                <a href="javascript:void(0)" onclick="showSection('contact')"
+                    class="nav-link text-white/90 hover:text-brand-accent transition text-sm font-medium tracking-wide"
+                    id="nav-contact">Contact</a>
+
+                <!-- Theme Toggle Button -->
+                <button onclick="toggleDarkMode()" aria-label="Toggle Dark Mode"
+                    class="w-10 h-10 flex items-center justify-center bg-brand-medium/30 rounded-full text-white hover:bg-brand-medium transition-colors"
+                    title="Toggle Dark/Light Mode">
+                    <i id="theme-icon" class="fas fa-moon"></i>
+                </button>
+
+                <!-- Admin Gateway Trigger -->
+                <a href="javascript:void(0)" id="btn-login-trigger" class="flex items-center gap-2 border border-white/20 hover:border-white bg-white/5 hover:bg-white/15 px-4 py-2.5 rounded-xl text-xs font-semibold text-white tracking-wide transition-all duration-200">
+                    <i class="fa-solid fa-lock text-brand-accent"></i> Admin Portal
+                </a>
+
+                <!-- CTA Button -->
+                <button onclick="showSection('contact')"
+                    class="bg-brand-accent hover:bg-white hover:text-brand-dark text-brand-dark font-bold px-6 py-2.5 rounded-lg transition-all text-sm shadow-lg active:scale-95">
+                    Consult Now
+                </button>
+            </div>
+
+            <!-- Mobile Toggle -->
+            <div class="flex items-center gap-4 lg:hidden">
+                <button onclick="toggleDarkMode()" class="text-white">
+                    <i id="theme-icon-mobile" class="fas fa-moon"></i>
+                </button>
+                <button class="text-white text-2xl focus:outline-none" onclick="toggleMenu()">
+                    <i class="fas fa-bars" id="menu-icon"></i>
+                </button>
+            </div>
+        </nav>
+
+        <!-- Mobile Dropdown Menu -->
+        <div id="mobile-menu"
+            class="hidden lg:hidden bg-brand-dark/95 backdrop-blur-xl border-t border-brand-medium/20 px-8 py-10 space-y-6">
+            <a href="javascript:void(0)" onclick="showSection('home')"
+                class="block text-2xl font-bold text-white border-b border-brand-medium/10 pb-4">Home</a>
+            <a href="javascript:void(0)" onclick="showSection('services')"
+                class="block text-2xl font-bold text-white border-b border-brand-medium/10 pb-4">Our Services</a>
+            <a href="javascript:void(0)" onclick="showSection('contact')"
+                class="block text-2xl font-bold text-white border-b border-brand-medium/10 pb-4">Get In Touch</a>
+            <a href="javascript:void(0)" id="btn-mobile-login" class="block text-2xl font-bold text-brand-accent border-b border-brand-medium/10 pb-4"><i class="fa-solid fa-lock mr-2"></i>Admin Portal</a>
+            <div class="pt-6">
+                <button onclick="showSection('contact')"
+                    class="w-full bg-brand-accent text-brand-dark font-bold py-4 rounded-xl text-xl">Schedule a
+                    Call</button>
+            </div>
+        </div>
+    </header>
+
+    <!-- 
+        MAIN WRAPPER
+        =======================================================================
+    -->
+    <main class="relative pt-20">
+
+        <!-- 
+            HOME SECTION (Hero, Stats, About, Industries)
+            =======================================================================
+        -->
+        <div id="home-section" class="section-fade">
+
+            <!-- Hero Banner -->
+            <section class="relative min-h-[90vh] lg:min-h-[85vh] flex items-center overflow-hidden py-12">
+                <!-- Abstract Background Shapes -->
+                <div
+                    class="absolute top-0 right-0 w-[800px] h-[800px] bg-gradient-to-br from-brand-medium/20 to-brand-accent/10 rounded-full blur-[120px] mix-blend-multiply dark:mix-blend-screen opacity-70 animate-pulse-slow">
+                </div>
+                <div class="absolute bottom-0 left-0 w-[600px] h-[600px] bg-gradient-to-tr from-brand-dark/10 to-brand-medium/20 rounded-full blur-[100px] mix-blend-multiply dark:mix-blend-screen opacity-60 animate-pulse-slow"
+                    style="animation-delay: 2s;">
+                </div>
+
+                <div class="container mx-auto px-6 grid lg:grid-cols-2 gap-16 items-center relative z-10">
+                    <div class="space-y-8 animate-fade-in-up">
+                        <div class="flex items-center gap-3">
+                            <span class="w-12 h-[2px] bg-brand-accent"></span>
+                            <span
+                                class="text-brand-medium dark:text-brand-accent font-bold uppercase tracking-widest text-sm">Empowering
+                                Pan-India Workforce</span>
+                        </div>
+                        <h1
+                            class="text-5xl md:text-7xl lg:text-[5rem] font-bold leading-[1.05] text-brand-dark dark:text-white tracking-tight">
+                            The Strategic <br>
+                            <span class="text-gradient drop-shadow-sm">HR Engine</span> <br>
+                            for Modern Growth
+                        </h1>
+                        <p class="text-xl text-gray-600 dark:text-gray-400 max-w-xl leading-relaxed">
+                            From blue-collar scale to executive white-collar hiring—we manage the complexity of
+                            recruitment, compliance, and manpower migration so you can focus on building your legacy.
+                        </p>
+
+                        <div class="flex flex-wrap gap-5 pt-4">
+                            <button onclick="showSection('contact')"
+                                class="group relative overflow-hidden bg-brand-medium hover:bg-brand-dark text-white px-8 py-4 rounded-2xl font-bold shadow-[0_10px_40px_-10px_rgba(46,94,153,0.5)] transition-all flex items-center gap-3 text-sm">
+                                <span class="relative z-10 flex items-center gap-3">Get Started <i
+                                        class="fas fa-arrow-right group-hover:translate-x-2 transition-transform"></i></span>
+                                <div
+                                    class="absolute inset-0 bg-white/20 translate-y-full group-hover:translate-y-0 transition-transform duration-300 ease-in-out">
+                                </div>
+                            </button>
+                            <button id="btn-book-trigger" class="px-8 py-4 rounded-2xl bg-brand-accent hover:bg-white text-brand-dark font-extrabold text-sm shadow-lg shadow-brand-accent/20 hover:shadow-brand-medium/10 hover:-translate-y-[2px] transition-all duration-200 flex items-center gap-2">
+                                <i class="fa-solid fa-calculator mr-1"></i> Rates Calculator
+                            </button>
+                        </div>
+
+                        <!-- Trust Badge -->
+                        <div class="pt-10 flex items-center gap-6 opacity-60 dark:text-gray-300">
+                            <i class="fas fa-award text-3xl"></i>
+                            <span class="text-sm font-medium italic">Certified Statutory Compliance Partner - Noida
+                                Chamber of Commerce</span>
+                        </div>
+                    </div>
+
+                    <div class="relative hidden lg:block">
+                        <!-- Floating Image Element -->
+                        <div class="animate-float relative z-20 flex justify-center">
+                            <a href="#" data-company="websiteUrl" class="w-72 h-72 rounded-3xl overflow-hidden border border-brand-accent/20 shadow-2xl block">
+                                <img src="/assests/logo.jpeg" alt="Logo" class="w-full h-full object-cover" data-company="logo">
+                            </a>
+                        </div>
+
+                        <!-- Floating Decorative Cards -->
+                        <div
+                            class="absolute -top-10 -right-10 bg-white dark:bg-gray-800 p-6 rounded-3xl shadow-2xl z-30 border border-brand-medium/10 animate-pulse-slow">
+                            <div class="flex items-center gap-4">
+                                <div
+                                    class="w-12 h-12 bg-green-500/10 text-green-500 rounded-full flex items-center justify-center text-xl">
+                                    <i class="fas fa-chart-line"></i>
+                                </div>
+                                <div>
+                                    <p class="text-xs text-gray-500 font-bold">Migration Success</p>
+                                    <p class="text-xl font-bold dark:text-white">99.8%</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div
+                            class="absolute -bottom-10 -left-10 bg-white dark:bg-gray-800 p-6 rounded-3xl shadow-2xl z-30 border border-brand-medium/10">
+                            <div class="flex items-center gap-4">
+                                <div
+                                    class="w-12 h-12 bg-brand-medium/10 text-brand-medium rounded-full flex items-center justify-center text-xl">
+                                    <i class="fas fa-id-card"></i>
+                                </div>
+                                <div>
+                                    <p class="text-xs text-gray-500 font-bold">Payroll Errors</p>
+                                    <p class="text-xl font-bold dark:text-white">Zero</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Quick Statistics Row -->
+            <section class="py-12 bg-brand-dark">
+                <div class="container mx-auto px-6">
+                    <div class="grid grid-cols-2 md:grid-cols-4 gap-8 text-center">
+                        <div class="stat-card transition-all duration-300">
+                            <p class="text-4xl md:text-5xl font-bold text-brand-accent mb-1">15+</p>
+                            <p class="text-brand-light/60 text-xs uppercase tracking-[0.2em] font-medium">Pan-India
+                                States</p>
+                        </div>
+                        <div class="stat-card">
+                            <p class="text-4xl md:text-5xl font-bold text-brand-accent mb-1">10k+</p>
+                            <p class="text-brand-light/60 text-xs uppercase tracking-[0.2em] font-medium">Manpower
+                                Deployed</p>
+                        </div>
+                        <div class="stat-card">
+                            <p class="text-4xl md:text-5xl font-bold text-brand-accent mb-1">24h</p>
+                            <p class="text-brand-light/60 text-xs uppercase tracking-[0.2em] font-medium">Response TAT
+                            </p>
+                        </div>
+                        <div class="stat-card">
+                            <p class="text-4xl md:text-5xl font-bold text-brand-accent mb-1">100%</p>
+                            <p class="text-brand-light/60 text-xs uppercase tracking-[0.2em] font-medium">Statutory
+                                Compliance</p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- ABOUT US: Detailed Profile -->
+            <section id="about" class="py-24 bg-white dark:bg-[#050B14]">
+                <div class="container mx-auto px-6">
+                    <div class="grid lg:grid-cols-2 gap-20 items-center">
+                        <div class="grid grid-cols-2 gap-4">
+                            <img src="https://images.unsplash.com/photo-1552664730-d307ca884978?auto=format&fit=crop&q=80&w=400"
+                                class="rounded-3xl shadow-lg mt-12" alt="Office Culture">
+                            <img src="https://images.unsplash.com/photo-1522202176988-66273c2fd55f?auto=format&fit=crop&q=80&w=400"
+                                class="rounded-3xl shadow-lg" alt="Team Synergy">
+                        </div>
+
+                        <div class="space-y-8">
+                            <div
+                                class="inline-block py-2 px-4 bg-brand-light dark:bg-gray-800 text-brand-medium dark:text-brand-accent rounded-lg font-bold text-sm">
+                                <i class="fas fa-fingerprint mr-2"></i> About <span data-company="shortName">QT Consultancy</span>
+                            </div>
+                            <h2 class="text-4xl md:text-5xl font-bold dark:text-white leading-tight">
+                                Your Trusted Recruitment <br>
+                                <span class="text-brand-medium dark:text-brand-accent">& Payroll Partner</span>
+                            </h2>
+                            <p class="text-gray-600 dark:text-gray-400 text-lg leading-relaxed">
+                                <span data-company="fullLegalName">QT Consultancy (OPC) Pvt Ltd</span> is a fast-growing and
+                                professionally managed recruitment agency dedicated to
+                                providing reliable manpower solutions across India.
+                            </p>
+                            <p class="text-gray-600 dark:text-gray-400 text-lg leading-relaxed">
+                                We specialize in delivering quick, verified, and performance-ready candidates to meet
+                                the dynamic workforce needs of companies.
+                            </p>
+                            <p class="text-gray-600 dark:text-gray-400 text-lg leading-relaxed">
+                                With strong industry experience and a commitment to quality service, we ensure smooth
+                                hiring, proper documentation, payroll management, and timely workforce support.
+                            </p>
+
+                            <div class="grid sm:grid-cols-2 gap-8">
+                                <div class="space-y-3">
+                                    <div
+                                        class="w-12 h-12 bg-brand-medium/10 text-brand-medium rounded-xl flex items-center justify-center text-xl">
+                                        <i class="fas fa-bullseye"></i>
+                                    </div>
+                                    <h4 class="font-bold dark:text-white">Our mission is simple —</h4>
+                                    <p class="text-sm font-bold text-brand-medium dark:text-brand-accent">Right
+                                        Candidate | Right Time | Right Company</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- METHODOLOGY / PROCESS -->
+            <section class="py-24 bg-brand-light/30 dark:bg-gray-900/40 border-y border-brand-medium/5">
+                <div class="container mx-auto px-6">
+                    <div class="text-center max-w-3xl mx-auto mb-20 space-y-4">
+                        <h2 class="text-4xl font-bold dark:text-white uppercase tracking-tight">The <span data-company="logoInitials">QT</span> Roadmap</h2>
+                        <p class="text-gray-600 dark:text-gray-400">Our structured 5-step approach to ensuring your
+                            workforce is ready, compliant, and motivated.</p>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-5 gap-8 relative">
+                        <!-- Connector Line -->
+                        <div class="hidden md:block absolute top-10 left-0 w-full h-[2px] bg-brand-medium/20 -z-10">
+                        </div>
+
+                        <!-- Step 1 -->
+                        <div class="text-center space-y-4 px-4 group">
+                            <div
+                                class="w-20 h-20 bg-white dark:bg-gray-800 rounded-2xl flex items-center justify-center mx-auto shadow-xl border-2 border-transparent group-hover:border-brand-medium transition-all duration-300">
+                                <span class="text-3xl font-black text-brand-medium">01</span>
+                            </div>
+                            <h5 class="font-bold dark:text-white">Deep Discovery</h5>
+                            <p class="text-xs text-gray-500 dark:text-gray-400 leading-relaxed">Understanding your specific operational
+                                load and cultural DNA.</p>
+                        </div>
+
+                        <!-- Step 2 -->
+                        <div class="text-center space-y-4 px-4 group">
+                            <div
+                                class="w-20 h-20 bg-white dark:bg-gray-800 rounded-2xl flex items-center justify-center mx-auto shadow-xl border-2 border-transparent group-hover:border-brand-medium transition-all duration-300">
+                                <span class="text-3xl font-black text-brand-medium">02</span>
+                            </div>
+                            <h5 class="font-bold dark:text-white">Compliance Map</h5>
+                            <p class="text-xs text-gray-500 dark:text-gray-400 leading-relaxed">Analyzing state-specific labor laws and
+                                statutory requirements.</p>
+                        </div>
+
+                        <!-- Step 3 -->
+                        <div class="text-center space-y-4 px-4 group">
+                            <div
+                                class="w-20 h-20 bg-white dark:bg-gray-800 rounded-2xl flex items-center justify-center mx-auto shadow-xl border-2 border-transparent group-hover:border-brand-medium transition-all duration-300">
+                                <span class="text-3xl font-black text-brand-medium">03</span>
+                            </div>
+                            <h5 class="font-bold dark:text-white">Sourcing engine</h5>
+                            <p class="text-xs text-gray-500 dark:text-gray-400 leading-relaxed">Deploying our Pan-India network to hunt for
+                                the perfect match.</p>
+                        </div>
+
+                        <!-- Step 4 -->
+                        <div class="text-center space-y-4 px-4 group">
+                            <div
+                                class="w-20 h-20 bg-white dark:bg-gray-800 rounded-2xl flex items-center justify-center mx-auto shadow-xl border-2 border-transparent group-hover:border-brand-medium transition-all duration-300">
+                                <span class="text-3xl font-black text-brand-medium">04</span>
+                            </div>
+                            <h5 class="font-bold dark:text-white">Onboarding UX</h5>
+                            <p class="text-xs text-gray-500 dark:text-gray-400 leading-relaxed">Frictionless documentation and culture
+                                orientation.</p>
+                        </div>
+
+                        <!-- Step 5 -->
+                        <div class="text-center space-y-4 px-4 group">
+                            <div
+                                class="w-20 h-20 bg-brand-medium rounded-2xl flex items-center justify-center mx-auto shadow-xl transition-all duration-300">
+                                <span class="text-3xl font-black text-white">05</span>
+                            </div>
+                            <h5 class="font-bold dark:text-white">Active Management</h5>
+                            <p class="text-xs text-gray-500 dark:text-gray-400 leading-relaxed">Continuous payroll auditing and performance
+                                tracking.</p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- INDUSTRY FOCUS (Expanded) -->
+            <section id="expertise" class="py-24 bg-white dark:bg-[#050B14]">
+                <div class="container mx-auto px-6">
+                    <div
+                        class="flex flex-col md:flex-row justify-between items-center mb-16 gap-8 text-center md:text-left">
+                        <div class="max-w-xl">
+                            <h2 class="text-4xl font-bold dark:text-white">Industry Specific Expertise</h2>
+                            <p class="text-gray-500 mt-4 italic">We don't believe in one-size-fits-all. Every vertical
+                                has its own pulse.</p>
+                        </div>
+                        <button onclick="showSection('contact')"
+                            class="px-8 py-3 border-2 border-brand-medium rounded-xl font-bold hover:bg-brand-medium hover:text-white transition-all text-sm">View
+                            Case Studies</button>
+                    </div>
+
+                    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-6">
+                        <!-- Logistics -->
+                        <div
+                            class="bg-gray-50 dark:bg-gray-800/40 p-10 rounded-3xl border border-transparent hover:border-brand-accent/30 transition-all hover:shadow-2xl group">
+                            <i
+                                class="fas fa-truck-moving text-4xl text-brand-medium mb-6 group-hover:rotate-12 transition-transform"></i>
+                            <h4 class="text-xl font-bold dark:text-white mb-2">Logistics & SC</h4>
+                            <p class="text-sm text-gray-500 dark:text-gray-400 leading-relaxed">Scale-up recruitment for last-mile delivery
+                                and hub management with 24h deployment.</p>
+                        </div>
+                        <!-- E-Commerce -->
+                        <div
+                            class="bg-gray-50 dark:bg-gray-800/40 p-10 rounded-3xl border border-transparent hover:border-brand-accent/30 transition-all hover:shadow-2xl group">
+                            <i
+                                class="fas fa-cart-shopping text-4xl text-brand-medium mb-6 group-hover:rotate-12 transition-transform"></i>
+                            <h4 class="text-xl font-bold dark:text-white mb-2">E-Commerce</h4>
+                            <p class="text-sm text-gray-500 dark:text-gray-400 leading-relaxed">Managing peak season workforce spikes for
+                                India's biggest digital marketplaces.</p>
+                        </div>
+                        <!-- Manufacturing -->
+                        <div
+                            class="bg-gray-50 dark:bg-gray-800/40 p-10 rounded-3xl border border-transparent hover:border-brand-accent/30 transition-all hover:shadow-2xl group">
+                            <i
+                                class="fas fa-industry text-4xl text-brand-medium mb-6 group-hover:rotate-12 transition-transform"></i>
+                            <h4 class="text-xl font-bold dark:text-white mb-2">Manufacturing</h4>
+                            <p class="text-sm text-gray-500 dark:text-gray-400 leading-relaxed">Skill-specific recruitment for industrial
+                                plants and specialized factory assembly lines.</p>
+                        </div>
+                        <!-- IT/Tech -->
+                        <div
+                            class="bg-gray-50 dark:bg-gray-800/40 p-10 rounded-3xl border border-transparent hover:border-brand-accent/30 transition-all hover:shadow-2xl group">
+                            <i
+                                class="fas fa-laptop-code text-4xl text-brand-medium mb-6 group-hover:rotate-12 transition-transform"></i>
+                            <h4 class="text-xl font-bold dark:text-white mb-2">IT & Professional</h4>
+                            <p class="text-sm text-gray-500 dark:text-gray-400 leading-relaxed">Strategic white-collar talent acquisition
+                                for executive and technical engineering roles.</p>
+                        </div>
+                        <!-- EV -->
+                        <div
+                            class="bg-gray-50 dark:bg-gray-800/40 p-10 rounded-3xl border border-transparent hover:border-brand-accent/30 transition-all hover:shadow-2xl group">
+                            <i
+                                class="fas fa-charging-station text-4xl text-brand-medium mb-6 group-hover:rotate-12 transition-transform"></i>
+                            <h4 class="text-xl font-bold dark:text-white mb-2">EV</h4>
+                            <p class="text-sm text-gray-500 dark:text-gray-400 leading-relaxed">Specialized workforce deployment for
+                                electric vehicle manufacturing, charging infrastructure, and sustainable mobility
+                                operations.</p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- CLIENTS SCROLL CAROUSEL -->
+            <section class="py-24 bg-brand-dark/5 dark:bg-gray-950 border-y border-brand-medium/10">
+                <div class="container mx-auto px-6 mb-12 text-center">
+                    <p class="text-xs font-black text-brand-medium uppercase tracking-[0.4em]">Our Enterprise Network
+                    </p>
+                </div>
+                <div class="relative overflow-hidden carousel-mask">
+                    <div class="flex animate-scroll whitespace-nowrap gap-24 py-8 items-center">
+                        <!-- Logos Batch 1 -->
+                        <div class="flex items-center gap-24">
+                            <div
+                                class="text-3xl font-black text-gray-400 dark:text-gray-600 grayscale hover:grayscale-0 hover:text-[#6a1b9a] transition-all flex items-center gap-3 select-none">
+                                <i class="fas fa-motorcycle"></i> ZEPTO
+                            </div>
+                            <div
+                                class="text-3xl font-black text-gray-400 dark:text-gray-600 grayscale hover:grayscale-0 hover:text-brand-medium transition-all flex items-center gap-3 select-none">
+                                <i class="fas fa-paper-plane"></i> SHADOWFAX
+                            </div>
+                            <div
+                                class="text-3xl font-black text-gray-400 dark:text-gray-600 grayscale hover:grayscale-0 hover:text-[#2874f0] transition-all flex items-center gap-3 select-none">
+                                <i class="fas fa-bag-shopping"></i> FLIPKART
+                            </div>
+                            <div
+                                class="text-3xl font-black text-gray-400 dark:text-gray-600 grayscale hover:grayscale-0 hover:text-[#00e676] transition-all flex items-center gap-3 select-none">
+                                <i class="fas fa-bolt"></i> ELECTRICPE
+                            </div>
+                            <div
+                                class="text-3xl font-black text-gray-400 dark:text-gray-600 grayscale hover:grayscale-0 hover:text-[#ff5722] transition-all flex items-center gap-3 select-none">
+                                <i class="fas fa-network-wired"></i> ELASTICRUN
+                            </div>
+                        </div>
+                        <!-- Cloned Logos Batch -->
+                        <div class="flex items-center gap-24">
+                            <div
+                                class="text-3xl font-black text-gray-400 dark:text-gray-600 grayscale hover:grayscale-0 hover:text-[#6a1b9a] transition-all flex items-center gap-3 select-none">
+                                <i class="fas fa-motorcycle"></i> ZEPTO
+                            </div>
+                            <div
+                                class="text-3xl font-black text-gray-400 dark:text-gray-600 grayscale hover:grayscale-0 hover:text-brand-medium transition-all flex items-center gap-3 select-none">
+                                <i class="fas fa-paper-plane"></i> SHADOWFAX
+                            </div>
+                            <div
+                                class="text-3xl font-black text-gray-400 dark:text-gray-600 grayscale hover:grayscale-0 hover:text-[#2874f0] transition-all flex items-center gap-3 select-none">
+                                <i class="fas fa-bag-shopping"></i> FLIPKART
+                            </div>
+                            <div
+                                class="text-3xl font-black text-gray-400 dark:text-gray-600 grayscale hover:grayscale-0 hover:text-[#00e676] transition-all flex items-center gap-3 select-none">
+                                <i class="fas fa-bolt"></i> ELECTRICPE
+                            </div>
+                            <div
+                                class="text-3xl font-black text-gray-400 dark:text-gray-600 grayscale hover:grayscale-0 hover:text-[#ff5722] transition-all flex items-center gap-3 select-none">
+                                <i class="fas fa-network-wired"></i> ELASTICRUN
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </div>
+
+        <!-- 
+            SERVICES SECTION (Expanded Details)
+            =======================================================================
+        -->
+        <section id="services-section" class="py-32 bg-white dark:bg-[#050B14] section-fade scroll-mt-20 hidden">
+            <div class="container mx-auto px-6">
+                <div class="flex flex-col lg:flex-row gap-20">
+                    <!-- Left Sticky Heading -->
+                    <div class="lg:w-1/3 lg:sticky lg:top-32 h-fit space-y-6">
+                        <div class="w-16 h-1 bg-brand-accent"></div>
+                        <h2 class="text-5xl font-bold dark:text-white leading-tight">Mastering Human <br>Resources
+                            Architecture</h2>
+                        <p class="text-gray-655 dark:text-gray-400">We offer specialized services that ensure your
+                            operational fluidity. Every service is backed by legal expertise and technological
+                            precision.</p>
+
+                        <div class="space-y-4 pt-10">
+                            <div class="flex items-center gap-4 text-brand-medium dark:text-brand-accent font-bold">
+                                <i class="fas fa-phone-volume"></i>
+                                <span data-company="contactPhone">+91 9899844927</span>
+                            </div>
+                            <div class="flex items-center gap-4 text-brand-medium dark:text-brand-accent font-bold">
+                                <i class="fas fa-envelope-open-text"></i>
+                                <span data-company="supportEmail">hr@qtconsultancy.in</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Right Services List -->
+                    <div class="lg:w-2/3 space-y-12">
+                        <!-- Service 1: Recruitment -->
+                        <div
+                            class="group p-10 bg-brand-light/30 dark:bg-gray-800/30 rounded-[40px] border border-brand-medium/5 hover:bg-white dark:hover:bg-gray-800 transition-all duration-500 shadow-sm hover:shadow-2xl">
+                            <div class="flex flex-col md:flex-row gap-8">
+                                <div
+                                    class="w-20 h-20 bg-brand-medium rounded-3xl flex items-center justify-center text-3xl text-white shadow-xl flex-shrink-0 group-hover:scale-110 transition-transform">
+                                    <i class="fas fa-users-viewfinder"></i>
+                                </div>
+                                <div class="space-y-4">
+                                    <h3 class="text-3xl font-bold dark:text-white">1. Payroll Management Services</h3>
+                                    <p class="text-gray-655 dark:text-gray-400">We manage complete payroll processing
+                                        with accuracy and transparency. We ensure timely salary processing to maintain
+                                        employee satisfaction and operational continuity.</p>
+                                    <p class="text-gray-655 dark:text-gray-400 text-sm font-semibold">Our payroll
+                                        solutions include:</p>
+                                    <ul
+                                        class="grid grid-cols-1 md:grid-cols-2 gap-2 text-sm font-medium text-brand-medium dark:text-brand-accent">
+                                        <li><i class="fas fa-chevron-right mr-1 opacity-50"></i> Salary processing &
+                                            disbursement</li>
+                                        <li><i class="fas fa-chevron-right mr-1 opacity-50"></i> Salary slip generation
+                                        </li>
+                                        <li><i class="fas fa-chevron-right mr-1 opacity-50"></i> Attendance & record
+                                            management</li>
+                                        <li><i class="fas fa-chevron-right mr-1 opacity-50"></i> Statutory compliance
+                                            support</li>
+                                        <li><i class="fas fa-chevron-right mr-1 opacity-50"></i> Invoice generation &
+                                            payment</li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Service 2: Payroll -->
+                        <div
+                            class="group p-10 bg-brand-light/30 dark:bg-gray-800/30 rounded-[40px] border border-brand-medium/5 hover:bg-white dark:hover:bg-gray-800 transition-all duration-500 shadow-sm hover:shadow-2xl">
+                            <div class="flex flex-col md:flex-row gap-8">
+                                <div
+                                    class="w-20 h-20 bg-brand-accent rounded-3xl flex items-center justify-center text-3xl text-white shadow-xl flex-shrink-0 group-hover:scale-110 transition-transform">
+                                    <i class="fas fa-file-invoice-dollar"></i>
+                                </div>
+                                <div class="space-y-4">
+                                    <h3 class="text-3xl font-bold dark:text-white">2. Fast & Efficient Hiring</h3>
+                                    <p class="text-gray-655 dark:text-gray-400">We understand that timely manpower is
+                                        critical for business operations. We specialize in urgent and bulk hiring
+                                        requirements.</p>
+                                    <p class="text-gray-655 dark:text-gray-400 text-sm font-semibold">Our recruitment
+                                        process includes:</p>
+                                    <ul
+                                        class="grid grid-cols-1 md:grid-cols-2 gap-2 text-sm font-medium text-brand-medium dark:text-brand-accent">
+                                        <li><i class="fas fa-chevron-right mr-1 opacity-50"></i> Candidate sourcing &
+                                            screening</li>
+                                        <li><i class="fas fa-chevron-right mr-1 opacity-50"></i> Background verification
+                                            (basic)</li>
+                                        <li><i class="fas fa-chevron-right mr-1 opacity-50"></i> Interview coordination
+                                        </li>
+                                        <li><i class="fas fa-chevron-right mr-1 opacity-50"></i> Immediate deployment
+                                        </li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Service 3: Migration -->
+                        <div
+                            class="group p-10 bg-brand-light/30 dark:bg-gray-800/30 rounded-[40px] border border-brand-medium/5 hover:bg-white dark:hover:bg-gray-800 transition-all duration-500 shadow-sm hover:shadow-2xl">
+                            <div class="flex flex-col md:flex-row gap-8">
+                                <div
+                                    class="w-20 h-20 bg-brand-dark rounded-3xl flex items-center justify-center text-3xl text-white shadow-xl flex-shrink-0 group-hover:scale-110 transition-transform">
+                                    <i class="fas fa-plane-departure"></i>
+                                </div>
+                                <div class="space-y-4">
+                                    <h3 class="text-3xl font-bold dark:text-white">3. PAN India Recruitment Support</h3>
+                                    <p class="text-gray-655 dark:text-gray-400">We provide staffing support across
+                                        multiple cities and industrial hubs including Delhi, Noida, Ghaziabad, and other
+                                        major business locations across India.</p>
+                                    <p class="text-gray-655 dark:text-gray-400">Our network allows us to deliver
+                                        manpower wherever your business operates.</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Service 4: Documentation -->
+                        <div
+                            class="group p-10 bg-brand-light/30 dark:bg-gray-800/30 rounded-[40px] border border-brand-medium/5 hover:bg-white dark:hover:bg-gray-800 transition-all duration-500 shadow-sm hover:shadow-2xl">
+                            <div class="flex flex-col md:flex-row gap-8">
+                                <div
+                                    class="w-20 h-20 bg-slate-500 rounded-3xl flex items-center justify-center text-3xl text-white shadow-xl flex-shrink-0 group-hover:scale-110 transition-transform">
+                                    <i class="fas fa-file-signature"></i>
+                                </div>
+                                <div class="space-y-4">
+                                    <h3 class="text-3xl font-bold dark:text-white">4. All Types of Hiring</h3>
+                                    <p class="text-gray-655 dark:text-gray-400">We provide both skilled and unskilled
+                                        workforce solutions:</p>
+                                    <ul
+                                        class="grid grid-cols-1 md:grid-cols-2 gap-2 text-sm font-medium text-brand-medium dark:text-brand-accent">
+                                        <li><i class="fas fa-chevron-right mr-1 opacity-50"></i> Warehouse Staff
+                                            (Picker/Packer)</li>
+                                        <li><i class="fas fa-chevron-right mr-1 opacity-50"></i> Delivery Executives
+                                        </li>
+                                        <li><i class="fas fa-chevron-right mr-1 opacity-50"></i> IT & Technical Sourcing
+                                        </li>
+                                        <li><i class="fas fa-chevron-right mr-1 opacity-50"></i> Office Administration
+                                        </li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 
+            CONTACT SECTION
+            =======================================================================
+        -->
+        <section id="contact-section" class="py-24 bg-white dark:bg-[#050B14] section-fade scroll-mt-20 hidden">
+            <div class="container mx-auto px-6">
+                <div class="text-center max-w-2xl mx-auto mb-16 space-y-3">
+                    <span class="text-xs font-bold text-brand-medium dark:text-brand-accent tracking-widest uppercase">Get In Touch</span>
+                    <h2 class="text-3xl md:text-4xl font-bold dark:text-white tracking-tight">Request Strategic Consultation</h2>
+                    <p class="text-slate-550 text-sm dark:text-slate-400">Our partners will evaluate your corporate sourcing, compliance, and migration pipelines.</p>
+                </div>
+
+                <div class="grid grid-cols-1 lg:grid-cols-12 gap-12 items-start max-w-5xl mx-auto">
+                    <!-- Contact Form -->
+                    <div class="lg:col-span-7 bg-slate-50 dark:bg-gray-800/20 p-8 rounded-3xl border border-slate-200 dark:border-slate-800/40">
+                        <form id="contact-form-pub" class="space-y-5" onsubmit="event.preventDefault(); const settings = state.companySettings || DEFAULT_COMPANY_SETTINGS; alert('Thank you! Your request for professional consultancy has been logged. A ' + (settings.shortName || 'company') + ' representative will contact you within 24 hours.'); this.reset();">
+                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                <div class="flex flex-col gap-1.5">
+                                    <label class="text-xs font-bold text-slate-500 dark:text-gray-400">Full Name</label>
+                                    <input type="text" required placeholder="e.g. Liam Foster" class="w-full px-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-gray-900 text-xs focus:outline-none dark:text-white">
+                                </div>
+                                <div class="flex flex-col gap-1.5">
+                                    <label class="text-xs font-bold text-slate-500 dark:text-gray-400">Corporate Email</label>
+                                    <input type="email" required placeholder="e.g. liam.f@acme.com" class="w-full px-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-gray-900 text-xs focus:outline-none dark:text-white">
+                                </div>
+                            </div>
+                            <div class="flex flex-col gap-1.5">
+                                <label class="text-xs font-bold text-slate-500 dark:text-gray-400">Subject</label>
+                                <input type="text" required placeholder="Sourcing Campaign / Payroll Auditing" class="w-full px-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-gray-900 text-xs focus:outline-none dark:text-white">
+                            </div>
+                            <div class="flex flex-col gap-1.5">
+                                <label class="text-xs font-bold text-slate-500 dark:text-gray-400">Operational Requirements Brief</label>
+                                <textarea rows="4" required placeholder="Outline hiring zones, estimated headcount, EV charging deployments, or PF/ESIC compliance parameters..." class="w-full px-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-gray-900 text-xs focus:outline-none dark:text-white leading-relaxed"></textarea>
+                            </div>
+                            <button type="submit" class="w-full py-3 bg-brand-medium hover:bg-brand-dark text-white rounded-xl font-bold text-xs shadow-md transition-colors duration-200 mt-2">
+                                Send Message
+                            </button>
+                        </form>
+                    </div>
+
+                    <!-- Contact Details -->
+                    <div class="lg:col-span-5 space-y-6">
+                        <div class="bg-slate-50 dark:bg-gray-800/20 p-6 rounded-2xl border border-slate-200 dark:border-slate-800/40 space-y-4">
+                            <h4 class="text-sm font-bold uppercase tracking-wider text-brand-dark dark:text-white">Headquarters Office</h4>
+                            
+                            <div class="flex gap-4 text-xs">
+                                <div class="text-brand-medium dark:text-brand-accent text-lg"><i class="fas fa-map-location-dot"></i></div>
+                                <div class="leading-relaxed text-slate-550 dark:text-gray-400">
+                                    <strong data-company="fullLegalName">QT Consultancy (OPC) Pvt Ltd</strong><br>
+                                    <span data-company="headOfficeAddress">Sector 62, Noida Area<br>Uttar Pradesh, Delhi-NCR, India</span>
+                                </div>
+                            </div>
+
+                            <div class="flex gap-4 text-xs items-center pt-2 border-t border-slate-200 dark:border-slate-800/50">
+                                <div class="text-brand-medium dark:text-brand-accent text-lg"><i class="fas fa-phone-volume"></i></div>
+                                <div class="text-slate-550 dark:text-gray-400" data-company="contactPhone">+91 7830899085</div>
+                            </div>
+
+                            <div class="flex gap-4 text-xs items-center pt-2 border-t border-slate-200 dark:border-slate-800/50">
+                                <div class="text-brand-medium dark:text-brand-accent text-lg"><i class="fas fa-envelope-open-text"></i></div>
+                                <div class="text-slate-550 dark:text-gray-400" data-company="supportEmail">hr@qtconsultancy.in</div>
+                            </div>
+                        </div>
+
+                        <!-- Embedded NoidaNCR map coordination mock -->
+                        <div class="w-full bg-slate-100 dark:bg-gray-900 border border-slate-200 dark:border-slate-800/40 rounded-2xl p-4 flex flex-col justify-center items-center text-center select-none shadow-sm aspect-video">
+                            <span class="text-2xl">🗺️</span>
+                            <span class="text-xs font-bold text-brand-dark dark:text-white mt-2"><span data-company="shortName">QT Consultancy</span> Map Coordinates</span>
+                            <span class="text-[0.62rem] text-slate-400 mt-1 uppercase tracking-wider">Active HR Hub Desk</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- ========================================== -->
+    <!-- 6. CORPORATE FOOTER                        -->
+    <!-- ========================================== -->
+    <footer class="bg-brand-dark text-slate-400 py-16 border-t border-white/5 print:hidden">
+        <div class="container mx-auto px-6 grid grid-cols-1 md:grid-cols-3 gap-12 mb-12">
+            
+            <div class="flex flex-col space-y-4">
+                <div class="flex items-center gap-3">
+                    <div class="w-9 h-9 bg-brand-accent rounded-lg flex items-center justify-center text-white font-extrabold text-sm" data-company="logo">
+                        QT
+                    </div>
+                    <span class="text-white font-bold text-base" data-company="shortName">QT Consultancy</span>
+                </div>
+                <p class="text-xs leading-relaxed max-w-sm text-slate-450 dark:text-slate-400">
+                    Streamlining statutory HR recruitment, Statutory Payroll Compliances, and e-commerce peaks logistics solutions.
+                </p>
+                <div class="text-xs text-white/90 font-medium pt-2">
+                    <i class="fa-solid fa-envelope text-brand-accent mr-2"></i> <span data-company="supportEmail">hr@qtconsultancy.in</span>
+                </div>
+            </div>
+            
+            <div class="flex flex-col space-y-4">
+                <h4 class="text-white font-semibold text-sm uppercase tracking-wider">HR Services</h4>
+                <ul class="space-y-2 text-xs">
+                    <li><a href="javascript:void(0)" onclick="showSection('services')" class="hover:text-white transition-colors duration-150">Pan-India Sourcing</a></li>
+                    <li><a href="javascript:void(0)" onclick="showSection('services')" class="hover:text-white transition-colors duration-150">Statutory Compliance</a></li>
+                    <li><a href="javascript:void(0)" onclick="showSection('services')" class="hover:text-white transition-colors duration-150">Manpower Migration</a></li>
+                </ul>
+            </div>
+            
+            <div class="flex flex-col space-y-4">
+                <h4 class="text-white font-semibold text-sm uppercase tracking-wider">Administrative Access</h4>
+                <ul class="space-y-2 text-xs">
+                    <li><a href="#" id="btn-footer-login-trigger" class="hover:text-white text-brand-accent font-bold transition-colors duration-150"><i class="fa-solid fa-lock text-[10px] mr-1"></i> Operations Login</a></li>
+                    <li><a href="settings.html" class="hover:text-white transition-colors duration-150">System Controls</a></li>
+                </ul>
+            </div>
+
+        </div>
+        
+        <div class="container mx-auto px-6 border-t border-white/5 pt-8 flex flex-col sm:flex-row justify-between items-center text-[0.7rem] gap-4">
+            <div>&copy; 2026 <span data-company="fullLegalName">QT Consultancy (OPC) Pvt Ltd</span>. All rights reserved.</div>
+            <div class="flex gap-6">
+                <a href="#" class="hover:text-white transition-colors">Privacy Policy</a>
+                <a href="#" class="hover:text-white transition-colors">Terms of Service</a>
+            </div>
+        </div>
+    </footer>
+
+    <!-- ========================================== -->
+    <!-- 7. SLIDING ADMIN LOGIN PANEL OVERLAY       -->
+    <!-- ========================================== -->
+    <div id="login-overlay" class="fixed inset-0 bg-slate-950/60 backdrop-blur-sm z-[100] hidden opacity-0 transition-opacity duration-300"></div>
+    <div id="login-drawer" class="fixed top-0 right-0 bottom-0 w-full max-w-[420px] bg-white dark:bg-brand-dark shadow-2xl z-[110] p-10 flex flex-col justify-center border-l border-slate-205 dark:border-slate-800/50 transform translate-x-full transition-transform duration-300 ease-in-out">
+        <button id="login-close-btn" class="absolute top-6 right-6 text-slate-400 hover:text-brand-dark dark:hover:text-white text-3xl font-light">&times;</button>
+        
+        <div class="mb-8">
+            <div class="flex items-center gap-2.5 mb-2">
+                <div class="w-9 h-9 bg-brand-medium rounded-lg flex items-center justify-center text-white font-extrabold text-base" data-company="logo">
+                    QT
+                </div>
+                <h2 class="text-2xl font-black text-brand-dark dark:text-white leading-none"><span data-company="shortName">QT</span> Operations</h2>
+            </div>
+            <p class="text-slate-450 dark:text-slate-400 text-xs">Employee Payroll & Sourcing Hub</p>
+        </div>
+        
+        <form id="drawer-login-form" class="space-y-5">
+            <div class="flex flex-col gap-2">
+                <label for="login-email" class="text-xs font-semibold text-brand-dark dark:text-white tracking-wide">Administrative Email</label>
+                <input type="email" id="login-email" required placeholder="admin@company.com" autocomplete="username" class="w-full px-4 py-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-gray-900 text-sm focus:outline-none focus:border-brand-medium dark:text-white">
+            </div>
+            
+            <div class="flex flex-col gap-2">
+                <div class="flex justify-between items-center">
+                    <label for="login-password" class="text-xs font-semibold text-brand-dark dark:text-white tracking-wide">Password</label>
+                    <a href="#" id="forgot-password-link" class="text-xs font-bold text-brand-medium dark:text-brand-accent hover:text-brand-dark transition-colors">Forgot password?</a>
+                </div>
+                <input type="password" id="login-password" required placeholder="••••••••" autocomplete="current-password" class="w-full px-4 py-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-gray-900 text-sm focus:outline-none focus:border-brand-medium dark:text-white">
+            </div>
+            
+            <button type="submit" class="w-full py-3.5 bg-brand-medium hover:bg-brand-dark text-white rounded-xl font-bold text-sm shadow-md shadow-brand-medium/10 transition-all duration-200 mt-2">
+                Secure Log In
+            </button>
+        </form>
+        
+        <div class="mt-8 p-4 rounded-xl bg-slate-50 dark:bg-gray-900 border border-slate-100 dark:border-slate-800/50 flex items-start gap-3 text-[0.7rem] text-slate-500 dark:text-slate-400 leading-normal">
+            <span class="text-base">🔒</span>
+            <div>
+                <strong>Secure Connection:</strong> Encrypted via 256-bit SSL protocol. Internal <span data-company="shortName">QT Consultancy</span> corporate networks access only.
+            </div>
+        </div>
+    </div>
+
+    <!-- ========================================== -->
+    <!-- 8. INTERACTIVE DYNAMIC RATES MODAL         -->
+    <!-- ========================================== -->
+    <div id="book-modal" class="fixed inset-0 bg-slate-950/60 backdrop-blur-sm z-[150] hidden items-center justify-center p-6 opacity-0 transition-opacity duration-300">
+        <div class="bg-white dark:bg-brand-dark w-full max-w-[500px] rounded-2xl overflow-hidden shadow-2xl border border-slate-200 dark:border-slate-850 transform scale-95 transition-transform duration-300 ease-out">
+            <div class="bg-brand-dark p-6 text-white relative">
+                <button id="btn-book-close" class="absolute top-4 right-6 text-slate-400 hover:text-white text-3xl font-light leading-none">&times;</button>
+                <span class="text-[0.62rem] font-bold tracking-widest text-brand-accent uppercase block mb-1">Operational Estimator</span>
+                <h3 class="text-xl font-bold">HR Sourcing Fee Calculator</h3>
+            </div>
+            
+            <!-- Success brief screen -->
+            <div id="book-success-screen" class="hidden p-10 text-center flex-col items-center">
+                <div class="w-16 h-16 bg-green-100 text-green-600 rounded-full flex items-center justify-center text-3xl font-bold mb-6 animate-bounce">
+                    ✓
+                </div>
+                <h4 class="text-xl font-extrabold text-brand-dark dark:text-white">Consultation Brief Logged</h4>
+                <p class="text-slate-550 dark:text-slate-450 text-sm mt-3 leading-relaxed max-w-xs mx-auto">
+                    Your service requirements have been compiled. A <span data-company="shortName">QT Consultancy</span> strategic partner will contact you shortly.
+                </p>
+                <div class="mt-8 font-bold text-[0.65rem] text-slate-400 uppercase tracking-widest border border-slate-100 dark:border-slate-800/50 px-4 py-2 rounded-lg bg-slate-50 dark:bg-gray-900">
+                    Tracker ID: <span data-company="logoInitials">QT</span>-RESERVE-2026
+                </div>
+            </div>
+
+            <!-- Calculator Form -->
+            <form id="book-charter-form" class="p-6 space-y-5">
+                <div class="grid grid-cols-2 gap-4">
+                    <div class="flex flex-col gap-1.5">
+                        <label for="book-dep" class="text-xs font-semibold text-brand-dark dark:text-gray-300">Hiring Zone State</label>
+                        <select id="book-dep" class="px-3 py-2.5 rounded-lg border border-slate-200 dark:border-slate-700 text-xs focus:outline-none focus:border-brand-medium bg-slate-50 dark:bg-gray-900 dark:text-white font-medium">
+                            <option value="Noida">Uttar Pradesh (Noida)</option>
+                            <option value="Delhi">Delhi NCR</option>
+                            <option value="Maharashtra">Maharashtra (Mumbai)</option>
+                            <option value="Karnataka">Karnataka (Bangalore)</option>
+                        </select>
+                    </div>
+                    <div class="flex flex-col gap-1.5">
+                        <label for="book-arr" class="text-xs font-semibold text-brand-dark dark:text-gray-300">Outsourcing Category</label>
+                        <select id="book-arr" class="px-3 py-2.5 rounded-lg border border-slate-200 dark:border-slate-700 text-xs focus:outline-none focus:border-brand-medium bg-slate-50 dark:bg-gray-900 dark:text-white font-medium">
+                            <option value="Logistics">Logistics & SC</option>
+                            <option value="Compliance">Payroll Compliance</option>
+                            <option value="Tech">IT & Professional</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-2 gap-4">
+                    <div class="flex flex-col gap-1.5">
+                        <label for="book-date" class="text-xs font-semibold text-brand-dark dark:text-gray-300">Proposed Target Date</label>
+                        <input type="date" id="book-date" value="2026-06-15" class="px-3 py-2.5 rounded-lg border border-slate-200 dark:border-slate-700 text-xs focus:outline-none focus:border-brand-medium bg-slate-50 dark:bg-gray-900 dark:text-white font-medium">
+                    </div>
+                    <div class="flex flex-col gap-1.5">
+                        <label for="book-pax" class="text-xs font-semibold text-brand-dark dark:text-gray-300">Estimated Headcount</label>
+                        <select id="book-pax" class="px-3 py-2.5 rounded-lg border border-slate-200 dark:border-slate-700 text-xs focus:outline-none focus:border-brand-medium bg-slate-50 dark:bg-gray-900 dark:text-white font-medium">
+                            <option value="10">Under 10 Positions</option>
+                            <option value="50" selected>10 - 50 Candidates</option>
+                            <option value="200">50 - 200 Candidates</option>
+                            <option value="500">200+ Corporate Campaign</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="flex flex-col gap-2">
+                    <label class="text-xs font-semibold text-brand-dark dark:text-gray-300">HR Sourcing Service Tier</label>
+                    <div class="grid grid-cols-3 gap-2">
+                        <button type="button" class="btn-jet-class px-2 py-2 rounded-lg border border-slate-205 dark:border-slate-700 bg-slate-50 dark:bg-gray-900 hover:bg-slate-100 text-[0.7rem] font-bold text-slate-500 transition-colors" onclick="selectJetClass(this, 'Recruitment')">Pan-India Sourcing</button>
+                        <button type="button" class="btn-jet-class px-2 py-2 rounded-lg border border-brand-medium bg-brand-dark text-white text-[0.7rem] font-bold transition-colors" onclick="selectJetClass(this, 'Payroll')">Payroll & Compliance</button>
+                        <button type="button" class="btn-jet-class px-2 py-2 rounded-lg border border-slate-205 dark:border-slate-700 bg-slate-50 dark:bg-gray-900 hover:bg-slate-100 text-[0.7rem] font-bold text-slate-500 transition-colors" onclick="selectJetClass(this, 'Migration')">Bulk Migration</button>
+                    </div>
+                </div>
+
+                <!-- Calculator Quote card -->
+                <div class="p-5 rounded-xl border border-slate-100 dark:border-slate-800/50 bg-slate-50 dark:bg-gray-900 text-center">
+                    <span class="text-[0.62rem] font-bold text-slate-400 uppercase tracking-widest block mb-1">Estimated Monthly Outlay</span>
+                    <strong id="book-quote-value" class="text-3xl font-black text-brand-dark dark:text-brand-accent">₹3,500</strong>
+                </div>
+
+                <button type="submit" class="w-full py-3.5 bg-brand-medium hover:bg-brand-dark text-white rounded-xl font-bold text-sm shadow-md shadow-brand-medium/10 transition-all duration-200 mt-2">
+                    Request Corporate Consultation
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Toast container for notifications -->
+    <div id="toast-container" class="fixed bottom-6 right-6 z-[200] flex flex-col gap-3 max-w-sm pointer-events-none"></div>
+
+    <script src="app.js"></script>
+    <script>
+        // Single-page router function
+        function showSection(sectionId) {
+            // Hide all sections
+            document.getElementById('home-section').classList.add('hidden');
+            document.getElementById('services-section').classList.add('hidden');
+            document.getElementById('contact-section').classList.add('hidden');
+            
+            // Show active section
+            document.getElementById(sectionId + '-section').classList.remove('hidden');
+            
+            // Manage active link borders
+            const links = document.querySelectorAll('.nav-link');
+            links.forEach(l => l.classList.remove('active-link'));
+            
+            const activeLink = document.getElementById('nav-' + sectionId);
+            if (activeLink) activeLink.classList.add('active-link');
+            
+            // Scroll to top
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+            
+            // Close mobile menu if open
+            closeMobileMenu();
+        }
+
+        // Mobile dropdown toggle
+        function toggleMenu() {
+            const menu = document.getElementById('mobile-menu');
+            const icon = document.getElementById('menu-icon');
+            const isHidden = menu.classList.contains('hidden');
+            
+            if (isHidden) {
+                menu.classList.remove('hidden');
+                icon.className = 'fas fa-times';
+            } else {
+                menu.classList.add('hidden');
+                icon.className = 'fas fa-bars';
+            }
+        }
+
+        function closeMobileMenu() {
+            const menu = document.getElementById('mobile-menu');
+            const icon = document.getElementById('menu-icon');
+            if (menu) {
+                menu.classList.add('hidden');
+            }
+            if (icon) {
+                icon.className = 'fas fa-bars';
+            }
+        }
+
+        // Dark Mode Logic
+        function toggleDarkMode() {
+            document.documentElement.classList.toggle('dark');
+            const isDark = document.documentElement.classList.contains('dark');
+            localStorage.setItem('theme', isDark ? 'dark' : 'light');
+            updateThemeIcons();
+        }
+
+        function updateThemeIcons() {
+            const isDark = document.documentElement.classList.contains('dark');
+            const icon = document.getElementById('theme-icon');
+            const mobileIcon = document.getElementById('theme-icon-mobile');
+            if (icon) {
+                icon.className = isDark ? 'fas fa-sun text-brand-accent' : 'fas fa-moon';
+            }
+            if (mobileIcon) {
+                mobileIcon.className = isDark ? 'fas fa-sun text-brand-accent' : 'fas fa-moon';
+            }
+        }
+
+        // Check initial theme
+        if (localStorage.getItem('theme') === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+            document.documentElement.classList.add('dark');
+            updateThemeIcons();
+        } else {
+            document.documentElement.classList.remove('dark');
+            updateThemeIcons();
+        }
+
+        // Active Sourcing Tier Selection State inside rates calculator
+        let activeJetClass = 'Payroll';
+        
+        function selectJetClass(btn, jetClass) {
+            const btns = document.querySelectorAll('.btn-jet-class');
+            btns.forEach(b => {
+                b.classList.remove('bg-brand-medium', 'bg-brand-dark', 'text-white');
+                b.classList.add('bg-slate-50', 'dark:bg-gray-900', 'text-slate-550');
+            });
+
+            btn.classList.remove('bg-slate-50', 'dark:bg-gray-900', 'text-slate-550');
+            btn.classList.add('bg-brand-medium', 'text-white');
+            
+            activeJetClass = jetClass;
+            recalculateQuote();
+        }
+
+        function recalculateQuote() {
+            let base = 3500;
+            if (activeJetClass === 'Recruitment') base = 1200;
+            if (activeJetClass === 'Migration') base = 5000;
+
+            const dep = document.getElementById("book-dep").value;
+            const arr = document.getElementById("book-arr").value;
+            const pax = parseInt(document.getElementById("book-pax").value);
+
+            let distanceMult = 1.0;
+            if (dep === 'Noida' && arr === 'Compliance') {
+                distanceMult = 0.8;
+            } else if (arr === 'Tech') {
+                distanceMult = 1.6;
+            } else {
+                distanceMult = 1.2;
+            }
+
+            const paxVal = pax * 50;
+            const quote = Math.round(base * distanceMult + paxVal);
+            document.getElementById("book-quote-value").textContent = `₹${quote.toLocaleString()}`;
+        }
+
+        document.addEventListener("DOMContentLoaded", () => {
+            // Recalculates on rates parameters change
+            document.getElementById("book-dep").addEventListener("change", recalculateQuote);
+            document.getElementById("book-arr").addEventListener("change", recalculateQuote);
+            document.getElementById("book-pax").addEventListener("change", recalculateQuote);
+
+            // Login Drawer actions
+            const loginOverlay = document.getElementById("login-overlay");
+            const loginDrawer = document.getElementById("login-drawer");
+            const loginClose = document.getElementById("login-close-btn");
+            const portalBtn = document.getElementById("btn-login-trigger");
+            const footerLoginBtn = document.getElementById("btn-footer-login-trigger");
+            const mobileLoginBtn = document.getElementById("btn-mobile-login");
+
+            const openDrawer = (e) => {
+                if (e) e.preventDefault();
+                loginOverlay.classList.remove("hidden");
+                setTimeout(() => {
+                    loginOverlay.classList.remove("opacity-0");
+                    loginOverlay.classList.add("opacity-100");
+                    loginDrawer.classList.remove("translate-x-full");
+                    loginDrawer.classList.add("translate-x-0");
+                }, 10);
+                closeMobileMenu();
+            };
+
+            const closeDrawer = () => {
+                loginOverlay.classList.remove("opacity-100");
+                loginOverlay.classList.add("opacity-0");
+                loginDrawer.classList.remove("translate-x-0");
+                loginDrawer.classList.add("translate-x-full");
+                setTimeout(() => {
+                    loginOverlay.classList.add("hidden");
+                }, 300);
+            };
+
+            if (portalBtn) portalBtn.addEventListener("click", openDrawer);
+            if (footerLoginBtn) footerLoginBtn.addEventListener("click", openDrawer);
+            if (mobileLoginBtn) mobileLoginBtn.addEventListener("click", openDrawer);
+            if (loginClose) loginClose.addEventListener("click", closeDrawer);
+            if (loginOverlay) loginOverlay.addEventListener("click", closeDrawer);
+
+            // Booking Modal actions
+            const bookModal = document.getElementById("book-modal");
+            const bookClose = document.getElementById("btn-book-close");
+            const bookTrigger = document.getElementById("btn-book-trigger");
+            const bookForm = document.getElementById("book-charter-form");
+            const successScreen = document.getElementById("book-success-screen");
+            const modalContainer = bookModal.querySelector("div");
+
+            bookTrigger.addEventListener("click", () => {
+                bookModal.classList.remove("hidden");
+                bookModal.classList.add("flex");
+                setTimeout(() => {
+                    bookModal.classList.remove("opacity-0");
+                    bookModal.classList.add("opacity-100");
+                    modalContainer.classList.remove("scale-95");
+                    modalContainer.classList.add("scale-100");
+                }, 10);
+                successScreen.style.display = "none";
+                bookForm.style.display = "flex";
+                recalculateQuote();
+            });
+
+            const closeModal = () => {
+                bookModal.classList.remove("opacity-100");
+                bookModal.classList.add("opacity-0");
+                modalContainer.classList.remove("scale-100");
+                modalContainer.classList.add("scale-95");
+                setTimeout(() => {
+                    bookModal.classList.add("hidden");
+                    bookModal.classList.remove("flex");
+                }, 300);
+            };
+
+            bookClose.addEventListener("click", closeModal);
+            bookModal.addEventListener("click", (e) => {
+                if (e.target === bookModal) closeModal();
+            });
+            
+            bookForm.addEventListener("submit", (e) => {
+                e.preventDefault();
+                bookForm.style.display = "none";
+                successScreen.style.display = "flex";
+                setTimeout(() => {
+                    closeModal();
+                }, 3000);
+            });
+
+            // Check ?action=login in URL search params
+            const params = new URLSearchParams(window.location.search);
+            if (params.get("action") === "login") {
+                openDrawer();
+            }
+
+            // Handle secure login forms submit
+            const loginForm = document.getElementById("drawer-login-form");
+            if (loginForm) {
+                const settings = state.companySettings || DEFAULT_COMPANY_SETTINGS;
+                const emailInput = document.getElementById("login-email");
+                if (emailInput && settings.supportEmail) {
+                    emailInput.placeholder = settings.supportEmail;
+                }
+
+                loginForm.addEventListener("submit", (e) => {
+                    e.preventDefault();
+                    const email = document.getElementById("login-email").value.trim();
+                    const pass = document.getElementById("login-password").value.trim();
+
+                    if ((email === "admin@company.com" || (settings.supportEmail && email === settings.supportEmail)) && pass === "admin123") {
+                        state.currentUser = { email: email, name: "Finance Manager", role: "Administrator" };
+                        saveStateToStorage();
+                        Auditor.log(`Administrator logged into ${settings.shortName || "QT Consultancy"} Operations Desk.`);
+                        window.location.href = "dashboard.html";
+                    } else {
+                        Toast.show(`Invalid credentials. Try: ${settings.supportEmail || "admin@company.com"} / admin123`, "danger");
+                        Auditor.log("Failed administrative authentication attempt: " + email);
+                    }
+                });
+            }
+
+            const forgotLink = document.getElementById("forgot-password-link");
+            if (forgotLink) {
+                forgotLink.addEventListener("click", (e) => {
+                    e.preventDefault();
+                    alert("Security Override: Please contact the corporate IT Operations Desk (extension 410) to reset your master database administrative key.");
+                });
+            }
+        });
+    </script>
+</body>
+
+</html>
