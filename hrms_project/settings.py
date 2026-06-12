@@ -2,6 +2,7 @@ import os
 import importlib.util
 from pathlib import Path
 from datetime import timedelta
+from urllib.parse import urlparse
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -65,15 +66,20 @@ TEMPLATES = [
 WSGI_APPLICATION = "hrms_project.wsgi.application"
 ASGI_APPLICATION = "hrms_project.asgi.application"
 
-if os.getenv("DATABASE_URL"):
+db_url = os.getenv("DATABASE_URL")
+if db_url:
+    parsed = urlparse(db_url)
     DATABASES = {
         "default": {
             "ENGINE": "django.db.backends.postgresql",
-            "NAME": os.getenv("POSTGRES_DB", "hrms"),
-            "USER": os.getenv("POSTGRES_USER", "hrms"),
-            "PASSWORD": os.getenv("POSTGRES_PASSWORD", "hrms"),
-            "HOST": os.getenv("POSTGRES_HOST", "127.0.0.1"),
-            "PORT": os.getenv("POSTGRES_PORT", "5432"),
+            "NAME": parsed.path.lstrip("/").split("?")[0],
+            "USER": parsed.username,
+            "PASSWORD": parsed.password,
+            "HOST": parsed.hostname,
+            "PORT": parsed.port or 5432,
+            "OPTIONS": {
+                "sslmode": "require",
+            }
         }
     }
 else:
