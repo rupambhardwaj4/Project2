@@ -602,7 +602,12 @@
                     },
                     body: JSON.stringify(updatedSettings)
                 })
-                .then(res => res.json())
+                .then(res => {
+                    if (!res.ok) {
+                        throw new Error(`HTTP error! status: ${res.status}`);
+                    }
+                    return res.json();
+                })
                 .then(data => {
                     if (data.ok) {
                         state.companySettings = updatedSettings;
@@ -678,7 +683,12 @@
                     },
                     body: JSON.stringify(defaultSettings)
                 })
-                .then(res => res.json())
+                .then(res => {
+                    if (!res.ok) {
+                        throw new Error(`HTTP error! status: ${res.status}`);
+                    }
+                    return res.json();
+                })
                 .then(data => {
                     if (data.ok) {
                         state.companySettings = defaultSettings;

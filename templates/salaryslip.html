@@ -667,7 +667,7 @@
                                     <div class="flex items-center justify-between p-4 border-b border-black relative">
                                         <div class="flex items-center">
                                             <div id="slip-logo-wrapper" class="mr-3 shrink-0 flex items-center justify-center">
-                                                <svg width="55" height="55" viewBox="0 0 60 60" class="shrink-0">
+                                                <svg width="65" height="65" viewBox="0 0 60 60" class="shrink-0">
                                                     <path d="M 30 5 C 42 5, 50 12, 50 25 C 50 38, 40 48, 30 55 C 20 48, 10 38, 10 25 C 10 12, 18 5, 30 5 Z" fill="#0d2440" />
                                                     <path id="slip-logo-svg-fill" d="M 30 8 C 39 8, 46 14, 46 25 C 46 35, 38 44, 30 50 C 22 44, 14 35, 14 25 C 14 14, 21 8, 30 8 Z" fill="#88BDF2" />
                                                     <circle cx="30" cy="24" r="7" fill="none" stroke="#FFFFFF" stroke-width="3" />
@@ -740,11 +740,10 @@
                                         <table class="w-full border-collapse text-[11px] font-bold text-black zebra-table">
                                             <thead>
                                                 <tr class="border-b border-black bg-slate-50">
-                                                    <th class="border-r border-black p-2 text-left w-[30%]">Total Salary</th>
+                                                    <th class="border-r border-black p-2 text-left w-[35%]">Total Salary</th>
                                                     <th class="border-r border-black p-2 text-right w-[15%]">Earning</th>
-                                                    <th class="border-r border-black p-2 text-left w-[30%]">Deductions</th>
-                                                    <th class="border-r border-black p-2 text-right w-[15%]"></th>
-                                                    <th class="p-2 text-center w-[10%] font-extrabold">Net Pay</th>
+                                                    <th class="border-r border-black p-2 text-left w-[35%]">Deductions</th>
+                                                    <th class="p-2 text-right w-[15%]">Amount</th>
                                                 </tr>
                                             </thead>
                                             <tbody class="font-normal text-slate-800 divide-y divide-black/10">
@@ -752,121 +751,108 @@
                                                     <td class="border-r border-black p-1.5 bg-white font-bold text-black">Basic Pay</td>
                                                     <td class="border-r border-black p-1.5 text-right" id="val-basic-pay">0</td>
                                                     <td class="border-r border-black p-1.5 bg-[#DCE6F1] font-bold text-black">E.S.I.</td>
-                                                    <td class="border-r border-black p-1.5 text-right" id="val-esi">0</td>
-                                                    <td class="p-1.5"></td>
+                                                    <td class="p-1.5 text-right" id="val-esi">0</td>
                                                 </tr>
                                                 <tr class="border-b border-black/30">
                                                     <td class="border-r border-black p-1.5 bg-white font-bold text-black">H.R.A.</td>
                                                     <td class="border-r border-black p-1.5 text-right" id="val-hra">0</td>
                                                     <td class="border-r border-black p-1.5 bg-[#DCE6F1] font-bold text-black">P.F.</td>
-                                                    <td class="border-r border-black p-1.5 text-right" id="val-pf">0</td>
-                                                    <td class="p-1.5"></td>
+                                                    <td class="p-1.5 text-right" id="val-pf">0</td>
                                                 </tr>
                                                 <tr class="border-b border-black/30">
                                                     <td class="border-r border-black p-1.5 bg-white font-bold text-black" id="lbl-other-allowance">Other Allowance</td>
                                                     <td class="border-r border-black p-1.5 text-right" id="val-other-allowance">0</td>
                                                     <td class="border-r border-black p-1.5 bg-[#DCE6F1] font-bold text-black">LWF</td>
-                                                    <td class="border-r border-black p-1.5 text-right" id="val-lwf">0</td>
-                                                    <td class="p-1.5"></td>
+                                                    <td class="p-1.5 text-right" id="val-lwf">0</td>
                                                 </tr>
                                                 <tr class="border-b border-black/30">
                                                     <td class="border-r border-black p-1.5 bg-white font-bold text-black">Stat Bonus</td>
                                                     <td class="border-r border-black p-1.5 text-right" id="val-stat-bonus">0</td>
                                                     <td class="border-r border-black p-1.5 bg-[#DCE6F1] font-bold text-black">Meal Debit</td>
-                                                    <td class="border-r border-black p-1.5 text-right" id="val-meal-debit">0</td>
-                                                    <td class="p-1.5"></td>
+                                                    <td class="p-1.5 text-right" id="val-meal-debit">0</td>
                                                 </tr>
                                                 <tr class="border-b border-black/30">
                                                     <td class="border-r border-black p-1.5 bg-white font-bold text-black">Attendance bonus</td>
                                                     <td class="border-r border-black p-1.5 text-right" id="val-attendance-bonus">0</td>
                                                     <td class="border-r border-black p-1.5 bg-[#DCE6F1] font-bold text-black">Refyne Debit</td>
-                                                    <td class="border-r border-black p-1.5 text-right" id="val-refyne-debit">0</td>
-                                                    <td class="p-1.5"></td>
+                                                    <td class="p-1.5 text-right" id="val-refyne-debit">0</td>
                                                 </tr>
                                                 <tr class="border-b border-black/30">
                                                     <td class="border-r border-black p-1.5 bg-white font-bold text-black">Leave Encashment</td>
                                                     <td class="border-r border-black p-1.5 text-right" id="val-leave-encashment">0</td>
                                                     <td class="border-r border-black p-1.5 bg-[#DCE6F1] font-bold text-black">Advance salary</td>
-                                                    <td class="border-r border-black p-1.5 text-right" id="val-advance-salary">0</td>
-                                                    <td class="p-1.5"></td>
+                                                    <td class="p-1.5 text-right" id="val-advance-salary">0</td>
                                                 </tr>
                                                 <tr class="border-b border-black/30">
                                                     <td class="border-r border-black p-1.5 bg-white font-bold text-black">Performance incentive</td>
                                                     <td class="border-r border-black p-1.5 text-right" id="val-performance-incentive">0</td>
                                                     <td class="border-r border-black p-1.5 bg-[#DCE6F1] font-bold text-black" id="lbl-pt-deduction">PT</td>
-                                                    <td class="border-r border-black p-1.5 text-right" id="val-pt">0</td>
-                                                    <td class="p-1.5"></td>
+                                                    <td class="p-1.5 text-right" id="val-pt">0</td>
                                                 </tr>
                                                 <tr class="border-b border-black/30">
                                                     <td class="border-r border-black p-1.5 bg-white font-bold text-black">Extra Payment</td>
                                                     <td class="border-r border-black p-1.5 text-right" id="val-extra-payment">0</td>
                                                     <td class="border-r border-black p-1.5 bg-[#DCE6F1] font-bold text-black">E-Bike Debit</td>
-                                                    <td class="border-r border-black p-1.5 text-right" id="val-ebike-debit">0</td>
-                                                    <td class="p-1.5"></td>
+                                                    <td class="p-1.5 text-right" id="val-ebike-debit">0</td>
                                                 </tr>
                                                 <tr class="border-b border-black/30">
                                                     <td class="border-r border-black p-1.5 bg-white font-bold text-black">Shipment Incentive</td>
                                                     <td class="border-r border-black p-1.5 text-right" id="val-shipment-incentive">0</td>
                                                     <td class="border-r border-black p-1.5 bg-[#DCE6F1] font-bold text-black">Advance Payments In Weeks</td>
-                                                    <td class="border-r border-black p-1.5 text-right" id="val-advance-weeks">0</td>
-                                                    <td class="p-1.5"></td>
+                                                    <td class="p-1.5 text-right" id="val-advance-weeks">0</td>
                                                 </tr>
                                                 <tr class="border-b border-black/30">
                                                     <td class="border-r border-black p-1.5 bg-white font-bold text-black">Mobile allowance</td>
                                                     <td class="border-r border-black p-1.5 text-right" id="val-mobile-allowance">0</td>
                                                     <td class="border-r border-black p-1.5 bg-[#DCE6F1] font-bold text-black">Shipment Debit</td>
-                                                    <td class="border-r border-black p-1.5 text-right" id="val-shipment-debit">0</td>
-                                                    <td class="p-1.5"></td>
+                                                    <td class="p-1.5 text-right" id="val-shipment-debit">0</td>
                                                 </tr>
                                                 <tr class="border-b border-black/30">
                                                     <td class="border-r border-black p-1.5 bg-white font-bold text-black">Meal Incentive</td>
                                                     <td class="border-r border-black p-1.5 text-right" id="val-meal-incentive">0</td>
                                                     <td class="border-r border-black p-1.5 bg-[#DCE6F1] font-bold text-black">Accmmodation Recovery</td>
-                                                    <td class="border-r border-black p-1.5 text-right" id="val-accommodation">0</td>
-                                                    <td class="p-1.5"></td>
+                                                    <td class="p-1.5 text-right" id="val-accommodation">0</td>
                                                 </tr>
                                                 <tr class="border-b border-black/30">
                                                     <td class="border-r border-black p-1.5 bg-white font-bold text-black">Group Incentive</td>
                                                     <td class="border-r border-black p-1.5 text-right" id="val-group-incentive">0</td>
                                                     <td class="border-r border-black p-1.5 bg-[#DCE6F1] font-bold text-black">Notice Period Deduction</td>
-                                                    <td class="border-r border-black p-1.5 text-right" id="val-notice-period">0</td>
-                                                    <td class="p-1.5"></td>
+                                                    <td class="p-1.5 text-right" id="val-notice-period">0</td>
                                                 </tr>
                                                 <tr class="border-b border-black/30">
                                                     <td class="border-r border-black p-1.5 bg-white font-bold text-black">Night Allowance</td>
                                                     <td class="border-r border-black p-1.5 text-right" id="val-night-allowance">0</td>
                                                     <td class="border-r border-black p-1.5 bg-[#DCE6F1] font-bold text-black">COD Loss</td>
-                                                    <td class="border-r border-black p-1.5 text-right" id="val-cod-loss">0</td>
-                                                    <td class="p-1.5"></td>
+                                                    <td class="p-1.5 text-right" id="val-cod-loss">0</td>
                                                 </tr>
                                                 <tr class="border-b border-black/30">
                                                     <td class="border-r border-black p-1.5 bg-white font-bold text-black">National Holiday Pay</td>
                                                     <td class="border-r border-black p-1.5 text-right" id="val-holiday-pay">0</td>
                                                     <td class="border-r border-black p-1.5 bg-[#DCE6F1] font-bold text-black">Tshirt Recovery</td>
-                                                    <td class="border-r border-black p-1.5 text-right" id="val-tshirt-recovery">0</td>
-                                                    <td class="p-1.5"></td>
+                                                    <td class="p-1.5 text-right" id="val-tshirt-recovery">0</td>
                                                 </tr>
                                                 <tr class="border-b border-black/30">
                                                     <td class="border-r border-black p-1.5 bg-white font-bold text-black">Retention Bonus</td>
                                                     <td class="border-r border-black p-1.5 text-right" id="val-retention-bonus">0</td>
                                                     <td class="border-r border-black p-1.5 bg-[#DCE6F1] font-bold text-black">EWF Deduction</td>
-                                                    <td class="border-r border-black p-1.5 text-right" id="val-ewf-deduction">0</td>
-                                                    <td class="p-1.5"></td>
+                                                    <td class="p-1.5 text-right" id="val-ewf-deduction">0</td>
                                                 </tr>
                                                 <tr class="border-b border-black">
                                                     <td class="border-r border-black p-1.5 bg-white font-bold text-black">Arrear Payment</td>
                                                     <td class="border-r border-black p-1.5 text-right" id="val-arrear-payment">0</td>
                                                     <td class="border-r border-black p-1.5 bg-[#DCE6F1] font-bold text-black" id="lbl-tds-tax">TDS (1%)</td>
-                                                    <td class="border-r border-black p-1.5 text-right" id="val-tds">0</td>
-                                                    <td class="p-1.5"></td>
+                                                    <td class="p-1.5 text-right" id="val-tds">0</td>
                                                 </tr>
                                                 
-                                                <tr class="bg-[#92D050] font-bold text-black border-t border-black text-[11px] leading-relaxed">
+                                                <tr class="bg-slate-50/50 font-bold text-black border-t border-black text-[11px] leading-relaxed">
                                                     <td class="border-r border-black p-2.5 uppercase">Net Gross Total</td>
                                                     <td class="border-r border-black p-2.5 text-right" id="lbl-net-gross">0</td>
-                                                    <td class="border-r border-black p-2.5 uppercase">Total Deduction</td>
-                                                    <td class="border-r border-black p-2.5 text-right" id="lbl-total-deductions">0</td>
-                                                    <td class="p-2.5 text-center text-black font-extrabold border-l border-black" id="lbl-net-pay">0</td>
+                                                    <td class="border-r border-black p-2.5 uppercase border-l border-black">Total Deduction</td>
+                                                    <td class="p-2.5 text-right" id="lbl-total-deductions">0</td>
+                                                </tr>
+                                                <tr class="bg-[#92D050] font-bold text-black border-t border-black text-xs leading-relaxed">
+                                                    <td class="p-2.5 uppercase tracking-wider text-center" colspan="3">Net Salary Payable (In Hand)</td>
+                                                    <td class="p-2.5 text-right font-black border-l border-black text-sm" id="lbl-net-pay">0</td>
                                                 </tr>
                                             </tbody>
                                         </table>
@@ -1564,16 +1550,16 @@
             const logoWrapper = document.getElementById("slip-logo-wrapper");
             if (logoWrapper) {
                 if (settings.logoImage) {
-                    logoWrapper.innerHTML = `<img src="${settings.logoImage}" class="w-12 h-12 rounded-lg object-cover">`;
+                    logoWrapper.innerHTML = `<img src="${settings.logoImage}" class="w-16 h-16 rounded-lg object-cover">`;
                 } else if (settings.logoInitials && settings.logoInitials !== "QT") {
                     logoWrapper.innerHTML = `
-                        <div class="w-12 h-12 bg-qt-primary text-white rounded-lg flex items-center justify-center font-extrabold text-lg shrink-0">
+                        <div class="w-16 h-16 bg-qt-primary text-white rounded-lg flex items-center justify-center font-extrabold text-xl shrink-0">
                             ${settings.logoInitials}
                         </div>
                     `;
                 } else {
                     logoWrapper.innerHTML = `
-                        <svg width="55" height="55" viewBox="0 0 60 60" class="shrink-0">
+                        <svg width="65" height="65" viewBox="0 0 60 60" class="shrink-0">
                             <path d="M 30 5 C 42 5, 50 12, 50 25 C 50 38, 40 48, 30 55 C 20 48, 10 38, 10 25 C 10 12, 18 5, 30 5 Z" fill="#0d2440" />
                             <path id="slip-logo-svg-fill" d="M 30 8 C 39 8, 46 14, 46 25 C 46 35, 38 44, 30 50 C 22 44, 14 35, 14 25 C 14 14, 21 8, 30 8 Z" fill="${settings.primaryColor || '#88BDF2'}" />
                             <circle cx="30" cy="24" r="7" fill="none" stroke="#FFFFFF" stroke-width="3" />
@@ -1989,16 +1975,16 @@
             // Calculate dynamic values
             let logoHTML = "";
             if (settings.logoImage) {
-                logoHTML = `<img src="${settings.logoImage}" class="w-12 h-12 rounded-lg object-cover">`;
+                logoHTML = `<img src="${settings.logoImage}" class="w-16 h-16 rounded-lg object-cover">`;
             } else if (settings.logoInitials && settings.logoInitials !== "QT") {
                 logoHTML = `
-                    <div class="w-12 h-12 bg-qt-primary text-white rounded-lg flex items-center justify-center font-extrabold text-lg shrink-0">
+                    <div class="w-16 h-16 bg-qt-primary text-white rounded-lg flex items-center justify-center font-extrabold text-xl shrink-0">
                         ${settings.logoInitials}
                     </div>
                 `;
             } else {
                 logoHTML = `
-                    <svg width="55" height="55" viewBox="0 0 60 60" class="shrink-0">
+                    <svg width="65" height="65" viewBox="0 0 60 60" class="shrink-0">
                         <path d="M 30 5 C 42 5, 50 12, 50 25 C 50 38, 40 48, 30 55 C 20 48, 10 38, 10 25 C 10 12, 18 5, 30 5 Z" fill="#0d2440" />
                         <path d="M 30 8 C 39 8, 46 14, 46 25 C 46 35, 38 44, 30 50 C 22 44, 14 35, 14 25 C 14 14, 21 8, 30 8 Z" fill="${settings.primaryColor || '#88BDF2'}" />
                         <circle cx="30" cy="24" r="7" fill="none" stroke="#FFFFFF" stroke-width="3" />
@@ -2192,11 +2178,10 @@
                         <table class="w-full border-collapse text-[11px] font-bold text-black zebra-table">
                             <thead>
                                 <tr class="border-b border-black bg-slate-50">
-                                    <th class="border-r border-black p-2 text-left w-[30%]">Total Salary</th>
+                                    <th class="border-r border-black p-2 text-left w-[35%]">Total Salary</th>
                                     <th class="border-r border-black p-2 text-right w-[15%]">Earning</th>
-                                    <th class="border-r border-black p-2 text-left w-[30%]">Deductions</th>
-                                    <th class="border-r border-black p-2 text-right w-[15%]"></th>
-                                    <th class="p-2 text-center w-[10%] font-extrabold">Net Pay</th>
+                                    <th class="border-r border-black p-2 text-left w-[35%]">Deductions</th>
+                                    <th class="p-2 text-right w-[15%]">Amount</th>
                                 </tr>
                             </thead>
                             <tbody class="font-normal text-slate-800 divide-y divide-black/10">
@@ -2204,121 +2189,108 @@
                                     <td class="border-r border-black p-1.5 bg-white font-bold text-black">Basic Pay</td>
                                     <td class="border-r border-black p-1.5 text-right">${Math.round(basicWages)}</td>
                                     <td class="border-r border-black p-1.5 bg-[#DCE6F1] font-bold text-black">E.S.I.</td>
-                                    <td class="border-r border-black p-1.5 text-right">0</td>
-                                    <td class="p-1.5"></td>
+                                    <td class="p-1.5 text-right">0</td>
                                 </tr>
                                 <tr class="border-b border-black/30">
                                     <td class="border-r border-black p-1.5 bg-white font-bold text-black">H.R.A.</td>
                                     <td class="border-r border-black p-1.5 text-right">0</td>
                                     <td class="border-r border-black p-1.5 bg-[#DCE6F1] font-bold text-black">P.F.</td>
-                                    <td class="border-r border-black p-1.5 text-right">0</td>
-                                    <td class="p-1.5"></td>
+                                    <td class="p-1.5 text-right">0</td>
                                 </tr>
                                 <tr class="border-b border-black/30">
                                     <td class="border-r border-black p-1.5 bg-white font-bold text-black">${otherAllowanceLabel}</td>
                                     <td class="border-r border-black p-1.5 text-right">${Math.round(overtimePay)}</td>
                                     <td class="border-r border-black p-1.5 bg-[#DCE6F1] font-bold text-black">LWF</td>
-                                    <td class="border-r border-black p-1.5 text-right">0</td>
-                                    <td class="p-1.5"></td>
+                                    <td class="p-1.5 text-right">0</td>
                                 </tr>
                                 <tr class="border-b border-black/30">
                                     <td class="border-r border-black p-1.5 bg-white font-bold text-black">Stat Bonus</td>
                                     <td class="border-r border-black p-1.5 text-right">0</td>
                                     <td class="border-r border-black p-1.5 bg-[#DCE6F1] font-bold text-black">Meal Debit</td>
-                                    <td class="border-r border-black p-1.5 text-right">0</td>
-                                    <td class="p-1.5"></td>
+                                    <td class="p-1.5 text-right">0</td>
                                 </tr>
                                 <tr class="border-b border-black/30">
                                     <td class="border-r border-black p-1.5 bg-white font-bold text-black">Attendance bonus</td>
                                     <td class="border-r border-black p-1.5 text-right">0</td>
                                     <td class="border-r border-black p-1.5 bg-[#DCE6F1] font-bold text-black">Refyne Debit</td>
-                                    <td class="border-r border-black p-1.5 text-right">0</td>
-                                    <td class="p-1.5"></td>
+                                    <td class="p-1.5 text-right">0</td>
                                 </tr>
                                 <tr class="border-b border-black/30">
                                     <td class="border-r border-black p-1.5 bg-white font-bold text-black">Leave Encashment</td>
                                     <td class="border-r border-black p-1.5 text-right">0</td>
                                     <td class="border-r border-black p-1.5 bg-[#DCE6F1] font-bold text-black">Advance salary</td>
-                                    <td class="border-r border-black p-1.5 text-right">0</td>
-                                    <td class="p-1.5"></td>
+                                    <td class="p-1.5 text-right">0</td>
                                 </tr>
                                 <tr class="border-b border-black/30">
                                     <td class="border-r border-black p-1.5 bg-white font-bold text-black">Performance incentive</td>
                                     <td class="border-r border-black p-1.5 text-right">${Math.round(allowance)}</td>
                                     <td class="border-r border-black p-1.5 bg-[#DCE6F1] font-bold text-black">${ptLabel}</td>
-                                    <td class="border-r border-black p-1.5 text-right">${Math.round(deductions)}</td>
-                                    <td class="p-1.5"></td>
+                                    <td class="p-1.5 text-right">${Math.round(deductions)}</td>
                                 </tr>
                                 <tr class="border-b border-black/30">
                                     <td class="border-r border-black p-1.5 bg-white font-bold text-black">Extra Payment</td>
                                     <td class="border-r border-black p-1.5 text-right">0</td>
                                     <td class="border-r border-black p-1.5 bg-[#DCE6F1] font-bold text-black">E-Bike Debit</td>
-                                    <td class="border-r border-black p-1.5 text-right">0</td>
-                                    <td class="p-1.5"></td>
+                                    <td class="p-1.5 text-right">0</td>
                                 </tr>
                                 <tr class="border-b border-black/30">
                                     <td class="border-r border-black p-1.5 bg-white font-bold text-black">Shipment Incentive</td>
                                     <td class="border-r border-black p-1.5 text-right">0</td>
                                     <td class="border-r border-black p-1.5 bg-[#DCE6F1] font-bold text-black">Advance Payments In Weeks</td>
-                                    <td class="border-r border-black p-1.5 text-right">0</td>
-                                    <td class="p-1.5"></td>
+                                    <td class="p-1.5 text-right">0</td>
                                 </tr>
                                 <tr class="border-b border-black/30">
                                     <td class="border-r border-black p-1.5 bg-white font-bold text-black">Mobile allowance</td>
                                     <td class="border-r border-black p-1.5 text-right">0</td>
                                     <td class="border-r border-black p-1.5 bg-[#DCE6F1] font-bold text-black">Shipment Debit</td>
-                                    <td class="border-r border-black p-1.5 text-right">0</td>
-                                    <td class="p-1.5"></td>
+                                    <td class="p-1.5 text-right">0</td>
                                 </tr>
                                 <tr class="border-b border-black/30">
                                     <td class="border-r border-black p-1.5 bg-white font-bold text-black">Meal Incentive</td>
                                     <td class="border-r border-black p-1.5 text-right">0</td>
                                     <td class="border-r border-black p-1.5 bg-[#DCE6F1] font-bold text-black">Accmmodation Recovery</td>
-                                    <td class="border-r border-black p-1.5 text-right">0</td>
-                                    <td class="p-1.5"></td>
+                                    <td class="p-1.5 text-right">0</td>
                                 </tr>
                                 <tr class="border-b border-black/30">
                                     <td class="border-r border-black p-1.5 bg-white font-bold text-black">Group Incentive</td>
                                     <td class="border-r border-black p-1.5 text-right">0</td>
                                     <td class="border-r border-black p-1.5 bg-[#DCE6F1] font-bold text-black">Notice Period Deduction</td>
-                                    <td class="border-r border-black p-1.5 text-right">0</td>
-                                    <td class="p-1.5"></td>
+                                    <td class="p-1.5 text-right">0</td>
                                 </tr>
                                 <tr class="border-b border-black/30">
                                     <td class="border-r border-black p-1.5 bg-white font-bold text-black">Night Allowance</td>
                                     <td class="border-r border-black p-1.5 text-right">0</td>
                                     <td class="border-r border-black p-1.5 bg-[#DCE6F1] font-bold text-black">COD Loss</td>
-                                    <td class="border-r border-black p-1.5 text-right">0</td>
-                                    <td class="p-1.5"></td>
+                                    <td class="p-1.5 text-right">0</td>
                                 </tr>
                                 <tr class="border-b border-black/30">
                                     <td class="border-r border-black p-1.5 bg-white font-bold text-black">National Holiday Pay</td>
                                     <td class="border-r border-black p-1.5 text-right">0</td>
                                     <td class="border-r border-black p-1.5 bg-[#DCE6F1] font-bold text-black">Tshirt Recovery</td>
-                                    <td class="border-r border-black p-1.5 text-right">0</td>
-                                    <td class="p-1.5"></td>
+                                    <td class="p-1.5 text-right">0</td>
                                 </tr>
                                 <tr class="border-b border-black/30">
                                     <td class="border-r border-black p-1.5 bg-white font-bold text-black">Retention Bonus</td>
                                     <td class="border-r border-black p-1.5 text-right">0</td>
                                     <td class="border-r border-black p-1.5 bg-[#DCE6F1] font-bold text-black">EWF Deduction</td>
-                                    <td class="border-r border-black p-1.5 text-right">0</td>
-                                    <td class="p-1.5"></td>
+                                    <td class="p-1.5 text-right">0</td>
                                 </tr>
                                 <tr class="border-b border-black">
                                     <td class="border-r border-black p-1.5 bg-white font-bold text-black">Arrear Payment</td>
                                     <td class="border-r border-black p-1.5 text-right">0</td>
                                     <td class="border-r border-black p-1.5 bg-[#DCE6F1] font-bold text-black">${taxLabel}</td>
-                                    <td class="border-r border-black p-1.5 text-right">${Math.round(taxAmount)}</td>
-                                    <td class="p-1.5"></td>
+                                    <td class="p-1.5 text-right">${Math.round(taxAmount)}</td>
                                 </tr>
                                 
-                                <tr class="bg-[#92D050] font-bold text-black border-t border-black text-[11px] leading-relaxed">
+                                <tr class="bg-slate-50/50 font-bold text-black border-t border-black text-[11px] leading-relaxed">
                                     <td class="border-r border-black p-2.5 uppercase">Net Gross Total</td>
                                     <td class="border-r border-black p-2.5 text-right">${Math.round(grossTotal)}</td>
-                                    <td class="border-r border-black p-2.5 uppercase">Total Deduction</td>
-                                    <td class="border-r border-black p-2.5 text-right">${Math.round(deductionTotal)}</td>
-                                    <td class="p-2.5 text-center text-black font-extrabold border-l border-black">${Math.round(netPayValue)}</td>
+                                    <td class="border-r border-black p-2.5 uppercase border-l border-black">Total Deduction</td>
+                                    <td class="p-2.5 text-right">${Math.round(deductionTotal)}</td>
+                                </tr>
+                                <tr class="bg-[#92D050] font-bold text-black border-t border-black text-xs leading-relaxed">
+                                    <td class="p-2.5 uppercase tracking-wider text-center" colspan="3">Net Salary Payable (In Hand)</td>
+                                    <td class="p-2.5 text-right font-black border-l border-black text-sm">${Math.round(netPayValue)}</td>
                                 </tr>
                             </tbody>
                         </table>
