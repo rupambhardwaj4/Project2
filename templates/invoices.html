@@ -65,6 +65,12 @@
         .font-cursive {
             font-family: 'Caveat', cursive;
         }
+        #prev-signature-box, #prev-seal-container {
+            display: none !important;
+        }
+        #prev-signatory-card {
+            min-height: 110px !important;
+        }
 
         /* Print Media Styles for clean Refrens PDF exports */
         @media print {
@@ -438,7 +444,7 @@
                                             <div class="theme-dot w-5 h-5 rounded-full cursor-pointer border-2 border-transparent transition-all duration-200 relative bg-[#202A36]" onclick="changeTheme(this, '#202A36')"></div>
                                         </div>
                                     </div>
-                                    <button type="button" id="btn-toggle-stamp" class="w-full flex items-center justify-center gap-1.5 py-1.5 px-3 rounded-lg border border-blue-200 hover:border-qt-primary bg-blue-50/50 hover:bg-qt-light/30 text-qt-primary font-bold text-[0.65rem] transition-all duration-150 active" onclick="toggleStamp()">
+                                    <button type="button" id="btn-toggle-stamp" class="hidden" onclick="toggleStamp()">
                                         <span>✍️</span> Digital Sign Block
                                     </button>
                                 </div>
@@ -457,7 +463,7 @@
                             </div>
 
                             <!-- Step 8: Upload Signature -->
-                            <div class="flex flex-col gap-2 border-t border-slate-100 pt-4">
+                            <div class="hidden">
                                 <span class="text-[0.62rem] font-bold uppercase tracking-wider text-slate-400">8. Signature Image Upload (Optional Override)</span>
                                 <div class="flex items-center gap-3">
                                     <input type="file" id="inp-sig-upload" accept="image/*" class="hidden" onchange="handleSignatureUpload(this)">
@@ -695,33 +701,11 @@
                                 <!-- Left: Terms -->
                                 <div class="p-2 border-r border-black font-semibold text-slate-500 leading-relaxed">
                                     <p class="font-bold text-slate-700 uppercase tracking-widest text-[0.52rem] mb-1">Terms And Conditions</p>
-                                    <p>1. This is an electronically generated document. 2. All disputes are subject to Gautambuddha Nagar jurisdiction.</p>
+                                    <p>1. This is an electronically generated document.<br> 2. All disputes are subject to Gautambuddha Nagar jurisdiction.</p>
                                 </div>
                                 
                                 <!-- Right: Signatory Card -->
-                                <div class="p-2 flex flex-col justify-between relative min-h-[90px]" id="prev-signatory-card">
-                                    <span class="font-medium text-slate-700 text-center block">Certified that the particular given above are true and correct</span>
-                                    <span class="font-bold text-slate-950 text-center block uppercase text-[0.52rem] mt-0.5" id="lbl-signatory-comp">For, <span data-company="fullLegalName">[Company Legal Name]</span></span>
-                                    
-                                    <!-- Digital signature wrapper -->
-                                    <div class="flex flex-col items-center justify-center mt-3 mb-1" id="prev-signature-box">
-                                        <!-- AAKASH GIRI signature cursive -->
-                                        <span class="font-cursive text-xl text-red-650/90 select-none cursor-default leading-none transform rotate-[-2deg]" id="prev-sig-font">Authorized Signatory</span>
-                                        <!-- Uploaded Signature Image (Hidden by default) -->
-                                        <img id="prev-sig-img" class="h-10 max-w-[120px] object-contain select-none cursor-default leading-none transform rotate-[-2deg] hidden" alt="Uploaded Signature">
-                                        <!-- Certified Stamp Text -->
-                                        <div class="text-[0.42rem] text-slate-400 font-sans text-center leading-none mt-1" id="lbl-digital-sign-stamp">
-                                            Digitally signed by Authorized Signatory<br>
-                                            Date: <span id="lbl-sig-date">2026.03.03 21:48:55</span> +05'30'
-                                        </div>
-                                    </div>
-                                    <span class="text-center font-extrabold tracking-widest uppercase text-[0.52rem] text-slate-400 block border-t pt-1 border-slate-100">Authorised Signatory</span>
-                                    
-                                    <!-- Company Seal Stamp (Dynamic) -->
-                                    <div id="prev-seal-container" class="absolute left-6 bottom-1 select-none opacity-40 pointer-events-none w-14 h-14" data-company="seal">
-                                        <!-- Injected dynamically via applyCompanyBranding -->
-                                    </div>
-                                </div>
+                                
                             </div>
                         
                         </div> <!-- End of GST-style Outer Border Frame -->

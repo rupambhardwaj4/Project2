@@ -64,6 +64,12 @@
         .font-cursive {
             font-family: 'Caveat', cursive;
         }
+        #prev-signature-box, #prev-seal-container {
+            display: none !important;
+        }
+        #prev-signatory-card {
+            min-height: 110px !important;
+        }
 
         /* Print Media Styles for clean Refrens PDF exports */
         @media print {
@@ -438,7 +444,7 @@
                                             <div class="theme-dot w-5 h-5 rounded-full cursor-pointer border-2 border-transparent transition-all duration-200 relative bg-[#202A36]" onclick="changeTheme(this, '#202A36')"></div>
                                         </div>
                                     </div>
-                                    <button type="button" id="btn-toggle-stamp" class="w-full flex items-center justify-center gap-1.5 py-1.5 px-3 rounded-lg border border-blue-200 hover:border-qt-primary bg-blue-50/50 hover:bg-qt-light/30 text-qt-primary font-bold text-[0.65rem] transition-all duration-150 active" onclick="toggleStamp()">
+                                    <button type="button" id="btn-toggle-stamp" class="hidden" onclick="toggleStamp()">
                                         <span>✍️</span> Digital Sign Block
                                     </button>
                                 </div>
@@ -457,7 +463,7 @@
                             </div>
 
                             <!-- Step 8: Upload Signature -->
-                            <div class="flex flex-col gap-2 border-t border-slate-100 pt-4">
+                            <div class="hidden">
                                 <span class="text-[0.62rem] font-bold uppercase tracking-wider text-slate-400">8. Signature Image Upload (Optional Override)</span>
                                 <div class="flex items-center gap-3">
                                     <input type="file" id="inp-sig-upload" accept="image/*" class="hidden" onchange="handleSignatureUpload(this)">
