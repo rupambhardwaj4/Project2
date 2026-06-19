@@ -642,7 +642,7 @@
                                 <p class="text-xs max-w-md mx-auto leading-relaxed text-slate-450 font-medium">Please select a staff member from the left panel to load and display their payslip sheet.</p>
                             </div>
 
-                            <div id="payslip-content" class="hidden bg-white border border-slate-200 rounded-2xl shadow-md p-6 md:p-12 print-card flex-col gap-6 font-mono text-black min-w-0 overflow-x-auto">
+                            <div id="payslip-content" class="hidden bg-white border border-slate-200 rounded-2xl shadow-md p-6 md:p-12 print-card flex-col gap-6 font-sans text-black min-w-0 overflow-x-auto">
                                 
                                 <div class="border-2 border-black flex flex-col flex-1 w-full h-full rounded-none p-0 bg-white">
                                     
@@ -698,9 +698,9 @@
                                                 </tr>
                                                 <tr>
                                                     <td class="border border-black p-2">UAN No.</td>
-                                                    <td class="border border-black p-2 font-normal font-mono" id="lbl-uan-no">101458016658</td>
+                                                    <td class="border border-black p-2 font-normal font-sans" id="lbl-uan-no">101458016658</td>
                                                     <td class="border border-black p-2">Account no.</td>
-                                                    <td class="border border-black p-2 font-normal font-mono" id="lbl-account-no">—</td>
+                                                    <td class="border border-black p-2 font-normal font-sans" id="lbl-account-no">—</td>
                                                 </tr>
                                                 <tr>
                                                     <td class="border border-black p-2">STATE</td>
@@ -710,7 +710,7 @@
                                                 </tr>
                                                 <tr>
                                                     <td class="border border-black p-2">ESIC No</td>
-                                                    <td class="border border-black p-2 font-normal font-mono" id="lbl-esic-no">2019712124</td>
+                                                    <td class="border border-black p-2 font-normal font-sans" id="lbl-esic-no">2019712124</td>
                                                     <td class="border border-black p-2"></td>
                                                     <td class="border border-black p-2 font-normal"></td>
                                                 </tr>
@@ -1803,7 +1803,7 @@
                 return `
                     <div onclick="selectEmployee('${e.id}')" class="p-5 pl-6 rounded-xl cursor-pointer flex flex-col gap-2 relative group ${activeClasses}">
                         <div class="flex justify-between items-start">
-                            <span class="font-mono text-[9px] font-bold text-qt-primary bg-qt-light/30 px-2 py-0.5 rounded">${e.id}</span>
+                            <span class="font-sans text-[9px] font-bold text-qt-primary bg-qt-light/30 px-2 py-0.5 rounded">${e.id}</span>
                             <span class="px-2 py-0.5 rounded text-[8px] font-bold uppercase tracking-wider ${typeClass}">${typeLabel}</span>
                         </div>
                         <div class="flex flex-col mt-1">
@@ -2084,7 +2084,7 @@
             const primaryColorStyle = settings.primaryColor ? `style="color: ${settings.primaryColor};"` : "";
 
             return `
-            <div class="bulk-slip-page font-mono text-black p-8 flex flex-col gap-6 bg-white min-w-0" style="page-break-after: always; break-after: page;">
+            <div class="bulk-slip-page font-sans text-black p-8 flex flex-col gap-6 bg-white min-w-0" style="page-break-after: always; break-after: page;">
                 <div class="border-2 border-black flex flex-col flex-1 w-full h-full rounded-none p-0 bg-white">
                     
                     <div class="flex items-center justify-between p-4 border-b border-black relative">
@@ -2132,9 +2132,9 @@
                                 </tr>
                                 <tr>
                                     <td class="border border-black p-2">UAN No.</td>
-                                    <td class="border border-black p-2 font-normal font-mono">${uniqueUan}</td>
+                                    <td class="border border-black p-2 font-normal font-sans">${uniqueUan}</td>
                                     <td class="border border-black p-2">Account no.</td>
-                                    <td class="border border-black p-2 font-normal font-mono">${emp.accountNumber || "—"}</td>
+                                    <td class="border border-black p-2 font-normal font-sans">${emp.accountNumber || "—"}</td>
                                 </tr>
                                 <tr>
                                     <td class="border border-black p-2">STATE</td>
@@ -2144,7 +2144,7 @@
                                 </tr>
                                 <tr>
                                     <td class="border border-black p-2">ESIC No</td>
-                                    <td class="border border-black p-2 font-normal font-mono">${uniqueEsic}</td>
+                                    <td class="border border-black p-2 font-normal font-sans">${uniqueEsic}</td>
                                     <td class="border border-black p-2"></td>
                                     <td class="border border-black p-2 font-normal"></td>
                                 </tr>
