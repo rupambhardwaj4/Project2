@@ -28,7 +28,11 @@ const DEFAULT_COMPANY_SETTINGS = {
     sidebarColor: "#384959",
     gstin: "09AABCQ0892L1Z0",
     stateCode: "09",
-    websiteUrl: "https://qtconsultancy.in"
+    websiteUrl: "https://qtconsultancy.in",
+    applySignatureToInvoice: true,
+    applySignatureToSalarySlip: true,
+    applySealToInvoice: true,
+    applySealToSalarySlip: true
 };
 
 function saveStateToStorage() {
@@ -60,6 +64,11 @@ function upgradeStateSettings() {
     state.companySettings.gstin = state.companySettings.gstin || DEFAULT_COMPANY_SETTINGS.gstin;
     state.companySettings.stateCode = state.companySettings.stateCode || DEFAULT_COMPANY_SETTINGS.stateCode;
     state.companySettings.websiteUrl = state.companySettings.websiteUrl || DEFAULT_COMPANY_SETTINGS.websiteUrl;
+
+    state.companySettings.applySignatureToInvoice = state.companySettings.applySignatureToInvoice !== undefined ? state.companySettings.applySignatureToInvoice : DEFAULT_COMPANY_SETTINGS.applySignatureToInvoice;
+    state.companySettings.applySignatureToSalarySlip = state.companySettings.applySignatureToSalarySlip !== undefined ? state.companySettings.applySignatureToSalarySlip : DEFAULT_COMPANY_SETTINGS.applySignatureToSalarySlip;
+    state.companySettings.applySealToInvoice = state.companySettings.applySealToInvoice !== undefined ? state.companySettings.applySealToInvoice : DEFAULT_COMPANY_SETTINGS.applySealToInvoice;
+    state.companySettings.applySealToSalarySlip = state.companySettings.applySealToSalarySlip !== undefined ? state.companySettings.applySealToSalarySlip : DEFAULT_COMPANY_SETTINGS.applySealToSalarySlip;
     
     // Clean up legacy settings key to avoid confusion, but provide a safe getter on state
     delete state.settings;
@@ -355,7 +364,11 @@ function applyCompanyBranding() {
                     el.style.display = 'none';
                 }
             } else if (prop === 'signature') {
-                if (settings.signatureImage) {
+                const isInvoicePage = window.location.pathname.includes('/invoices/') || document.getElementById('btn-print-invoice') !== null;
+                const isSalarySlipPage = window.location.pathname.includes('/salary-slip/') || document.getElementById('slip-month-header') !== null;
+                const applySig = (isInvoicePage && settings.applySignatureToInvoice === false) || (isSalarySlipPage && settings.applySignatureToSalarySlip === false) ? false : true;
+
+                if (applySig && settings.signatureImage) {
                     el.src = settings.signatureImage;
                     el.style.display = '';
                 } else {
@@ -363,7 +376,11 @@ function applyCompanyBranding() {
                     el.style.display = 'none';
                 }
             } else if (prop === 'seal') {
-                if (settings.sealImage) {
+                const isInvoicePage = window.location.pathname.includes('/invoices/') || document.getElementById('btn-print-invoice') !== null;
+                const isSalarySlipPage = window.location.pathname.includes('/salary-slip/') || document.getElementById('slip-month-header') !== null;
+                const applySeal = (isInvoicePage && settings.applySealToInvoice === false) || (isSalarySlipPage && settings.applySealToSalarySlip === false) ? false : true;
+
+                if (applySeal && settings.sealImage) {
                     el.src = settings.sealImage;
                     el.style.display = '';
                 } else {
@@ -388,16 +405,26 @@ function applyCompanyBranding() {
                     el.innerHTML = `<div class="w-full h-full bg-qt-primary text-white flex items-center justify-center font-extrabold rounded-lg text-[0.68rem] leading-none shrink-0">${settings.logoInitials || 'QT'}</div>`;
                 }
             } else if (prop === 'signature') {
-                if (settings.signatureImage) {
+                const isInvoicePage = window.location.pathname.includes('/invoices/') || document.getElementById('btn-print-invoice') !== null;
+                const isSalarySlipPage = window.location.pathname.includes('/salary-slip/') || document.getElementById('slip-month-header') !== null;
+                const applySig = (isInvoicePage && settings.applySignatureToInvoice === false) || (isSalarySlipPage && settings.applySignatureToSalarySlip === false) ? false : true;
+
+                if (applySig && settings.signatureImage) {
                     el.innerHTML = `<img src="${settings.signatureImage}" class="h-full w-full object-contain" alt="signature">`;
-                } else {
+                } else if (applySig) {
                     // Cursive fallback using signature initials or short name
                     el.innerHTML = `<span class="font-cursive text-xl text-red-650/90 select-none cursor-default leading-none transform rotate-[-2deg]">${settings.shortName}</span>`;
+                } else {
+                    el.innerHTML = '';
                 }
             } else if (prop === 'seal') {
-                if (settings.sealImage) {
+                const isInvoicePage = window.location.pathname.includes('/invoices/') || document.getElementById('btn-print-invoice') !== null;
+                const isSalarySlipPage = window.location.pathname.includes('/salary-slip/') || document.getElementById('slip-month-header') !== null;
+                const applySeal = (isInvoicePage && settings.applySealToInvoice === false) || (isSalarySlipPage && settings.applySealToSalarySlip === false) ? false : true;
+
+                if (applySeal && settings.sealImage) {
                     el.innerHTML = `<img src="${settings.sealImage}" class="h-full w-full object-contain" alt="seal">`;
-                } else {
+                } else if (applySeal) {
                     // Render default SVG stamp seal
                     el.innerHTML = `
                         <svg width="100" height="100" viewBox="0 0 100 100" class="text-blue-700/80 w-full h-full">
@@ -423,6 +450,8 @@ function applyCompanyBranding() {
                             </g>
                         </svg>
                     `;
+                } else {
+                    el.innerHTML = '';
                 }
             } else if (prop === 'headOfficeAddress' || prop === 'address') {
                 el.innerHTML = (settings.headOfficeAddress || '').replace(/\n/g, '<br>');
@@ -489,3 +518,22 @@ window.addEventListener('storage', (e) => {
         }
     }
 });
+
+// Global Toggle Sidebar Function for Mobile Drawer Layout
+function toggleSidebar() {
+    const sidebar = document.getElementById("app-sidebar");
+    const overlay = document.getElementById("sidebar-overlay");
+    if (sidebar) {
+        if (sidebar.classList.contains("-translate-x-full")) {
+            sidebar.classList.remove("-translate-x-full");
+            if (overlay) {
+                overlay.classList.remove("hidden");
+            }
+        } else {
+            sidebar.classList.add("-translate-x-full");
+            if (overlay) {
+                overlay.classList.add("hidden");
+            }
+        }
+    }
+}

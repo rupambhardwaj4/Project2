@@ -66,14 +66,19 @@
     <div class="flex min-h-screen w-full">
         
         <!-- Left Sidebar component -->
-        <aside class="w-64 bg-qt-dark text-white flex flex-col justify-between p-6 flex-shrink-0 z-30 sticky top-0 h-screen">
+        <aside id="app-sidebar" class="w-64 bg-qt-dark text-white flex flex-col justify-between p-6 flex-shrink-0 z-50 fixed inset-y-0 left-0 transform -translate-x-full lg:translate-x-0 lg:sticky lg:top-0 h-screen transition-transform duration-300 ease-in-out no-print print:hidden shadow-xl">
             <div>
                 <!-- Brand logo -->
-                <div class="flex items-center gap-2.5 mb-8">
-                    <div class="w-8 h-8 bg-qt-medium rounded-lg flex items-center justify-center text-white font-extrabold text-sm" data-company="logo">
-                        QT
+                <div class="flex items-center justify-between mb-8">
+                    <div class="flex items-center gap-2.5">
+                        <div class="w-8 h-8 bg-qt-medium rounded-lg flex items-center justify-center text-white font-extrabold text-sm" data-company="logo">
+                            QT
+                        </div>
+                        <span class="text-white font-bold text-base leading-none tracking-tight" data-company="shortName">QT Consultancy</span>
                     </div>
-                    <span class="text-white font-bold text-base leading-none tracking-tight" data-company="shortName">QT Consultancy</span>
+                    <button onclick="toggleSidebar()" class="lg:hidden text-slate-400 hover:text-white text-xl p-1 focus:outline-none" aria-label="Close Menu">
+                        ✕
+                    </button>
                 </div>
                 
                 <!-- Menu -->
@@ -90,21 +95,21 @@
                     </li>
                     
                     <li class="rounded-xl overflow-hidden text-slate-400 hover:text-white hover:bg-slate-800/50">
-                        <a href="/payroll/" class="flex items-center gap-3 px-4 py-3 text-slate-400 font-medium text-sm transition-colors duration-200">
+                        <a href="/payroll/" class="flex items-center gap-3 px-4 py-3 text-slate-400 hover:text-white font-medium text-sm transition-colors duration-200">
                             <span>💰</span> Payroll Engine
                         </a>
                     </li>
                     <li class="rounded-xl overflow-hidden text-slate-400 hover:text-white hover:bg-slate-800/50">
-                        <a href="/documents/invoices/" class="flex items-center gap-3 px-4 py-3 text-slate-400 font-medium text-sm transition-colors duration-200">
+                        <a href="/documents/invoices/" class="flex items-center gap-3 px-4 py-3 text-slate-400 hover:text-white font-medium text-sm transition-colors duration-200">
                             <span>📄</span> Refrens Invoices
                         </a>
                     </li>
                     <li class="rounded-xl overflow-hidden text-slate-400 hover:text-white hover:bg-slate-800/50">
-                        <a href="/salary-slip/" class="flex items-center gap-3 px-4 py-3 text-slate-400 font-medium text-sm transition-colors duration-200">
+                        <a href="/salary-slip/" class="flex items-center gap-3 px-4 py-3 text-slate-400 hover:text-white font-medium text-sm transition-colors duration-200">
                             <span>🧾</span> Salary Slips
                         </a>
                     </li>
-                    <li class="rounded-xl overflow-hidden bg-qt-primary text-white">
+                    <li class="rounded-xl overflow-hidden bg-qt-primary text-white font-semibold">
                         <a href="/settings/" class="flex items-center gap-3 px-4 py-3 text-white font-medium text-sm transition-colors duration-200">
                             <span>⚙️</span> Settings
                         </a>
@@ -121,26 +126,35 @@
                         <span class="text-[0.62rem] text-slate-500 font-semibold uppercase tracking-wider mt-1">HR & Finance Admin</span>
                     </div>
                 </div>
-                <button id="btn-logout-sidebar" class="flex items-center justify-center gap-2 py-2.5 rounded-xl bg-slate-800 hover:bg-red-600 border border-slate-700 hover:border-red-600 text-white font-semibold text-xs tracking-wide transition-all duration-200">
+                <a href="{% url 'logout' %}" id="btn-logout-sidebar" class="flex items-center justify-center gap-2 py-2.5 rounded-xl bg-slate-800 hover:bg-red-600 border border-slate-700 hover:border-red-600 text-white font-semibold text-xs tracking-wide transition-all duration-200 text-center">
                     <span>🚪</span> Sign Out
-                </button>
+                </a>
             </div>
         </aside>
+
+        <!-- Sidebar Mobile Overlay backdrop -->
+        <div id="sidebar-overlay" class="fixed inset-0 bg-black/50 z-40 hidden lg:hidden" onclick="toggleSidebar()"></div>
 
         <!-- Main Workspace -->
         <main class="flex-1 flex flex-col min-h-screen overflow-x-hidden">
             
             <!-- Header -->
-            <header class="h-[70px] bg-white border-b border-slate-200 px-8 flex items-center justify-between sticky top-0 z-25">
-                <div class="header-title">
-                    <h2 class="text-lg font-bold text-qt-dark tracking-tight">System Settings & Customization</h2>
-                </div>
-                <div class="flex items-center gap-5">
-                    <div class="bg-qt-light text-qt-primary text-xs font-bold px-4 py-1.5 rounded-full border border-blue-200 flex items-center gap-2">
-                        <span class="w-1.5 h-1.5 bg-qt-primary rounded-full animate-pulse"></span>
-                        Active Period: June 2026
+            <header class="h-[70px] bg-white border-b border-slate-200 px-4 md:px-8 flex items-center justify-between sticky top-0 z-25">
+                <div class="flex items-center gap-3">
+                    <!-- Hamburger Button for Mobile -->
+                    <button onclick="toggleSidebar()" class="lg:hidden p-2 rounded-xl hover:bg-slate-100 text-lg flex items-center justify-center text-slate-600 border border-slate-200 bg-slate-50 transition-colors" aria-label="Toggle Sidebar">
+                        ☰
+                    </button>
+                    <div class="header-title">
+                        <h2 class="text-xs sm:text-sm md:text-lg font-bold text-qt-dark tracking-tight">System Settings & Customization</h2>
                     </div>
-                    <div id="nav-system-time" class="text-xs font-medium text-slate-400">02/06/2026 | 15:30</div>
+                </div>
+                <div class="flex items-center gap-3 md:gap-5">
+                    <div class="bg-qt-light text-qt-primary text-[10px] md:text-xs font-bold px-3 py-1.5 rounded-full border border-blue-200 flex items-center gap-1.5 shrink-0">
+                        <span class="w-1.5 h-1.5 bg-qt-primary rounded-full animate-pulse"></span>
+                        <span class="hidden sm:inline">Active Period: </span>June 2026
+                    </div>
+                    <div id="nav-system-time" class="text-[10px] md:text-xs font-medium text-slate-400 shrink-0">02/06/2026 | 15:30</div>
                 </div>
             </header>
 
@@ -250,6 +264,17 @@
                                         </button>
                                     </div>
                                 </div>
+                                <div class="mt-2.5 flex items-center gap-4 bg-slate-50/50 p-2 rounded-xl border border-slate-100">
+                                    <span class="font-bold text-slate-500 text-[10px] uppercase mr-1">Apply Signature:</span>
+                                    <label class="inline-flex items-center gap-1.5 cursor-pointer">
+                                        <input type="checkbox" id="set-apply-sig-invoice" class="rounded border-slate-300 text-qt-primary focus:ring-qt-primary w-3.5 h-3.5">
+                                        <span class="text-[10px] font-semibold text-slate-600">Invoices</span>
+                                    </label>
+                                    <label class="inline-flex items-center gap-1.5 cursor-pointer">
+                                        <input type="checkbox" id="set-apply-sig-salary" class="rounded border-slate-300 text-qt-primary focus:ring-qt-primary w-3.5 h-3.5">
+                                        <span class="text-[10px] font-semibold text-slate-600">Salary Slips</span>
+                                    </label>
+                                </div>
                             </div>
 
                             <!-- Stamp Image Upload -->
@@ -268,6 +293,17 @@
                                             Clear
                                         </button>
                                     </div>
+                                </div>
+                                <div class="mt-2.5 flex items-center gap-4 bg-slate-50/50 p-2 rounded-xl border border-slate-100">
+                                    <span class="font-bold text-slate-500 text-[10px] uppercase mr-1">Apply Seal Stamp:</span>
+                                    <label class="inline-flex items-center gap-1.5 cursor-pointer">
+                                        <input type="checkbox" id="set-apply-seal-invoice" class="rounded border-slate-300 text-qt-primary focus:ring-qt-primary w-3.5 h-3.5">
+                                        <span class="text-[10px] font-semibold text-slate-600">Invoices</span>
+                                    </label>
+                                    <label class="inline-flex items-center gap-1.5 cursor-pointer">
+                                        <input type="checkbox" id="set-apply-seal-salary" class="rounded border-slate-300 text-qt-primary focus:ring-qt-primary w-3.5 h-3.5">
+                                        <span class="text-[10px] font-semibold text-slate-600">Salary Slips</span>
+                                    </label>
                                 </div>
                             </div>
                         </div>
@@ -430,6 +466,12 @@
                 updateStampPreview(stampBase64);
             }
 
+            // Apply toggles
+            document.getElementById("set-apply-sig-invoice").checked = settings.applySignatureToInvoice !== false;
+            document.getElementById("set-apply-sig-salary").checked = settings.applySignatureToSalarySlip !== false;
+            document.getElementById("set-apply-seal-invoice").checked = settings.applySealToInvoice !== false;
+            document.getElementById("set-apply-seal-salary").checked = settings.applySealToSalarySlip !== false;
+
             // Logo input listener
             document.getElementById("logo-file-input").addEventListener("change", e => {
                 const file = e.target.files[0];
@@ -519,6 +561,11 @@
                 const primaryColor = document.getElementById("set-theme-picker").value;
                 const sidebarColor = document.getElementById("set-theme-dark-picker").value;
 
+                const applySignatureToInvoice = document.getElementById("set-apply-sig-invoice").checked;
+                const applySignatureToSalarySlip = document.getElementById("set-apply-sig-salary").checked;
+                const applySealToInvoice = document.getElementById("set-apply-seal-invoice").checked;
+                const applySealToSalarySlip = document.getElementById("set-apply-seal-salary").checked;
+
                 const updatedSettings = {
                     shortName,
                     fullLegalName,
@@ -534,6 +581,10 @@
                     sidebarColor,
                     signatureImage: signatureBase64,
                     sealImage: stampBase64,
+                    applySignatureToInvoice,
+                    applySignatureToSalarySlip,
+                    applySealToInvoice,
+                    applySealToSalarySlip,
                     accountName,
                     accountNo,
                     ifscCode,

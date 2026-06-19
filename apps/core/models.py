@@ -19,6 +19,11 @@ class CompanyProfile(models.Model):
     signature_image = models.TextField(null=True, blank=True)
     seal_image = models.TextField(null=True, blank=True)
 
+    apply_signature_to_invoice = models.BooleanField(default=True)
+    apply_signature_to_salary_slip = models.BooleanField(default=True)
+    apply_seal_to_invoice = models.BooleanField(default=True)
+    apply_seal_to_salary_slip = models.BooleanField(default=True)
+
     # New Bank details & Signatory fields
     account_name = models.CharField(max_length=255, default="QT Consultancy Private Limited")
     account_no = models.CharField(max_length=120, default="")
@@ -48,6 +53,10 @@ class CompanyProfile(models.Model):
             "logoImage": self.logo_image or None,
             "signatureImage": self.signature_image or None,
             "sealImage": self.seal_image or None,
+            "applySignatureToInvoice": self.apply_signature_to_invoice,
+            "applySignatureToSalarySlip": self.apply_signature_to_salary_slip,
+            "applySealToInvoice": self.apply_seal_to_invoice,
+            "applySealToSalarySlip": self.apply_seal_to_salary_slip,
             "accountName": self.account_name,
             "accountNo": self.account_no,
             "ifscCode": self.ifsc_code,

@@ -135,7 +135,7 @@
     <div class="flex min-h-screen w-full">
         
         <!-- Left Sidebar component -->
-        <aside id="app-sidebar" class="w-64 bg-qt-dark text-white flex flex-col justify-between p-6 flex-shrink-0 z-30 sticky top-0 h-screen print:hidden hidden lg:flex">
+        <aside id="app-sidebar" class="w-64 bg-qt-dark text-white flex flex-col justify-between p-6 flex-shrink-0 z-50 fixed inset-y-0 left-0 transform -translate-x-full lg:translate-x-0 lg:sticky lg:top-0 h-screen transition-transform duration-300 ease-in-out no-print print:hidden shadow-xl">
             <div>
                 <!-- Brand logo -->
                 <div class="flex items-center justify-between mb-8">
@@ -198,6 +198,9 @@
                 </button>
             </div>
         </aside>
+
+        <!-- Sidebar Mobile Overlay backdrop -->
+        <div id="sidebar-overlay" class="fixed inset-0 bg-black/50 z-40 hidden lg:hidden" onclick="toggleSidebar()"></div>
 
         <!-- Main Workspace -->
         <main class="flex-1 flex flex-col min-h-screen overflow-x-hidden">
@@ -1164,16 +1167,23 @@
             const settings = state.companySettings || DEFAULT_COMPANY_SETTINGS;
             setElementText("lbl-signatory-comp", `For, ${(settings.fullLegalName || 'Company Legal Name').toUpperCase()}`);
             setElementText("prev-sig-font", invoiceState.sigScript || settings.shortName || "Authorized Signatory");
+            const showSig = settings.applySignatureToInvoice !== false;
+            const activeSig = invoiceState.sigImage || (showSig ? settings.signatureImage : null);
+
             const digitStamp = document.getElementById("lbl-digital-sign-stamp");
             if (digitStamp) {
-                digitStamp.innerHTML = `Digitally signed by ${invoiceState.signatoryName || settings.shortName || "Authorized Signatory"}<br>Date: <span id="lbl-sig-date">${formatSigDate(invoiceState.invoiceDate)}</span> +05'30'`;
+                if (showSig) {
+                    digitStamp.style.display = "block";
+                    digitStamp.innerHTML = `Digitally signed by ${invoiceState.signatoryName || settings.shortName || "Authorized Signatory"}<br>Date: <span id="lbl-sig-date">${formatSigDate(invoiceState.invoiceDate)}</span> +05'30'`;
+                } else {
+                    digitStamp.style.display = "none";
+                }
             } else {
                 setElementText("lbl-sig-date", formatSigDate(invoiceState.invoiceDate));
             }
  
             const sigFont = document.getElementById("prev-sig-font");
             const sigImg = document.getElementById("prev-sig-img");
-            const activeSig = invoiceState.sigImage || settings.signatureImage;
             if (activeSig) {
                 if (sigFont) {
                     sigFont.style.display = "none";
@@ -1186,8 +1196,13 @@
                 }
             } else {
                 if (sigFont) {
-                    sigFont.style.display = "block";
-                    sigFont.classList.remove("hidden");
+                    if (showSig) {
+                        sigFont.style.display = "block";
+                        sigFont.classList.remove("hidden");
+                    } else {
+                        sigFont.style.display = "none";
+                        sigFont.classList.add("hidden");
+                    }
                 }
                 if (sigImg) {
                     sigImg.style.display = "none";
@@ -2070,17 +2085,6 @@
             }
         }
 
-        function toggleSidebar() {
-            const sidebar = document.getElementById("app-sidebar");
-            if (sidebar) {
-                if (sidebar.classList.contains("hidden")) {
-                    sidebar.classList.remove("hidden");
-                    sidebar.classList.add("fixed", "inset-y-0", "left-0", "flex");
-                } else {
-                    sidebar.classList.add("hidden");
-                    sidebar.classList.remove("fixed", "inset-y-0", "left-0", "flex");
-                }
-            }
         }
     </script>
 </body>

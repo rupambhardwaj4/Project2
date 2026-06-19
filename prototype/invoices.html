@@ -134,7 +134,8 @@
     <div class="flex min-h-screen w-full">
         
         <!-- Left Sidebar component -->
-        <aside id="app-sidebar" class="w-64 bg-qt-dark text-white flex flex-col justify-between p-6 flex-shrink-0 z-30 sticky top-0 h-screen print:hidden hidden lg:flex">
+        <!-- Left Sidebar component -->
+        <aside id="app-sidebar" class="w-64 bg-qt-dark text-white flex flex-col justify-between p-6 flex-shrink-0 z-50 fixed inset-y-0 left-0 transform -translate-x-full lg:translate-x-0 lg:sticky lg:top-0 h-screen transition-transform duration-300 ease-in-out no-print print:hidden shadow-xl">
             <div>
                 <!-- Brand logo -->
                 <div class="flex items-center justify-between mb-8">
@@ -197,6 +198,9 @@
                 </button>
             </div>
         </aside>
+
+        <!-- Sidebar Mobile Overlay backdrop -->
+        <div id="sidebar-overlay" class="fixed inset-0 bg-black/50 z-40 hidden lg:hidden" onclick="toggleSidebar()"></div>
 
         <!-- Main Workspace -->
         <main class="flex-1 flex flex-col min-h-screen overflow-x-hidden">
