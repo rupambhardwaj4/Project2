@@ -80,6 +80,7 @@ def payroll_dashboard(request):
             emp.bank_name = (row.get("bankName") or row.get("bank_name") or emp.bank_name or "").strip()
             emp.payment_status = (row.get("paymentStatus") or row.get("payment_status") or "Unpaid").strip()
             emp.utr = (row.get("utr") or emp.utr or "").strip()
+            emp.phone = (row.get("phone") or emp.phone or "").strip()
             emp.is_vendor_staff = True
             emp.hourly_rate = float(row.get("hourlyRate") or row.get("perDayPayment") or emp.hourly_rate or 0)
 
@@ -188,6 +189,8 @@ def payroll_dashboard(request):
             "total_payment": total_payment,
             "status": emp.payment_status or "Paid",
             "utr": emp.utr or "—",
+            "phone": emp.phone or getattr(emp.user, "phone", "") or "",
+            "notice_period_deduction": float(emp.notice_period_deduction or 0),
             "payroll_run": emp.month or "June 2026",
             "slip_id": emp.employee_code,
         })

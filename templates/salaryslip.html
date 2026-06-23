@@ -145,6 +145,10 @@
         .zebra-table tbody tr:hover td {
             background-color: #f1f5f9 !important;
         }
+        .zebra-table tbody tr.bg-\[\#92D050\]:hover td,
+        .zebra-table tbody tr:hover td.bg-\[\#92D050\] {
+            background-color: #92D050 !important;
+        }
         .zebra-table tbody tr td {
             padding: 6px 8px !important;
         }
@@ -223,10 +227,18 @@
             background: #cbd5e1;
             border-radius: 20px;
         }
-        ::-webkit-scrollbar-thumb:hover {
-            background: #94a3b8;
+        /* Clickable cells in print preview on screen */
+        @media screen {
+            [id^="val-"]:not(#val-tds) {
+                cursor: pointer;
+                transition: background-color 0.15s ease;
+            }
+            [id^="val-"]:not(#val-tds):hover {
+                background-color: #f1f5f9 !important;
+            }
         }
     </style>
+    <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 </head>
 <body class="bg-slate-50 font-sans text-qt-dark antialiased">
 
@@ -345,10 +357,13 @@
                                 <p class="text-[10px] text-slate-400 mt-0.5 font-medium">Select a staff member to display slip</p>
                             </div>
                             <div class="flex items-center gap-2 shrink-0">
+                                <button id="btn-bulk-upload-slip" onclick="openBulkUploadModal()" class="px-3 py-2 bg-qt-primary hover:bg-qt-primary/95 text-white rounded-xl font-bold text-[10px] flex items-center gap-1 cursor-pointer transition-all shadow-sm active:scale-95 duration-100">
+                                    <span>📥</span> Bulk Upload
+                                </button>
                                 <button id="btn-create-slip" onclick="onCreateSlipClicked()" class="px-3 py-2 bg-slate-900 hover:bg-slate-800 text-white rounded-xl font-bold text-[10px] flex items-center gap-1 cursor-pointer transition-all shadow-sm active:scale-95 duration-100">
                                     <span class="text-xs font-normal">+</span> Create Slip
                                 </button>
-                                <button id="btn-close-employee-drawer" class="md:hidden text-slate-400 hover:text-slate-600 font-bold text-sm p-1">✕</button>
+                                <button id="btn-close-employee-drawer" class="md:hidden text-slate-400 hover:text-slate-650 font-bold text-sm p-1">✕</button>
                             </div>
                         </div>
 
@@ -441,6 +456,22 @@
                                         <label class="text-[9px] text-slate-400 font-bold uppercase tracking-wider" id="lbl-comp-rate-label">Base Salary (or Per-Day Payment)</label>
                                         <input type="number" id="comp-base-salary" oninput="syncCompilerToPreview()" step="any" class="px-3 py-2 rounded-xl border border-slate-200 focus:outline-none focus:border-qt-primary/60 focus:ring-2 focus:ring-qt-primary/10 transition-all" placeholder="e.g. 15000">
                                     </div>
+                                    <div class="flex flex-col gap-1">
+                                        <label class="text-[9px] text-slate-400 font-bold uppercase tracking-wider">Client Name</label>
+                                        <input type="text" id="comp-client-name" oninput="syncCompilerToPreview()" class="px-3 py-2 rounded-xl border border-slate-200 focus:outline-none focus:border-qt-primary/60 focus:ring-2 focus:ring-qt-primary/10 transition-all" placeholder="e.g. Delhivery Limited">
+                                    </div>
+                                    <div class="flex flex-col gap-1">
+                                        <label class="text-[9px] text-slate-400 font-bold uppercase tracking-wider">Payable Days</label>
+                                        <input type="number" id="comp-payable-days" oninput="syncCompilerToPreview()" step="any" class="px-3 py-2 rounded-xl border border-slate-200 focus:outline-none focus:border-qt-primary/60 focus:ring-2 focus:ring-qt-primary/10 transition-all" placeholder="e.g. 22">
+                                    </div>
+                                    <div class="flex flex-col gap-1">
+                                        <label class="text-[9px] text-slate-400 font-bold uppercase tracking-wider">UAN No</label>
+                                        <input type="text" id="comp-uan-no" oninput="syncCompilerToPreview()" class="px-3 py-2 rounded-xl border border-slate-200 focus:outline-none focus:border-qt-primary/60 focus:ring-2 focus:ring-qt-primary/10 font-sans transition-all" placeholder="UAN Number">
+                                    </div>
+                                    <div class="flex flex-col gap-1">
+                                        <label class="text-[9px] text-slate-400 font-bold uppercase tracking-wider">ESIC No</label>
+                                        <input type="text" id="comp-esic-no" oninput="syncCompilerToPreview()" class="px-3 py-2 rounded-xl border border-slate-200 focus:outline-none focus:border-qt-primary/60 focus:ring-2 focus:ring-qt-primary/10 font-sans transition-all" placeholder="ESIC Number">
+                                    </div>
                                 </div>
                             </div>
 
@@ -473,70 +504,91 @@
                                     </div>
                                     <button type="button" onclick="autoDistributeEarnings()" class="text-[10px] text-qt-primary hover:text-white font-bold transition-all bg-blue-50 hover:bg-qt-primary px-2.5 py-1 rounded-lg border border-blue-100 shadow-sm active:scale-95">Auto Distribute</button>
                                 </div>
-                                <div class="grid grid-cols-2 gap-3">
-                                    <div class="flex flex-col gap-1">
-                                        <label class="text-[9px] text-slate-400 font-bold uppercase tracking-wider">Basic Pay</label>
-                                        <input type="number" id="comp-basic-pay" oninput="syncCompilerToPreview()" class="px-3 py-2 rounded-xl border border-slate-200 focus:outline-none focus:border-qt-primary/60 focus:ring-2 focus:ring-qt-primary/10 transition-all" value="0">
+                                <div class="space-y-3">
+                                    <div class="grid grid-cols-3 gap-2 text-center text-[9px] font-extrabold text-slate-400 uppercase tracking-wider border-b border-slate-100 pb-1">
+                                        <div class="text-left">Earning Category</div>
+                                        <div>Actual</div>
+                                        <div>Earned</div>
                                     </div>
-                                    <div class="flex flex-col gap-1">
-                                        <label class="text-[9px] text-slate-400 font-bold uppercase tracking-wider">H.R.A.</label>
-                                        <input type="number" id="comp-hra" oninput="syncCompilerToPreview()" class="px-3 py-2 rounded-xl border border-slate-200 focus:outline-none focus:border-qt-primary/60 focus:ring-2 focus:ring-qt-primary/10 transition-all" value="0">
+                                    <div class="grid grid-cols-3 gap-2 items-center">
+                                        <span class="text-[10px] font-bold text-slate-700">Basic Pay</span>
+                                        <input type="number" id="comp-basic-actual" oninput="syncCompilerToPreview()" class="px-2.5 py-1.5 rounded-lg border border-slate-200 focus:outline-none focus:border-qt-primary/60 text-xs text-right" value="0">
+                                        <input type="number" id="comp-basic-pay" oninput="syncCompilerToPreview()" class="px-2.5 py-1.5 rounded-lg border border-slate-200 focus:outline-none focus:border-qt-primary/60 text-xs text-right" value="0">
                                     </div>
-                                    <div class="flex flex-col gap-1">
-                                        <label class="text-[9px] text-slate-400 font-bold uppercase tracking-wider">Other Allowance</label>
-                                        <input type="number" id="comp-other-allowance" oninput="syncCompilerToPreview()" class="px-3 py-2 rounded-xl border border-slate-200 focus:outline-none focus:border-qt-primary/60 focus:ring-2 focus:ring-qt-primary/10 transition-all" value="0">
+                                    <div class="grid grid-cols-3 gap-2 items-center">
+                                        <span class="text-[10px] font-bold text-slate-700">H.R.A.</span>
+                                        <input type="number" id="comp-hra-actual" oninput="syncCompilerToPreview()" class="px-2.5 py-1.5 rounded-lg border border-slate-200 focus:outline-none focus:border-qt-primary/60 text-xs text-right" value="0">
+                                        <input type="number" id="comp-hra" oninput="syncCompilerToPreview()" class="px-2.5 py-1.5 rounded-lg border border-slate-200 focus:outline-none focus:border-qt-primary/60 text-xs text-right" value="0">
                                     </div>
-                                    <div class="flex flex-col gap-1">
-                                        <label class="text-[9px] text-slate-400 font-bold uppercase tracking-wider">Stat Bonus</label>
-                                        <input type="number" id="comp-stat-bonus" oninput="syncCompilerToPreview()" class="px-3 py-2 rounded-xl border border-slate-200 focus:outline-none focus:border-qt-primary/60 focus:ring-2 focus:ring-qt-primary/10 transition-all" value="0">
+                                    <div class="grid grid-cols-3 gap-2 items-center">
+                                        <span class="text-[10px] font-bold text-slate-700">Special Allowance</span>
+                                        <input type="number" id="comp-other-allowance-actual" oninput="syncCompilerToPreview()" class="px-2.5 py-1.5 rounded-lg border border-slate-200 focus:outline-none focus:border-qt-primary/60 text-xs text-right" value="0">
+                                        <input type="number" id="comp-other-allowance" oninput="syncCompilerToPreview()" class="px-2.5 py-1.5 rounded-lg border border-slate-200 focus:outline-none focus:border-qt-primary/60 text-xs text-right" value="0">
                                     </div>
-                                    <div class="flex flex-col gap-1">
-                                        <label class="text-[9px] text-slate-400 font-bold uppercase tracking-wider">Attendance Bonus</label>
-                                        <input type="number" id="comp-attendance-bonus" oninput="syncCompilerToPreview()" class="px-3 py-2 rounded-xl border border-slate-200 focus:outline-none focus:border-qt-primary/60 focus:ring-2 focus:ring-qt-primary/10 transition-all" value="0">
+                                    <div class="grid grid-cols-3 gap-2 items-center">
+                                        <span class="text-[10px] font-bold text-slate-700">Stat Bonus</span>
+                                        <input type="number" id="comp-stat-bonus-actual" oninput="syncCompilerToPreview()" class="px-2.5 py-1.5 rounded-lg border border-slate-200 focus:outline-none focus:border-qt-primary/60 text-xs text-right" value="0">
+                                        <input type="number" id="comp-stat-bonus" oninput="syncCompilerToPreview()" class="px-2.5 py-1.5 rounded-lg border border-slate-200 focus:outline-none focus:border-qt-primary/60 text-xs text-right" value="0">
                                     </div>
-                                    <div class="flex flex-col gap-1">
-                                        <label class="text-[9px] text-slate-400 font-bold uppercase tracking-wider">Leave Encashment</label>
-                                        <input type="number" id="comp-leave-encashment" oninput="syncCompilerToPreview()" class="px-3 py-2 rounded-xl border border-slate-200 focus:outline-none focus:border-qt-primary/60 focus:ring-2 focus:ring-qt-primary/10 transition-all" value="0">
+                                    <div class="grid grid-cols-3 gap-2 items-center">
+                                        <span class="text-[10px] font-bold text-slate-700">Stipend</span>
+                                        <input type="number" id="comp-stipend-actual" oninput="syncCompilerToPreview()" class="px-2.5 py-1.5 rounded-lg border border-slate-200 focus:outline-none focus:border-qt-primary/60 text-xs text-right" value="0">
+                                        <input type="number" id="comp-stipend" oninput="syncCompilerToPreview()" class="px-2.5 py-1.5 rounded-lg border border-slate-200 focus:outline-none focus:border-qt-primary/60 text-xs text-right" value="0">
                                     </div>
-                                    <div class="flex flex-col gap-1">
-                                        <label class="text-[9px] text-slate-400 font-bold uppercase tracking-wider">Performance Incentive</label>
-                                        <input type="number" id="comp-performance-incentive" oninput="syncCompilerToPreview()" class="px-3 py-2 rounded-xl border border-slate-200 focus:outline-none focus:border-qt-primary/60 focus:ring-2 focus:ring-qt-primary/10 transition-all" value="0">
+                                    <div class="grid grid-cols-3 gap-2 items-center">
+                                        <span class="text-[10px] font-bold text-slate-700">Attendance Bonus</span>
+                                        <input type="number" id="comp-attendance-bonus-actual" oninput="syncCompilerToPreview()" class="px-2.5 py-1.5 rounded-lg border border-slate-200 focus:outline-none focus:border-qt-primary/60 text-xs text-right" value="0">
+                                        <input type="number" id="comp-attendance-bonus" oninput="syncCompilerToPreview()" class="px-2.5 py-1.5 rounded-lg border border-slate-200 focus:outline-none focus:border-qt-primary/60 text-xs text-right" value="0">
                                     </div>
-                                    <div class="flex flex-col gap-1">
-                                        <label class="text-[9px] text-slate-400 font-bold uppercase tracking-wider">Extra Payment</label>
-                                        <input type="number" id="comp-extra-payment" oninput="syncCompilerToPreview()" class="px-3 py-2 rounded-xl border border-slate-200 focus:outline-none focus:border-qt-primary/60 focus:ring-2 focus:ring-qt-primary/10 transition-all" value="0">
+                                    <div class="grid grid-cols-3 gap-2 items-center">
+                                        <span class="text-[10px] font-bold text-slate-700">Leave Encashment</span>
+                                        <input type="number" id="comp-leave-encashment-actual" oninput="syncCompilerToPreview()" class="px-2.5 py-1.5 rounded-lg border border-slate-200 focus:outline-none focus:border-qt-primary/60 text-xs text-right" value="0">
+                                        <input type="number" id="comp-leave-encashment" oninput="syncCompilerToPreview()" class="px-2.5 py-1.5 rounded-lg border border-slate-200 focus:outline-none focus:border-qt-primary/60 text-xs text-right" value="0">
                                     </div>
-                                    <div class="flex flex-col gap-1">
-                                        <label class="text-[9px] text-slate-400 font-bold uppercase tracking-wider">Shipment Incentive</label>
-                                        <input type="number" id="comp-shipment-incentive" oninput="syncCompilerToPreview()" class="px-3 py-2 rounded-xl border border-slate-200 focus:outline-none focus:border-qt-primary/60 focus:ring-2 focus:ring-qt-primary/10 transition-all" value="0">
+                                    <div class="grid grid-cols-3 gap-2 items-center">
+                                        <span class="text-[10px] font-bold text-slate-700">Performance Incentive</span>
+                                        <input type="number" id="comp-performance-incentive-actual" oninput="syncCompilerToPreview()" class="px-2.5 py-1.5 rounded-lg border border-slate-200 focus:outline-none focus:border-qt-primary/60 text-xs text-right" value="0">
+                                        <input type="number" id="comp-performance-incentive" oninput="syncCompilerToPreview()" class="px-2.5 py-1.5 rounded-lg border border-slate-200 focus:outline-none focus:border-qt-primary/60 text-xs text-right" value="0">
                                     </div>
-                                    <div class="flex flex-col gap-1">
-                                        <label class="text-[9px] text-slate-400 font-bold uppercase tracking-wider">Mobile Allowance</label>
-                                        <input type="number" id="comp-mobile-allowance" oninput="syncCompilerToPreview()" class="px-3 py-2 rounded-xl border border-slate-200 focus:outline-none focus:border-qt-primary/60 focus:ring-2 focus:ring-qt-primary/10 transition-all" value="0">
+                                    <div class="grid grid-cols-3 gap-2 items-center">
+                                        <span class="text-[10px] font-bold text-slate-700">Extra Payment</span>
+                                        <input type="number" id="comp-extra-payment-actual" oninput="syncCompilerToPreview()" class="px-2.5 py-1.5 rounded-lg border border-slate-200 focus:outline-none focus:border-qt-primary/60 text-xs text-right" value="0">
+                                        <input type="number" id="comp-extra-payment" oninput="syncCompilerToPreview()" class="px-2.5 py-1.5 rounded-lg border border-slate-200 focus:outline-none focus:border-qt-primary/60 text-xs text-right" value="0">
                                     </div>
-                                    <div class="flex flex-col gap-1">
-                                        <label class="text-[9px] text-slate-400 font-bold uppercase tracking-wider">Meal Incentive</label>
-                                        <input type="number" id="comp-meal-incentive" oninput="syncCompilerToPreview()" class="px-3 py-2 rounded-xl border border-slate-200 focus:outline-none focus:border-qt-primary/60 focus:ring-2 focus:ring-qt-primary/10 transition-all" value="0">
+                                    <div class="grid grid-cols-3 gap-2 items-center">
+                                        <span class="text-[10px] font-bold text-slate-700">Shipment Incentive</span>
+                                        <input type="number" id="comp-shipment-incentive-actual" oninput="syncCompilerToPreview()" class="px-2.5 py-1.5 rounded-lg border border-slate-200 focus:outline-none focus:border-qt-primary/60 text-xs text-right" value="0">
+                                        <input type="number" id="comp-shipment-incentive" oninput="syncCompilerToPreview()" class="px-2.5 py-1.5 rounded-lg border border-slate-200 focus:outline-none focus:border-qt-primary/60 text-xs text-right" value="0">
                                     </div>
-                                    <div class="flex flex-col gap-1">
-                                        <label class="text-[9px] text-slate-400 font-bold uppercase tracking-wider">Group Incentive</label>
-                                        <input type="number" id="comp-group-incentive" oninput="syncCompilerToPreview()" class="px-3 py-2 rounded-xl border border-slate-200 focus:outline-none focus:border-qt-primary/60 focus:ring-2 focus:ring-qt-primary/10 transition-all" value="0">
+                                    <div class="grid grid-cols-3 gap-2 items-center">
+                                        <span class="text-[10px] font-bold text-slate-700">Mobile Allowance</span>
+                                        <input type="number" id="comp-mobile-allowance-actual" oninput="syncCompilerToPreview()" class="px-2.5 py-1.5 rounded-lg border border-slate-200 focus:outline-none focus:border-qt-primary/60 text-xs text-right" value="0">
+                                        <input type="number" id="comp-mobile-allowance" oninput="syncCompilerToPreview()" class="px-2.5 py-1.5 rounded-lg border border-slate-200 focus:outline-none focus:border-qt-primary/60 text-xs text-right" value="0">
                                     </div>
-                                    <div class="flex flex-col gap-1">
-                                        <label class="text-[9px] text-slate-400 font-bold uppercase tracking-wider">Night Allowance</label>
-                                        <input type="number" id="comp-night-allowance" oninput="syncCompilerToPreview()" class="px-3 py-2 rounded-xl border border-slate-200 focus:outline-none focus:border-qt-primary/60 focus:ring-2 focus:ring-qt-primary/10 transition-all" value="0">
+                                    <div class="grid grid-cols-3 gap-2 items-center">
+                                        <span class="text-[10px] font-bold text-slate-700">Meal Incentive</span>
+                                        <input type="number" id="comp-meal-incentive-actual" oninput="syncCompilerToPreview()" class="px-2.5 py-1.5 rounded-lg border border-slate-200 focus:outline-none focus:border-qt-primary/60 text-xs text-right" value="0">
+                                        <input type="number" id="comp-meal-incentive" oninput="syncCompilerToPreview()" class="px-2.5 py-1.5 rounded-lg border border-slate-200 focus:outline-none focus:border-qt-primary/60 text-xs text-right" value="0">
                                     </div>
-                                    <div class="flex flex-col gap-1">
-                                        <label class="text-[9px] text-slate-400 font-bold uppercase tracking-wider">National Holiday Pay</label>
-                                        <input type="number" id="comp-national-holiday-pay" oninput="syncCompilerToPreview()" class="px-3 py-2 rounded-xl border border-slate-200 focus:outline-none focus:border-qt-primary/60 focus:ring-2 focus:ring-qt-primary/10 transition-all" value="0">
+                                    <div class="grid grid-cols-3 gap-2 items-center">
+                                        <span class="text-[10px] font-bold text-slate-700">Group Incentive</span>
+                                        <input type="number" id="comp-group-incentive-actual" oninput="syncCompilerToPreview()" class="px-2.5 py-1.5 rounded-lg border border-slate-200 focus:outline-none focus:border-qt-primary/60 text-xs text-right" value="0">
+                                        <input type="number" id="comp-group-incentive" oninput="syncCompilerToPreview()" class="px-2.5 py-1.5 rounded-lg border border-slate-200 focus:outline-none focus:border-qt-primary/60 text-xs text-right" value="0">
                                     </div>
-                                    <div class="flex flex-col gap-1">
-                                        <label class="text-[9px] text-slate-400 font-bold uppercase tracking-wider">Retention Bonus</label>
-                                        <input type="number" id="comp-retention-bonus" oninput="syncCompilerToPreview()" class="px-3 py-2 rounded-xl border border-slate-200 focus:outline-none focus:border-qt-primary/60 focus:ring-2 focus:ring-qt-primary/10 transition-all" value="0">
+                                    <div class="grid grid-cols-3 gap-2 items-center">
+                                        <span class="text-[10px] font-bold text-slate-700">Night Allowance</span>
+                                        <input type="number" id="comp-night-allowance-actual" oninput="syncCompilerToPreview()" class="px-2.5 py-1.5 rounded-lg border border-slate-200 focus:outline-none focus:border-qt-primary/60 text-xs text-right" value="0">
+                                        <input type="number" id="comp-night-allowance" oninput="syncCompilerToPreview()" class="px-2.5 py-1.5 rounded-lg border border-slate-200 focus:outline-none focus:border-qt-primary/60 text-xs text-right" value="0">
                                     </div>
-                                    <div class="flex flex-col gap-1">
-                                        <label class="text-[9px] text-slate-400 font-bold uppercase tracking-wider">Arrear Payment</label>
-                                        <input type="number" id="comp-arrear-payment" oninput="syncCompilerToPreview()" class="px-3 py-2 rounded-xl border border-slate-200 focus:outline-none focus:border-qt-primary/60 focus:ring-2 focus:ring-qt-primary/10 transition-all" value="0">
+                                    <div class="grid grid-cols-3 gap-2 items-center">
+                                        <span class="text-[10px] font-bold text-slate-700">Retention Bonus</span>
+                                        <input type="number" id="comp-retention-bonus-actual" oninput="syncCompilerToPreview()" class="px-2.5 py-1.5 rounded-lg border border-slate-200 focus:outline-none focus:border-qt-primary/60 text-xs text-right" value="0">
+                                        <input type="number" id="comp-retention-bonus" oninput="syncCompilerToPreview()" class="px-2.5 py-1.5 rounded-lg border border-slate-200 focus:outline-none focus:border-qt-primary/60 text-xs text-right" value="0">
+                                    </div>
+                                    <div class="grid grid-cols-3 gap-2 items-center">
+                                        <span class="text-[10px] font-bold text-slate-700">Arrear Payment</span>
+                                        <input type="number" id="comp-arrear-payment-actual" oninput="syncCompilerToPreview()" class="px-2.5 py-1.5 rounded-lg border border-slate-200 focus:outline-none focus:border-qt-primary/60 text-xs text-right" value="0">
+                                        <input type="number" id="comp-arrear-payment" oninput="syncCompilerToPreview()" class="px-2.5 py-1.5 rounded-lg border border-slate-200 focus:outline-none focus:border-qt-primary/60 text-xs text-right" value="0">
                                     </div>
                                 </div>
                             </div>
@@ -685,7 +737,7 @@
                                             <div id="slip-company-address-block" class="text-[10px] text-slate-600 font-bold leading-normal">
                                                 [Company Head Office Address]
                                             </div>
-                                            <p id="slip-company-contact" class="text-[9px] text-[#0D357A] font-bold leading-normal underline">[Company Contact Details]</p>
+                                            <p id="slip-company-contact" class="text-[9px] text-[#0D357A] font-bold leading-normal ">[Company Contact Details]</p>
                                         </div>
                                     </div>
 
@@ -699,11 +751,11 @@
                                                 <tr>
                                                     <td class="border border-black p-2 w-[20%]">Emp. Code</td>
                                                     <td class="border border-black p-2 w-[30%] font-normal" id="lbl-emp-code">—</td>
-                                                    <td class="border border-black p-2 w-[20%]">Company Month</td>
-                                                    <td class="border border-black p-2 w-[30%] font-normal" id="lbl-company-month">[Company Short Name]</td>
+                                                    <td class="border border-black p-2 w-[20%]">Client Name</td>
+                                                    <td class="border border-black p-2 w-[30%] font-normal" id="lbl-client-name">—</td>
                                                 </tr>
                                                 <tr>
-                                                    <td class="border border-black p-2">Name</td>
+                                                    <td class="border border-black p-2">Employee Name</td>
                                                     <td class="border border-black p-2 font-normal" id="lbl-emp-name">—</td>
                                                     <td class="border border-black p-2">Month</td>
                                                     <td class="border border-black p-2 font-normal" id="lbl-month">—</td>
@@ -715,22 +767,22 @@
                                                     <td class="border border-black p-2 font-normal" id="lbl-working-days">—</td>
                                                 </tr>
                                                 <tr>
-                                                    <td class="border border-black p-2">UAN No.</td>
-                                                    <td class="border border-black p-2 font-normal font-sans" id="lbl-uan-no">101458016658</td>
-                                                    <td class="border border-black p-2">Account no.</td>
-                                                    <td class="border border-black p-2 font-normal font-sans" id="lbl-account-no">—</td>
+                                                    <td class="border border-black p-2">Work Location</td>
+                                                    <td class="border border-black p-2 font-normal" id="lbl-work-location">—</td>
+                                                    <td class="border border-black p-2">Payable Day</td>
+                                                    <td class="border border-black p-2 font-normal" id="lbl-payable-days">—</td>
                                                 </tr>
                                                 <tr>
                                                     <td class="border border-black p-2">STATE</td>
                                                     <td class="border border-black p-2 font-normal uppercase" id="lbl-state">—</td>
-                                                    <td class="border border-black p-2">Work Location</td>
-                                                    <td class="border border-black p-2 font-normal" id="lbl-work-location">—</td>
+                                                    <td class="border border-black p-2">Account no.</td>
+                                                    <td class="border border-black p-2 font-normal font-sans" id="lbl-account-no">—</td>
                                                 </tr>
                                                 <tr>
+                                                    <td class="border border-black p-2">UAN No</td>
+                                                    <td class="border border-black p-2 font-normal font-sans" id="lbl-uan-no">—</td>
                                                     <td class="border border-black p-2">ESIC No</td>
-                                                    <td class="border border-black p-2 font-normal font-sans" id="lbl-esic-no">2019712124</td>
-                                                    <td class="border border-black p-2"></td>
-                                                    <td class="border border-black p-2 font-normal"></td>
+                                                    <td class="border border-black p-2 font-normal font-sans" id="lbl-esic-no">—</td>
                                                 </tr>
                                             </tbody>
                                         </table>
@@ -740,119 +792,151 @@
                                         <table class="w-full border-collapse text-[11px] font-bold text-black zebra-table">
                                             <thead>
                                                 <tr class="border-b border-black bg-slate-50">
-                                                    <th class="border-r border-black p-2 text-left w-[35%]">Total Salary</th>
-                                                    <th class="border-r border-black p-2 text-right w-[15%]">Earning</th>
-                                                    <th class="border-r border-black p-2 text-left w-[35%]">Deductions</th>
-                                                    <th class="p-2 text-right w-[15%]">Amount</th>
+                                                    <th class="border-r border-black p-2 text-left w-[25%]">Total Salary</th>
+                                                    <th class="border-r border-black p-2 text-right w-[12.5%]">Actual</th>
+                                                    <th class="border-r border-black p-2 text-right w-[12.5%]">Earning</th>
+                                                    <th class="border-r border-black p-2 text-left w-[25%]">Deductions</th>
+                                                    <th class="border-r border-black p-2 text-right w-[12.5%]">Amount</th>
+                                                    <th class="p-2 text-right w-[12.5%]">Net Pay</th>
                                                 </tr>
                                             </thead>
                                             <tbody class="font-normal text-slate-800 divide-y divide-black/10">
                                                 <tr class="border-b border-black/30">
-                                                    <td class="border-r border-black p-1.5 bg-white font-bold text-black">Basic Pay</td>
-                                                    <td class="border-r border-black p-1.5 text-right" id="val-basic-pay">0</td>
+                                                    <td class="border-r border-black p-1.5 bg-white font-bold text-black">Basic_a</td>
+                                                    <td class="border-r border-black p-1.5 text-right font-sans" id="val-basic-actual">0</td>
+                                                    <td class="border-r border-black p-1.5 text-right font-sans" id="val-basic-pay">0</td>
                                                     <td class="border-r border-black p-1.5 bg-[#DCE6F1] font-bold text-black">E.S.I.</td>
-                                                    <td class="p-1.5 text-right" id="val-esi">0</td>
+                                                    <td class="border-r border-black p-1.5 text-right font-sans" id="val-esi">0</td>
+                                                    <td class="p-1.5 text-right"></td>
                                                 </tr>
                                                 <tr class="border-b border-black/30">
-                                                    <td class="border-r border-black p-1.5 bg-white font-bold text-black">H.R.A.</td>
-                                                    <td class="border-r border-black p-1.5 text-right" id="val-hra">0</td>
+                                                    <td class="border-r border-black p-1.5 bg-white font-bold text-black">HRA_a</td>
+                                                    <td class="border-r border-black p-1.5 text-right font-sans" id="val-hra-actual">0</td>
+                                                    <td class="border-r border-black p-1.5 text-right font-sans" id="val-hra">0</td>
                                                     <td class="border-r border-black p-1.5 bg-[#DCE6F1] font-bold text-black">P.F.</td>
-                                                    <td class="p-1.5 text-right" id="val-pf">0</td>
+                                                    <td class="border-r border-black p-1.5 text-right font-sans" id="val-pf">0</td>
+                                                    <td class="p-1.5 text-right"></td>
                                                 </tr>
                                                 <tr class="border-b border-black/30">
-                                                    <td class="border-r border-black p-1.5 bg-white font-bold text-black" id="lbl-other-allowance">Other Allowance</td>
-                                                    <td class="border-r border-black p-1.5 text-right" id="val-other-allowance">0</td>
+                                                    <td class="border-r border-black p-1.5 bg-white font-bold text-black">Special_Allowance_a</td>
+                                                    <td class="border-r border-black p-1.5 text-right font-sans" id="val-other-allowance-actual">0</td>
+                                                    <td class="border-r border-black p-1.5 text-right font-sans" id="val-other-allowance">0</td>
                                                     <td class="border-r border-black p-1.5 bg-[#DCE6F1] font-bold text-black">LWF</td>
-                                                    <td class="p-1.5 text-right" id="val-lwf">0</td>
+                                                    <td class="border-r border-black p-1.5 text-right font-sans" id="val-lwf">0</td>
+                                                    <td class="p-1.5 text-right"></td>
                                                 </tr>
                                                 <tr class="border-b border-black/30">
-                                                    <td class="border-r border-black p-1.5 bg-white font-bold text-black">Stat Bonus</td>
-                                                    <td class="border-r border-black p-1.5 text-right" id="val-stat-bonus">0</td>
+                                                    <td class="border-r border-black p-1.5 bg-white font-bold text-black">Stat_Bonus_a</td>
+                                                    <td class="border-r border-black p-1.5 text-right font-sans" id="val-stat-bonus-actual">0</td>
+                                                    <td class="border-r border-black p-1.5 text-right font-sans" id="val-stat-bonus">0</td>
+                                                    <td class="border-r border-black p-1.5 bg-[#DCE6F1] font-bold text-black">EWF Deduction</td>
+                                                    <td class="border-r border-black p-1.5 text-right font-sans" id="val-ewf-deduction">0</td>
+                                                    <td class="p-1.5 text-right"></td>
+                                                </tr>
+                                                <tr class="border-b border-black/30">
+                                                    <td class="border-r border-black p-1.5 bg-white font-bold text-black">Stipend</td>
+                                                    <td class="border-r border-black p-1.5 text-right font-sans" id="val-stipend-actual">0</td>
+                                                    <td class="border-r border-black p-1.5 text-right font-sans" id="val-stipend">0</td>
                                                     <td class="border-r border-black p-1.5 bg-[#DCE6F1] font-bold text-black">Meal Debit</td>
-                                                    <td class="p-1.5 text-right" id="val-meal-debit">0</td>
+                                                    <td class="border-r border-black p-1.5 text-right font-sans" id="val-meal-debit">0</td>
+                                                    <td class="p-1.5 text-right"></td>
                                                 </tr>
                                                 <tr class="border-b border-black/30">
                                                     <td class="border-r border-black p-1.5 bg-white font-bold text-black">Attendance bonus</td>
-                                                    <td class="border-r border-black p-1.5 text-right" id="val-attendance-bonus">0</td>
+                                                    <td class="border-r border-black p-1.5 text-right font-sans" id="val-attendance-bonus-actual">0</td>
+                                                    <td class="border-r border-black p-1.5 text-right font-sans" id="val-attendance-bonus">0</td>
                                                     <td class="border-r border-black p-1.5 bg-[#DCE6F1] font-bold text-black">Refyne Debit</td>
-                                                    <td class="p-1.5 text-right" id="val-refyne-debit">0</td>
+                                                    <td class="border-r border-black p-1.5 text-right font-sans" id="val-refyne-debit">0</td>
+                                                    <td class="p-1.5 text-right"></td>
                                                 </tr>
                                                 <tr class="border-b border-black/30">
                                                     <td class="border-r border-black p-1.5 bg-white font-bold text-black">Leave Encashment</td>
-                                                    <td class="border-r border-black p-1.5 text-right" id="val-leave-encashment">0</td>
+                                                    <td class="border-r border-black p-1.5 text-right font-sans" id="val-leave-encashment-actual">0</td>
+                                                    <td class="border-r border-black p-1.5 text-right font-sans" id="val-leave-encashment">0</td>
                                                     <td class="border-r border-black p-1.5 bg-[#DCE6F1] font-bold text-black">Advance salary</td>
-                                                    <td class="p-1.5 text-right" id="val-advance-salary">0</td>
+                                                    <td class="border-r border-black p-1.5 text-right font-sans" id="val-advance-salary">0</td>
+                                                    <td class="p-1.5 text-right"></td>
                                                 </tr>
                                                 <tr class="border-b border-black/30">
                                                     <td class="border-r border-black p-1.5 bg-white font-bold text-black">Performance incentive</td>
-                                                    <td class="border-r border-black p-1.5 text-right" id="val-performance-incentive">0</td>
-                                                    <td class="border-r border-black p-1.5 bg-[#DCE6F1] font-bold text-black" id="lbl-pt-deduction">PT</td>
-                                                    <td class="p-1.5 text-right" id="val-pt">0</td>
+                                                    <td class="border-r border-black p-1.5 text-right font-sans" id="val-performance-incentive-actual">0</td>
+                                                    <td class="border-r border-black p-1.5 text-right font-sans" id="val-performance-incentive">0</td>
+                                                    <td class="border-r border-black p-1.5 bg-[#DCE6F1] font-bold text-black">PT</td>
+                                                    <td class="border-r border-black p-1.5 text-right font-sans" id="val-pt">0</td>
+                                                    <td class="p-1.5 text-right"></td>
                                                 </tr>
                                                 <tr class="border-b border-black/30">
                                                     <td class="border-r border-black p-1.5 bg-white font-bold text-black">Extra Payment</td>
-                                                    <td class="border-r border-black p-1.5 text-right" id="val-extra-payment">0</td>
+                                                    <td class="border-r border-black p-1.5 text-right font-sans" id="val-extra-payment-actual">0</td>
+                                                    <td class="border-r border-black p-1.5 text-right font-sans" id="val-extra-payment">0</td>
                                                     <td class="border-r border-black p-1.5 bg-[#DCE6F1] font-bold text-black">E-Bike Debit</td>
-                                                    <td class="p-1.5 text-right" id="val-ebike-debit">0</td>
+                                                    <td class="border-r border-black p-1.5 text-right font-sans" id="val-ebike-debit">0</td>
+                                                    <td class="p-1.5 text-right"></td>
                                                 </tr>
                                                 <tr class="border-b border-black/30">
                                                     <td class="border-r border-black p-1.5 bg-white font-bold text-black">Shipment Incentive</td>
-                                                    <td class="border-r border-black p-1.5 text-right" id="val-shipment-incentive">0</td>
+                                                    <td class="border-r border-black p-1.5 text-right font-sans" id="val-shipment-incentive-actual">0</td>
+                                                    <td class="border-r border-black p-1.5 text-right font-sans" id="val-shipment-incentive">0</td>
                                                     <td class="border-r border-black p-1.5 bg-[#DCE6F1] font-bold text-black">Advance Payments In Weeks</td>
-                                                    <td class="p-1.5 text-right" id="val-advance-weeks">0</td>
+                                                    <td class="border-r border-black p-1.5 text-right font-sans" id="val-advance-weeks">0</td>
+                                                    <td class="p-1.5 text-right"></td>
                                                 </tr>
                                                 <tr class="border-b border-black/30">
                                                     <td class="border-r border-black p-1.5 bg-white font-bold text-black">Mobile allowance</td>
-                                                    <td class="border-r border-black p-1.5 text-right" id="val-mobile-allowance">0</td>
+                                                    <td class="border-r border-black p-1.5 text-right font-sans" id="val-mobile-allowance-actual">0</td>
+                                                    <td class="border-r border-black p-1.5 text-right font-sans" id="val-mobile-allowance">0</td>
                                                     <td class="border-r border-black p-1.5 bg-[#DCE6F1] font-bold text-black">Shipment Debit</td>
-                                                    <td class="p-1.5 text-right" id="val-shipment-debit">0</td>
+                                                    <td class="border-r border-black p-1.5 text-right font-sans" id="val-shipment-debit">0</td>
+                                                    <td class="p-1.5 text-right"></td>
                                                 </tr>
                                                 <tr class="border-b border-black/30">
                                                     <td class="border-r border-black p-1.5 bg-white font-bold text-black">Meal Incentive</td>
-                                                    <td class="border-r border-black p-1.5 text-right" id="val-meal-incentive">0</td>
-                                                    <td class="border-r border-black p-1.5 bg-[#DCE6F1] font-bold text-black">Accmmodation Recovery</td>
-                                                    <td class="p-1.5 text-right" id="val-accommodation">0</td>
+                                                    <td class="border-r border-black p-1.5 text-right font-sans" id="val-meal-incentive-actual">0</td>
+                                                    <td class="border-r border-black p-1.5 text-right font-sans" id="val-meal-incentive">0</td>
+                                                    <td class="border-r border-black p-1.5 bg-[#DCE6F1] font-bold text-black">COD Loss</td>
+                                                    <td class="border-r border-black p-1.5 text-right font-sans" id="val-cod-loss">0</td>
+                                                    <td class="p-1.5 text-right"></td>
                                                 </tr>
                                                 <tr class="border-b border-black/30">
                                                     <td class="border-r border-black p-1.5 bg-white font-bold text-black">Group Incentive</td>
-                                                    <td class="border-r border-black p-1.5 text-right" id="val-group-incentive">0</td>
+                                                    <td class="border-r border-black p-1.5 text-right font-sans" id="val-group-incentive-actual">0</td>
+                                                    <td class="border-r border-black p-1.5 text-right font-sans" id="val-group-incentive">0</td>
                                                     <td class="border-r border-black p-1.5 bg-[#DCE6F1] font-bold text-black">Notice Period Deduction</td>
-                                                    <td class="p-1.5 text-right" id="val-notice-period">0</td>
+                                                    <td class="border-r border-black p-1.5 text-right font-sans" id="val-notice-period">0</td>
+                                                    <td class="p-1.5 text-right"></td>
                                                 </tr>
                                                 <tr class="border-b border-black/30">
                                                     <td class="border-r border-black p-1.5 bg-white font-bold text-black">Night Allowance</td>
-                                                    <td class="border-r border-black p-1.5 text-right" id="val-night-allowance">0</td>
-                                                    <td class="border-r border-black p-1.5 bg-[#DCE6F1] font-bold text-black">COD Loss</td>
-                                                    <td class="p-1.5 text-right" id="val-cod-loss">0</td>
-                                                </tr>
-                                                <tr class="border-b border-black/30">
-                                                    <td class="border-r border-black p-1.5 bg-white font-bold text-black">National Holiday Pay</td>
-                                                    <td class="border-r border-black p-1.5 text-right" id="val-holiday-pay">0</td>
+                                                    <td class="border-r border-black p-1.5 text-right font-sans" id="val-night-allowance-actual">0</td>
+                                                    <td class="border-r border-black p-1.5 text-right font-sans" id="val-night-allowance">0</td>
                                                     <td class="border-r border-black p-1.5 bg-[#DCE6F1] font-bold text-black">Tshirt Recovery</td>
-                                                    <td class="p-1.5 text-right" id="val-tshirt-recovery">0</td>
+                                                    <td class="border-r border-black p-1.5 text-right font-sans" id="val-tshirt-recovery">0</td>
+                                                    <td class="p-1.5 text-right"></td>
                                                 </tr>
                                                 <tr class="border-b border-black/30">
                                                     <td class="border-r border-black p-1.5 bg-white font-bold text-black">Retention Bonus</td>
-                                                    <td class="border-r border-black p-1.5 text-right" id="val-retention-bonus">0</td>
-                                                    <td class="border-r border-black p-1.5 bg-[#DCE6F1] font-bold text-black">EWF Deduction</td>
-                                                    <td class="p-1.5 text-right" id="val-ewf-deduction">0</td>
+                                                    <td class="border-r border-black p-1.5 text-right font-sans" id="val-retention-bonus-actual">0</td>
+                                                    <td class="border-r border-black p-1.5 text-right font-sans" id="val-retention-bonus">0</td>
+                                                    <td class="border-r border-black p-1.5 bg-[#DCE6F1] font-bold text-black"></td>
+                                                    <td class="border-r border-black p-1.5 text-right font-sans"></td>
+                                                    <td class="p-1.5 text-right"></td>
                                                 </tr>
                                                 <tr class="border-b border-black">
                                                     <td class="border-r border-black p-1.5 bg-white font-bold text-black">Arrear Payment</td>
-                                                    <td class="border-r border-black p-1.5 text-right" id="val-arrear-payment">0</td>
-                                                    <td class="border-r border-black p-1.5 bg-[#DCE6F1] font-bold text-black" id="lbl-tds-tax">TDS (1%)</td>
-                                                    <td class="p-1.5 text-right" id="val-tds">0</td>
+                                                    <td class="border-r border-black p-1.5 text-right font-sans" id="val-arrear-payment-actual">0</td>
+                                                    <td class="border-r border-black p-1.5 text-right font-sans" id="val-arrear-payment">0</td>
+                                                    <td class="border-r border-black p-1.5 bg-[#DCE6F1] font-bold text-black"></td>
+                                                    <td class="border-r border-black p-1.5 text-right font-sans"></td>
+                                                    <td class="p-1.5 text-right"></td>
                                                 </tr>
                                                 
-                                                <tr class="bg-slate-50/50 font-bold text-black border-t border-black text-[11px] leading-relaxed">
-                                                    <td class="border-r border-black p-2.5 uppercase">Net Gross Total</td>
-                                                    <td class="border-r border-black p-2.5 text-right" id="lbl-net-gross">0</td>
-                                                    <td class="border-r border-black p-2.5 uppercase border-l border-black">Total Deduction</td>
-                                                    <td class="p-2.5 text-right" id="lbl-total-deductions">0</td>
-                                                </tr>
-                                                <tr class="bg-[#92D050] font-bold text-black border-t border-black text-xs leading-relaxed">
-                                                    <td class="p-2.5 uppercase tracking-wider text-center" colspan="3">Net Salary Payable (In Hand)</td>
-                                                    <td class="p-2.5 text-right font-black border-l border-black text-sm" id="lbl-net-pay">0</td>
+                                                <tr class="bg-[#92D050] font-bold text-black border-t border-black text-[11px] leading-relaxed">
+                                                    <td class="border-r border-black p-2.5 uppercase bg-[#92D050]">Net Gross Total</td>
+                                                    <td class="border-r border-black p-2.5 text-right font-sans bg-[#92D050]" id="lbl-net-gross-actual">0</td>
+                                                    <td class="border-r border-black p-2.5 text-right font-sans bg-[#92D050]" id="lbl-net-gross">0</td>
+                                                    <td class="border-r border-black p-2.5 uppercase border-l border-black bg-[#92D050]">Total Deduction</td>
+                                                    <td class="border-r border-black p-2.5 text-right font-sans bg-[#92D050]" id="lbl-total-deductions">0</td>
+                                                    <td class="p-2.5 text-right font-black font-sans bg-[#92D050]" id="lbl-net-pay">0</td>
                                                 </tr>
                                             </tbody>
                                         </table>
@@ -920,6 +1004,117 @@
             </div>
 
         </main>
+
+    <!-- Bulk Upload Modal Overlay -->
+    <div id="bulk-upload-modal" class="fixed inset-0 bg-slate-950/60 backdrop-blur-sm z-[150] hidden items-center justify-center p-6 opacity-0 transition-opacity duration-300">
+        <div class="bg-white w-full max-w-[640px] rounded-2xl overflow-hidden shadow-2xl border border-slate-200 transform scale-95 transition-transform duration-300 ease-out flex flex-col max-h-[90vh]">
+            <div class="bg-qt-dark p-6 text-white relative flex-shrink-0">
+                <button id="bulk-modal-close-btn" onclick="closeBulkUploadModal()" class="absolute top-4 right-6 text-slate-400 hover:text-white text-3xl font-light leading-none">&times;</button>
+                <h3 class="text-lg font-bold">📤 Bulk Salary Slip Import</h3>
+            </div>
+            
+            <div class="p-6 overflow-y-auto flex-1 space-y-6 text-xs text-slate-600">
+                <!-- Template & Drag Area -->
+                <div id="bulk-upload-step-1" class="space-y-4">
+                    <div class="flex justify-between items-center bg-slate-50 p-4 rounded-xl border border-slate-200">
+                        <div class="pr-4">
+                            <h4 class="font-bold text-qt-dark text-xs">Excel Template</h4>
+                            <p class="text-[0.68rem] text-slate-400 mt-0.5">Download the template to format your consultant salary slip data correctly.</p>
+                        </div>
+                        <button type="button" onclick="downloadSalarySlipTemplate()" class="px-4 py-2 bg-[#0F172A] hover:bg-slate-800 text-white rounded-lg font-bold text-[0.68rem] flex items-center gap-1.5 transition-colors cursor-pointer shrink-0">
+                            📥 Download Template
+                        </button>
+                    </div>
+
+                    <!-- Drag and Drop Area -->
+                    <div id="drag-drop-area" class="border-2 border-dashed border-slate-200 hover:border-qt-primary bg-slate-50/50 hover:bg-qt-light/10 rounded-2xl p-8 flex flex-col items-center justify-center gap-3 transition-all cursor-pointer">
+                        <div class="w-12 h-12 rounded-full bg-slate-100 flex items-center justify-center text-xl text-slate-400">
+                            📄
+                        </div>
+                        <div class="text-center">
+                            <p class="font-bold text-slate-700">Drag and drop your spreadsheet here</p>
+                            <p class="text-[0.65rem] text-slate-400 mt-1">Supports .xlsx and .csv files (max 5MB)</p>
+                        </div>
+                        <span class="text-slate-300 text-[0.68rem]">or</span>
+                        <input type="file" id="bulk-file-input" accept=".xlsx, .csv" class="hidden">
+                        <button type="button" onclick="document.getElementById('bulk-file-input').click()" class="px-4 py-2 border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 rounded-lg font-bold text-[0.68rem] transition-colors">
+                            Browse File
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Progress Section -->
+                <div id="bulk-progress-container" class="hidden space-y-2.5">
+                    <div class="flex justify-between items-center">
+                        <span class="font-bold text-slate-700">Uploading and parsing file...</span>
+                        <span id="bulk-progress-percent" class="font-bold text-qt-primary">0%</span>
+                    </div>
+                    <div class="w-full bg-slate-100 h-2 rounded-full overflow-hidden">
+                        <div id="bulk-progress-bar" class="bg-qt-primary h-full transition-all duration-300" style="width: 0%"></div>
+                    </div>
+                </div>
+
+                <!-- Validation & Summary Section -->
+                <div id="bulk-summary-container" class="hidden space-y-4">
+                    <h4 class="font-bold text-qt-dark text-xs uppercase tracking-wider">Import Validation Summary</h4>
+                    
+                    <!-- Stats Grid -->
+                    <div class="grid grid-cols-4 gap-3">
+                        <div class="bg-slate-50 border border-slate-200 p-3 rounded-xl text-center">
+                            <span class="text-[0.62rem] text-slate-400 uppercase font-bold tracking-wider">Total Records</span>
+                            <span id="stat-total-records" class="block text-base font-extrabold text-slate-900 mt-1">0</span>
+                        </div>
+                        <div class="bg-emerald-50/50 border border-emerald-100 p-3 rounded-xl text-center">
+                            <span class="text-[0.62rem] text-emerald-600 uppercase font-bold tracking-wider">Ready</span>
+                            <span id="stat-valid-records" class="block text-base font-extrabold text-emerald-700 mt-1">0</span>
+                        </div>
+                        <div class="bg-red-50/50 border border-red-100 p-3 rounded-xl text-center">
+                            <span class="text-[0.62rem] text-red-500 uppercase font-bold tracking-wider">Failed</span>
+                            <span id="stat-failed-records" class="block text-base font-extrabold text-red-600 mt-1">0</span>
+                        </div>
+                        <div class="bg-amber-50/50 border border-amber-100 p-3 rounded-xl text-center">
+                            <span class="text-[0.62rem] text-amber-600 uppercase font-bold tracking-wider">Warnings</span>
+                            <span id="stat-warning-records" class="block text-base font-extrabold text-amber-700 mt-1">0</span>
+                        </div>
+                    </div>
+
+                    <!-- Actions for summary -->
+                    <div id="error-report-container" class="hidden justify-between items-center bg-red-50/30 p-3.5 rounded-xl border border-red-100">
+                        <span class="text-[0.68rem] text-red-600 font-semibold pr-2">
+                            ⚠️ Some rows failed validation. Fix the errors and re-upload.
+                        </span>
+                        <button type="button" onclick="downloadSalarySlipErrorReport()" class="px-3.5 py-1.5 bg-red-600 hover:bg-red-700 text-white rounded-lg font-bold text-[0.65rem] transition-colors cursor-pointer shrink-0">
+                            📥 Download Error Report
+                        </button>
+                    </div>
+
+                    <!-- Detailed Table -->
+                    <div class="border border-slate-200 rounded-xl overflow-hidden max-h-[200px] overflow-y-auto">
+                        <table class="w-full text-left border-collapse" style="font-size: 0.68rem;">
+                            <thead class="sticky top-0 bg-slate-50 z-10">
+                                <tr class="bg-slate-50 border-b border-slate-200 text-[0.62rem] font-bold text-slate-400 uppercase tracking-wider">
+                                    <th class="p-2.5 text-center w-12">Row</th>
+                                    <th class="p-2.5 w-20">Emp Code</th>
+                                    <th class="p-2.5 w-28">Name</th>
+                                    <th class="p-2.5 w-24">Status</th>
+                                    <th class="p-2.5">Validation details / Errors</th>
+                                </tr>
+                            </thead>
+                            <tbody id="bulk-validation-rows" class="divide-y divide-slate-100 font-medium text-slate-700">
+                                <!-- Dynamic rows -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Footer Buttons -->
+            <div class="p-6 bg-slate-50 border-t border-slate-200 flex gap-3 justify-end flex-shrink-0">
+                <button type="button" onclick="closeBulkUploadModal()" class="px-5 py-2.5 bg-white hover:bg-slate-150 border border-slate-200 hover:border-slate-350 rounded-xl text-slate-550 font-bold text-xs transition-all cursor-pointer">Cancel</button>
+                <button type="button" id="btn-import-bulk" onclick="saveBulkSalarySlips()" class="px-5 py-2.5 bg-slate-200 text-slate-400 rounded-xl font-bold text-xs cursor-not-allowed transition-all" disabled>Import Data</button>
+            </div>
+        </div>
+    </div>
     </div>
 
     <div id="toast-container" class="fixed bottom-6 right-6 z-[200] flex flex-col gap-3 max-w-sm pointer-events-none"></div>
@@ -932,6 +1127,20 @@
         // Seeded data from Django context
         const selectedEmployeeBootstrap = JSON.parse(document.getElementById("selected-employee-json")?.textContent || "{}");
 
+        function getEmpState(emp) {
+            if (!emp) return "DELHI";
+            let stateVal = emp.state || "";
+            if (!stateVal) {
+                const loc = (emp.location || emp.workLocation || emp.centre || "").toLowerCase();
+                if (loc.includes("gurgaon") || loc.includes("haryana")) {
+                    stateVal = "HARYANA";
+                } else {
+                    stateVal = "DELHI";
+                }
+            }
+            return stateVal.toUpperCase();
+        }
+
         function normalizeBootstrapEmployee(emp) {
             if (!emp || !emp.id) return null;
             const slip = emp.slip || {};
@@ -939,8 +1148,8 @@
                 id: emp.id,
                 name: emp.name || "",
                 department: emp.department || emp.centre || "",
-                location: emp.workLocation || emp.centre || "",
-                centre: emp.centre || emp.workLocation || "",
+                location: emp.workLocation || emp.location || emp.centre || "",
+                centre: emp.centre || emp.location || emp.workLocation || "",
                 month: emp.month || "June 2026",
                 status: emp.status || "Active",
                 baseSalary: emp.baseSalary || 0,
@@ -958,22 +1167,44 @@
                 perDayPayment: emp.perDayPayment !== undefined ? emp.perDayPayment : (emp.hourlyRate || 0),
                 paymentStatus: emp.paymentStatus || "Paid",
                 isVendorStaff: emp.isVendorStaff !== undefined ? !!emp.isVendorStaff : false,
+                clientName: emp.clientName || slip.client_name || "",
+                payableDays: emp.payableDays !== undefined ? emp.payableDays : (slip.payable_days || 0),
+                uanNo: emp.uanNo || slip.uan_no || "",
+                esicNo: emp.esicNo || slip.esic_no || "",
+                state: emp.state || slip.state || "",
+                stipend: emp.stipend !== undefined ? emp.stipend : (slip.stipend || 0),
                 basicPay: slip.basic_pay || 0,
+                basicActual: slip.basic_actual !== undefined ? slip.basic_actual : 0,
                 hra: slip.hra || 0,
+                hraActual: slip.hra_actual !== undefined ? slip.hra_actual : 0,
                 otherAllowance: slip.other_allowance || 0,
+                specialAllowanceActual: slip.special_allowance_actual !== undefined ? slip.special_allowance_actual : 0,
                 statBonus: slip.stat_bonus || 0,
+                statBonusActual: slip.stat_bonus_actual !== undefined ? slip.stat_bonus_actual : 0,
+                stipendActual: slip.stipend_actual !== undefined ? slip.stipend_actual : 0,
                 attendanceBonus: slip.attendance_bonus || 0,
+                attendanceBonusActual: slip.attendance_bonus_actual !== undefined ? slip.attendance_bonus_actual : 0,
                 leaveEncashment: slip.leave_encashment || 0,
+                leaveEncashmentActual: slip.leave_encashment_actual !== undefined ? slip.leave_encashment_actual : 0,
                 performanceIncentive: slip.performance_incentive || 0,
+                performanceIncentiveActual: slip.performance_incentive_actual !== undefined ? slip.performance_incentive_actual : 0,
                 extraPayment: slip.extra_payment || 0,
+                extraPaymentActual: slip.extra_payment_actual !== undefined ? slip.extra_payment_actual : 0,
                 shipmentIncentive: slip.shipment_incentive || 0,
+                shipmentIncentiveActual: slip.shipment_incentive_actual !== undefined ? slip.shipment_incentive_actual : 0,
                 mobileAllowance: slip.mobile_allowance || 0,
+                mobileAllowanceActual: slip.mobile_allowance_actual !== undefined ? slip.mobile_allowance_actual : 0,
                 mealIncentive: slip.meal_incentive || 0,
+                mealIncentiveActual: slip.meal_incentive_actual !== undefined ? slip.meal_incentive_actual : 0,
                 groupIncentive: slip.group_incentive || 0,
+                groupIncentiveActual: slip.group_incentive_actual !== undefined ? slip.group_incentive_actual : 0,
                 nightAllowance: slip.night_allowance || 0,
+                nightAllowanceActual: slip.night_allowance_actual !== undefined ? slip.night_allowance_actual : 0,
                 nationalHolidayPay: slip.national_holiday_pay || 0,
                 retentionBonus: slip.retention_bonus || 0,
+                retentionBonusActual: slip.retention_bonus_actual !== undefined ? slip.retention_bonus_actual : 0,
                 arrearPayment: slip.arrear_payment || 0,
+                arrearPaymentActual: slip.arrear_payment_actual !== undefined ? slip.arrear_payment_actual : 0,
                 esi: slip.esi || 0,
                 pf: slip.pf || 0,
                 lwf: slip.lwf || 0,
@@ -1004,10 +1235,17 @@
         function recalculateSlipTotals() {
             const earningsIds = [
                 "val-basic-pay", "val-hra", "val-other-allowance", "val-stat-bonus", 
-                "val-attendance-bonus", "val-leave-encashment", "val-performance-incentive", 
+                "val-stipend", "val-attendance-bonus", "val-leave-encashment", "val-performance-incentive", 
                 "val-extra-payment", "val-shipment-incentive", "val-mobile-allowance", 
                 "val-meal-incentive", "val-group-incentive", "val-night-allowance", 
-                "val-holiday-pay", "val-retention-bonus", "val-arrear-payment"
+                "val-retention-bonus", "val-arrear-payment"
+            ];
+            const earningsActualIds = [
+                "val-basic-actual", "val-hra-actual", "val-other-allowance-actual", "val-stat-bonus-actual", 
+                "val-stipend-actual", "val-attendance-bonus-actual", "val-leave-encashment-actual", "val-performance-incentive-actual", 
+                "val-extra-payment-actual", "val-shipment-incentive-actual", "val-mobile-allowance-actual", 
+                "val-meal-incentive-actual", "val-group-incentive-actual", "val-night-allowance-actual", 
+                "val-retention-bonus-actual", "val-arrear-payment-actual"
             ];
             const deductionsIds = [
                 "val-esi", "val-pf", "val-lwf", "val-meal-debit", "val-refyne-debit", 
@@ -1021,6 +1259,14 @@
                 const el = document.getElementById(id);
                 if (el) {
                     earningsTotal += parseFloat(el.textContent.replace(/[^\d.-]/g, "")) || 0;
+                }
+            });
+
+            let earningsActualTotal = 0;
+            earningsActualIds.forEach(id => {
+                const el = document.getElementById(id);
+                if (el) {
+                    earningsActualTotal += parseFloat(el.textContent.replace(/[^\d.-]/g, "")) || 0;
                 }
             });
 
@@ -1058,6 +1304,8 @@
 
             const netPay = earningsTotal - deductionsTotal;
 
+            const lblGrossActual = document.getElementById("lbl-net-gross-actual");
+            if (lblGrossActual) lblGrossActual.textContent = Math.round(earningsActualTotal);
             const lblGross = document.getElementById("lbl-net-gross");
             if (lblGross) lblGross.textContent = Math.round(earningsTotal);
             const lblDeductions = document.getElementById("lbl-total-deductions");
@@ -1117,23 +1365,33 @@
         }
 
         function populateCompilerFromEmployee(emp) {
+            const setVal = (id, val) => {
+                const el = document.getElementById(id);
+                if (el) el.value = val;
+            };
+
             if (!emp) {
                 // Clear all inputs for new creation
-                document.getElementById("comp-emp-code").value = "";
-                document.getElementById("comp-emp-code").disabled = false;
-                document.getElementById("comp-first-name").value = "";
-                document.getElementById("comp-last-name").value = "";
-                document.getElementById("comp-email").value = "";
-                document.getElementById("comp-designation").value = "";
-                document.getElementById("comp-department").value = "";
-                document.getElementById("comp-month").value = "June 2026";
-                document.getElementById("comp-work-location").value = "";
-                document.getElementById("comp-state").value = "DELHI";
-                document.getElementById("comp-working-days").value = "26";
-                document.getElementById("comp-base-salary").value = "0";
-                document.getElementById("comp-account-number").value = "";
-                document.getElementById("comp-bank-name").value = "";
-                document.getElementById("comp-ifsc-code").value = "";
+                setVal("comp-emp-code", "");
+                const codeEl = document.getElementById("comp-emp-code");
+                if (codeEl) codeEl.disabled = false;
+                setVal("comp-first-name", "");
+                setVal("comp-last-name", "");
+                setVal("comp-email", "");
+                setVal("comp-designation", "");
+                setVal("comp-department", "");
+                setVal("comp-month", "June 2026");
+                setVal("comp-work-location", "");
+                setVal("comp-state", "DELHI");
+                setVal("comp-working-days", "26");
+                setVal("comp-base-salary", "0");
+                setVal("comp-account-number", "");
+                setVal("comp-bank-name", "");
+                setVal("comp-ifsc-code", "");
+                setVal("comp-client-name", "");
+                setVal("comp-payable-days", "");
+                setVal("comp-uan-no", "");
+                setVal("comp-esic-no", "");
                 setStaffType("corporate");
 
                 const monetaryFields = [
@@ -1142,18 +1400,24 @@
                     "meal-incentive", "group-incentive", "night-allowance", "national-holiday-pay",
                     "retention-bonus", "arrear-payment", "esi", "pf", "lwf", "meal-debit", "refyne-debit",
                     "advance-salary", "pt", "ebike-debit", "advance-weeks", "shipment-debit", "accommodation",
-                    "notice-period", "cod-loss", "tshirt-recovery", "ewf-deduction", "tds"
+                    "notice-period", "cod-loss", "tshirt-recovery", "ewf-deduction", "tds",
+                    "stipend", "stipend-actual",
+                    "basic-actual", "hra-actual", "other-allowance-actual", "stat-bonus-actual",
+                    "attendance-bonus-actual", "leave-encashment-actual", "performance-incentive-actual",
+                    "extra-payment-actual", "shipment-incentive-actual", "mobile-allowance-actual",
+                    "meal-incentive-actual", "group-incentive-actual", "night-allowance-actual",
+                    "retention-bonus-actual", "arrear-payment-actual"
                 ];
                 monetaryFields.forEach(id => {
-                    const el = document.getElementById("comp-" + id);
-                    if (el) el.value = "0";
+                    setVal("comp-" + id, "0");
                 });
                 return;
             }
 
             // Populate with existing details
-            document.getElementById("comp-emp-code").value = emp.id || "";
-            document.getElementById("comp-emp-code").disabled = true; // Emp code shouldn't change for edits
+            setVal("comp-emp-code", emp.id || "");
+            const codeEl = document.getElementById("comp-emp-code");
+            if (codeEl) codeEl.disabled = true; // Emp code shouldn't change for edits
             
             let firstName = "", lastName = "";
             if (emp.name) {
@@ -1161,59 +1425,80 @@
                 firstName = parts[0];
                 lastName = parts.slice(1).join(" ");
             }
-            document.getElementById("comp-first-name").value = firstName;
-            document.getElementById("comp-last-name").value = lastName;
+            setVal("comp-first-name", firstName);
+            setVal("comp-last-name", lastName);
             
-            document.getElementById("comp-email").value = emp.email || "";
-            document.getElementById("comp-designation").value = emp.role || emp.department || "";
-            document.getElementById("comp-department").value = emp.department || "";
-            document.getElementById("comp-month").value = emp.month || "June 2026";
-            document.getElementById("comp-work-location").value = emp.workLocation || emp.location || "";
-            document.getElementById("comp-state").value = emp.state || emp.location || "DELHI";
+            setVal("comp-email", emp.email || "");
+            setVal("comp-designation", emp.role || emp.department || "");
+            setVal("comp-department", emp.department || "");
+            setVal("comp-month", emp.month || "June 2026");
+            setVal("comp-work-location", emp.workLocation || emp.location || "");
+            setVal("comp-state", emp.state || emp.location || "DELHI");
             
             const workingDaysVal = emp.isVendorStaff ? (parseFloat(emp.workingDays) || 0) : ((parseFloat(emp.hoursWorked) || 0) / 8);
-            document.getElementById("comp-working-days").value = workingDaysVal.toFixed(0);
+            setVal("comp-working-days", workingDaysVal.toFixed(0));
             
-            document.getElementById("comp-base-salary").value = emp.isVendorStaff ? (emp.perDayPayment || 0) : (emp.baseSalary || 0);
-            document.getElementById("comp-account-number").value = emp.accountNumber || "";
-            document.getElementById("comp-bank-name").value = emp.bankName || "";
-            document.getElementById("comp-ifsc-code").value = emp.ifscCode || "";
+            setVal("comp-base-salary", emp.isVendorStaff ? (emp.perDayPayment || 0) : (emp.baseSalary || 0));
+            setVal("comp-account-number", emp.accountNumber || "");
+            setVal("comp-bank-name", emp.bankName || "");
+            setVal("comp-ifsc-code", emp.ifscCode || "");
+            setVal("comp-client-name", emp.clientName || "");
+            setVal("comp-payable-days", emp.payableDays !== undefined ? emp.payableDays : "");
+            setVal("comp-uan-no", emp.uanNo || "");
+            setVal("comp-esic-no", emp.esicNo || "");
             setStaffType(emp.isVendorStaff ? "vendor" : "corporate");
 
             const slip = emp.slip || {};
-            document.getElementById("comp-basic-pay").value = Math.round(slip.basic_pay || 0);
-            document.getElementById("comp-hra").value = Math.round(slip.hra || 0);
-            document.getElementById("comp-other-allowance").value = Math.round(slip.other_allowance || 0);
-            document.getElementById("comp-stat-bonus").value = Math.round(slip.stat_bonus || 0);
-            document.getElementById("comp-attendance-bonus").value = Math.round(slip.attendance_bonus || 0);
-            document.getElementById("comp-leave-encashment").value = Math.round(slip.leave_encashment || 0);
-            document.getElementById("comp-performance-incentive").value = Math.round(slip.performance_incentive || 0);
-            document.getElementById("comp-extra-payment").value = Math.round(slip.extra_payment || 0);
-            document.getElementById("comp-shipment-incentive").value = Math.round(slip.shipment_incentive || 0);
-            document.getElementById("comp-mobile-allowance").value = Math.round(slip.mobile_allowance || 0);
-            document.getElementById("comp-meal-incentive").value = Math.round(slip.meal_incentive || 0);
-            document.getElementById("comp-group-incentive").value = Math.round(slip.group_incentive || 0);
-            document.getElementById("comp-night-allowance").value = Math.round(slip.night_allowance || 0);
-            document.getElementById("comp-national-holiday-pay").value = Math.round(slip.national_holiday_pay || 0);
-            document.getElementById("comp-retention-bonus").value = Math.round(slip.retention_bonus || 0);
-            document.getElementById("comp-arrear-payment").value = Math.round(slip.arrear_payment || 0);
+            setVal("comp-basic-pay", Math.round(slip.basic_pay || 0));
+            setVal("comp-basic-actual", Math.round(emp.basicActual || 0));
+            setVal("comp-hra", Math.round(slip.hra || 0));
+            setVal("comp-hra-actual", Math.round(emp.hraActual || 0));
+            setVal("comp-other-allowance", Math.round(slip.other_allowance || 0));
+            setVal("comp-other-allowance-actual", Math.round(emp.specialAllowanceActual || 0));
+            setVal("comp-stat-bonus", Math.round(slip.stat_bonus || 0));
+            setVal("comp-stat-bonus-actual", Math.round(emp.statBonusActual || 0));
+            setVal("comp-stipend", Math.round(emp.stipend || 0));
+            setVal("comp-stipend-actual", Math.round(emp.stipendActual || 0));
+            setVal("comp-attendance-bonus", Math.round(slip.attendance_bonus || 0));
+            setVal("comp-attendance-bonus-actual", Math.round(emp.attendanceBonusActual || 0));
+            setVal("comp-leave-encashment", Math.round(slip.leave_encashment || 0));
+            setVal("comp-leave-encashment-actual", Math.round(emp.leaveEncashmentActual || 0));
+            setVal("comp-performance-incentive", Math.round(slip.performance_incentive || 0));
+            setVal("comp-performance-incentive-actual", Math.round(emp.performanceIncentiveActual || 0));
+            setVal("comp-extra-payment", Math.round(slip.extra_payment || 0));
+            setVal("comp-extra-payment-actual", Math.round(emp.extraPaymentActual || 0));
+            setVal("comp-shipment-incentive", Math.round(slip.shipment_incentive || 0));
+            setVal("comp-shipment-incentive-actual", Math.round(emp.shipmentIncentiveActual || 0));
+            setVal("comp-mobile-allowance", Math.round(slip.mobile_allowance || 0));
+            setVal("comp-mobile-allowance-actual", Math.round(emp.mobileAllowanceActual || 0));
+            setVal("comp-meal-incentive", Math.round(slip.meal_incentive || 0));
+            setVal("comp-meal-incentive-actual", Math.round(emp.mealIncentiveActual || 0));
+            setVal("comp-group-incentive", Math.round(slip.group_incentive || 0));
+            setVal("comp-group-incentive-actual", Math.round(emp.groupIncentiveActual || 0));
+            setVal("comp-night-allowance", Math.round(slip.night_allowance || 0));
+            setVal("comp-night-allowance-actual", Math.round(emp.nightAllowanceActual || 0));
+            setVal("comp-national-holiday-pay", Math.round(slip.national_holiday_pay || 0));
+            setVal("comp-retention-bonus", Math.round(slip.retention_bonus || 0));
+            setVal("comp-retention-bonus-actual", Math.round(emp.retentionBonusActual || 0));
+            setVal("comp-arrear-payment", Math.round(slip.arrear_payment || 0));
+            setVal("comp-arrear-payment-actual", Math.round(emp.arrearPaymentActual || 0));
             
-            document.getElementById("comp-esi").value = Math.round(slip.esi || 0);
-            document.getElementById("comp-pf").value = Math.round(slip.pf || 0);
-            document.getElementById("comp-lwf").value = Math.round(slip.lwf || 0);
-            document.getElementById("comp-meal-debit").value = Math.round(slip.meal_debit || 0);
-            document.getElementById("comp-refyne-debit").value = Math.round(slip.refyne_debit || 0);
-            document.getElementById("comp-advance-salary").value = Math.round(slip.advance_salary || 0);
-            document.getElementById("comp-pt").value = Math.round(slip.pt || 0);
-            document.getElementById("comp-ebike-debit").value = Math.round(slip.e_bike_debit || 0);
-            document.getElementById("comp-advance-weeks").value = Math.round(slip.advance_payments_in_weeks || 0);
-            document.getElementById("comp-shipment-debit").value = Math.round(slip.shipment_debit || 0);
-            document.getElementById("comp-accommodation").value = Math.round(slip.accommodation_recovery || 0);
-            document.getElementById("comp-notice-period").value = Math.round(slip.notice_period_deduction || 0);
-            document.getElementById("comp-cod-loss").value = Math.round(slip.cod_loss || 0);
-            document.getElementById("comp-tshirt-recovery").value = Math.round(slip.tshirt_recovery || 0);
-            document.getElementById("comp-ewf-deduction").value = Math.round(slip.ewf_deduction || 0);
-            document.getElementById("comp-tds").value = Math.round(slip.tds || 0);
+            setVal("comp-esi", Math.round(slip.esi || 0));
+            setVal("comp-pf", Math.round(slip.pf || 0));
+            setVal("comp-lwf", Math.round(slip.lwf || 0));
+            setVal("comp-meal-debit", Math.round(slip.meal_debit || 0));
+            setVal("comp-refyne-debit", Math.round(slip.refyne_debit || 0));
+            setVal("comp-advance-salary", Math.round(slip.advance_salary || 0));
+            setVal("comp-pt", Math.round(slip.pt || 0));
+            setVal("comp-ebike-debit", Math.round(slip.e_bike_debit || 0));
+            setVal("comp-advance-weeks", Math.round(slip.advance_payments_in_weeks || 0));
+            setVal("comp-shipment-debit", Math.round(slip.shipment_debit || 0));
+            setVal("comp-accommodation", Math.round(slip.accommodation_recovery || 0));
+            setVal("comp-notice-period", Math.round(slip.notice_period_deduction || 0));
+            setVal("comp-cod-loss", Math.round(slip.cod_loss || 0));
+            setVal("comp-tshirt-recovery", Math.round(slip.tshirt_recovery || 0));
+            setVal("comp-ewf-deduction", Math.round(slip.ewf_deduction || 0));
+            setVal("comp-tds", Math.round(slip.tds || 0));
         }
 
         function syncCompilerToPreview() {
@@ -1238,19 +1523,44 @@
             document.getElementById("lbl-state").textContent = (stateInput || "DELHI").toUpperCase();
             document.getElementById("lbl-work-location").textContent = location || "—";
             
-            let uniqueUan = "101458016658";
-            if (code) {
-                const numericPart = code.replace(/\D/g, "");
-                if (numericPart) uniqueUan = "10145" + String(numericPart).padStart(7, "0");
+            let uniqueUan = "";
+            const uanInput = document.getElementById("comp-uan-no").value.trim();
+            if (uanInput) {
+                uniqueUan = uanInput;
+            } else {
+                uniqueUan = "101458016658";
+                if (code) {
+                    const numericPart = code.replace(/\D/g, "");
+                    if (numericPart) uniqueUan = "10145" + String(numericPart).padStart(7, "0");
+                }
             }
             document.getElementById("lbl-uan-no").textContent = uniqueUan;
             
-            let uniqueEsic = "2019712124";
-            if (code) {
-                const numericPart = code.replace(/\D/g, "");
-                if (numericPart) uniqueEsic = "2019" + String(numericPart).padStart(6, "0");
+            let uniqueEsic = "";
+            const esicInput = document.getElementById("comp-esic-no").value.trim();
+            if (esicInput) {
+                uniqueEsic = esicInput;
+            } else {
+                uniqueEsic = "2019712124";
+                if (code) {
+                    const numericPart = code.replace(/\D/g, "");
+                    if (numericPart) uniqueEsic = "2019" + String(numericPart).padStart(6, "0");
+                }
             }
             document.getElementById("lbl-esic-no").textContent = uniqueEsic;
+
+            const clientNameInput = document.getElementById("comp-client-name").value.trim();
+            const clientNameEl = document.getElementById("lbl-client-name");
+            if (clientNameEl) {
+                const settings = state.companySettings || DEFAULT_COMPANY_SETTINGS;
+                clientNameEl.textContent = clientNameInput || settings.shortName || "Company Short Name";
+            }
+
+            const payableDaysInput = document.getElementById("comp-payable-days").value.trim();
+            const payableDaysEl = document.getElementById("lbl-payable-days");
+            if (payableDaysEl) {
+                payableDaysEl.textContent = payableDaysInput ? parseFloat(payableDaysInput).toFixed(0) : "—";
+            }
 
             const otherAllowLabel = document.getElementById("lbl-other-allowance");
             const ptLabel = document.getElementById("lbl-pt-deduction");
@@ -1267,10 +1577,23 @@
             }
 
             const monetaryFields = [
-                "basic-pay", "hra", "other-allowance", "stat-bonus", "attendance-bonus", "leave-encashment",
-                "performance-incentive", "extra-payment", "shipment-incentive", "mobile-allowance",
-                "meal-incentive", "group-incentive", "night-allowance", "national-holiday-pay",
-                "retention-bonus", "arrear-payment", "esi", "pf", "lwf", "meal-debit", "refyne-debit",
+                "basic-pay", "basic-actual",
+                "hra", "hra-actual",
+                "other-allowance", "other-allowance-actual",
+                "stat-bonus", "stat-bonus-actual",
+                "stipend", "stipend-actual",
+                "attendance-bonus", "attendance-bonus-actual",
+                "leave-encashment", "leave-encashment-actual",
+                "performance-incentive", "performance-incentive-actual",
+                "extra-payment", "extra-payment-actual",
+                "shipment-incentive", "shipment-incentive-actual",
+                "mobile-allowance", "mobile-allowance-actual",
+                "meal-incentive", "meal-incentive-actual",
+                "group-incentive", "group-incentive-actual",
+                "night-allowance", "night-allowance-actual",
+                "retention-bonus", "retention-bonus-actual",
+                "arrear-payment", "arrear-payment-actual",
+                "esi", "pf", "lwf", "meal-debit", "refyne-debit",
                 "advance-salary", "pt", "ebike-debit", "advance-weeks", "shipment-debit", "accommodation",
                 "notice-period", "cod-loss", "tshirt-recovery", "ewf-deduction", "tds"
             ];
@@ -1373,26 +1696,48 @@
                 payment_status: "Paid",
                 utr: state.selectedEmployee ? (state.selectedEmployee.utr || "") : "",
 
+                client_name: document.getElementById("comp-client-name").value.trim(),
+                payable_days: parseFloat(document.getElementById("comp-payable-days").value) || 0,
+                uan_no: document.getElementById("comp-uan-no").value.trim(),
+                esic_no: document.getElementById("comp-esic-no").value.trim(),
+
                 base_salary: readVal("comp-base-salary"),
                 working_days: parseFloat(document.getElementById("comp-working-days").value) || 0,
                 hourly_rate: readVal("comp-base-salary"),
 
                 basic_pay: readVal("comp-basic-pay"),
+                basic_actual: readVal("comp-basic-actual"),
                 hra: readVal("comp-hra"),
+                hra_actual: readVal("comp-hra-actual"),
                 other_allowance: readVal("comp-other-allowance"),
+                special_allowance_actual: readVal("comp-other-allowance-actual"),
                 stat_bonus: readVal("comp-stat-bonus"),
+                stat_bonus_actual: readVal("comp-stat-bonus-actual"),
+                stipend: readVal("comp-stipend"),
+                stipend_actual: readVal("comp-stipend-actual"),
                 attendance_bonus: readVal("comp-attendance-bonus"),
+                attendance_bonus_actual: readVal("comp-attendance-bonus-actual"),
                 leave_encashment: readVal("comp-leave-encashment"),
+                leave_encashment_actual: readVal("comp-leave-encashment-actual"),
                 performance_incentive: readVal("comp-performance-incentive"),
+                performance_incentive_actual: readVal("comp-performance-incentive-actual"),
                 extra_payment: readVal("comp-extra-payment"),
+                extra_payment_actual: readVal("comp-extra-payment-actual"),
                 shipment_incentive: readVal("comp-shipment-incentive"),
+                shipment_incentive_actual: readVal("comp-shipment-incentive-actual"),
                 mobile_allowance: readVal("comp-mobile-allowance"),
+                mobile_allowance_actual: readVal("comp-mobile-allowance-actual"),
                 meal_incentive: readVal("comp-meal-incentive"),
+                meal_incentive_actual: readVal("comp-meal-incentive-actual"),
                 group_incentive: readVal("comp-group-incentive"),
+                group_incentive_actual: readVal("comp-group-incentive-actual"),
                 night_allowance: readVal("comp-night-allowance"),
+                night_allowance_actual: readVal("comp-night-allowance-actual"),
                 national_holiday_pay: readVal("comp-national-holiday-pay"),
                 retention_bonus: readVal("comp-retention-bonus"),
+                retention_bonus_actual: readVal("comp-retention-bonus-actual"),
                 arrear_payment: readVal("comp-arrear-payment"),
+                arrear_payment_actual: readVal("comp-arrear-payment-actual"),
 
                 esi: readVal("comp-esi"),
                 pf: readVal("comp-pf"),
@@ -1627,31 +1972,45 @@
             }
             
             document.getElementById("lbl-emp-code").textContent = emp.id;
-            document.getElementById("lbl-company-month").textContent = settings.shortName || "Company Short Name";
+            const clientNameEl = document.getElementById("lbl-client-name");
+            if (clientNameEl) {
+                clientNameEl.textContent = emp.clientName || settings.shortName || "Company Short Name";
+            }
             document.getElementById("lbl-emp-name").textContent = emp.name;
             document.getElementById("lbl-month").textContent = shortMonthStr;
-            document.getElementById("lbl-designation").textContent = emp.department || "Consultant";
+            document.getElementById("lbl-designation").textContent = emp.role || "Consultant";
             
             const workingDaysVal = emp.isVendorStaff ? (parseFloat(emp.workingDays) || 0) : ((parseFloat(emp.hoursWorked) || 0) / 8);
             document.getElementById("lbl-working-days").textContent = workingDaysVal.toFixed(0);
             
-            let uniqueUan = "101458016658";
-            if (emp.id) {
-                const numericPart = emp.id.replace(/\D/g, "");
-                if (numericPart) {
-                    uniqueUan = "10145" + String(numericPart).padStart(7, "0");
+            const payableDaysEl = document.getElementById("lbl-payable-days");
+            if (payableDaysEl) {
+                payableDaysEl.textContent = emp.payableDays ? parseFloat(emp.payableDays).toFixed(0) : "—";
+            }
+
+            let uniqueUan = emp.uanNo;
+            if (!uniqueUan) {
+                uniqueUan = "101458016658";
+                if (emp.id) {
+                    const numericPart = emp.id.replace(/\D/g, "");
+                    if (numericPart) {
+                        uniqueUan = "10145" + String(numericPart).padStart(7, "0");
+                    }
                 }
             }
             document.getElementById("lbl-uan-no").textContent = uniqueUan;
             document.getElementById("lbl-account-no").textContent = emp.accountNumber || "—";
-            document.getElementById("lbl-state").textContent = emp.state || emp.location || "DELHI";
+            document.getElementById("lbl-state").textContent = getEmpState(emp);
             document.getElementById("lbl-work-location").textContent = emp.location || emp.centre || "Gurgaon";
             
-            let uniqueEsic = "2019712124";
-            if (emp.id) {
-                const numericPart = emp.id.replace(/\D/g, "");
-                if (numericPart) {
-                    uniqueEsic = "2019" + String(numericPart).padStart(6, "0");
+            let uniqueEsic = emp.esicNo;
+            if (!uniqueEsic) {
+                uniqueEsic = "2019712124";
+                if (emp.id) {
+                    const numericPart = emp.id.replace(/\D/g, "");
+                    if (numericPart) {
+                        uniqueEsic = "2019" + String(numericPart).padStart(6, "0");
+                    }
                 }
             }
             document.getElementById("lbl-esic-no").textContent = uniqueEsic;
@@ -1661,21 +2020,37 @@
             // Populate all preview cells from stored db properties
             const fieldsMap = {
                 "val-basic-pay": emp.basicPay || 0,
+                "val-basic-actual": emp.basicActual || 0,
                 "val-hra": emp.hra || 0,
+                "val-hra-actual": emp.hraActual || 0,
                 "val-other-allowance": emp.otherAllowance || 0,
+                "val-other-allowance-actual": emp.specialAllowanceActual || 0,
                 "val-stat-bonus": emp.statBonus || 0,
+                "val-stat-bonus-actual": emp.statBonusActual || 0,
+                "val-stipend": emp.stipend || 0,
+                "val-stipend-actual": emp.stipendActual || 0,
                 "val-attendance-bonus": emp.attendanceBonus || 0,
+                "val-attendance-bonus-actual": emp.attendanceBonusActual || 0,
                 "val-leave-encashment": emp.leaveEncashment || 0,
+                "val-leave-encashment-actual": emp.leaveEncashmentActual || 0,
                 "val-performance-incentive": emp.performanceIncentive || 0,
+                "val-performance-incentive-actual": emp.performanceIncentiveActual || 0,
                 "val-extra-payment": emp.extraPayment || 0,
+                "val-extra-payment-actual": emp.extraPaymentActual || 0,
                 "val-shipment-incentive": emp.shipmentIncentive || 0,
+                "val-shipment-incentive-actual": emp.shipmentIncentiveActual || 0,
                 "val-mobile-allowance": emp.mobileAllowance || 0,
+                "val-mobile-allowance-actual": emp.mobileAllowanceActual || 0,
                 "val-meal-incentive": emp.mealIncentive || 0,
+                "val-meal-incentive-actual": emp.mealIncentiveActual || 0,
                 "val-group-incentive": emp.groupIncentive || 0,
+                "val-group-incentive-actual": emp.groupIncentiveActual || 0,
                 "val-night-allowance": emp.nightAllowance || 0,
-                "val-holiday-pay": emp.nationalHolidayPay || 0,
+                "val-night-allowance-actual": emp.nightAllowanceActual || 0,
                 "val-retention-bonus": emp.retentionBonus || 0,
+                "val-retention-bonus-actual": emp.retentionBonusActual || 0,
                 "val-arrear-payment": emp.arrearPayment || 0,
+                "val-arrear-payment-actual": emp.arrearPaymentActual || 0,
                 
                 "val-esi": emp.esi || 0,
                 "val-pf": emp.pf || 0,
@@ -1741,14 +2116,17 @@
             }
 
             // Set labels dynamically
-            if (emp.isVendorStaff) {
-                document.getElementById("lbl-other-allowance").textContent = "Other Allowance";
-                document.getElementById("lbl-pt-deduction").textContent = "PT";
-                document.getElementById("lbl-tds-tax").textContent = "TDS (1%)";
-            } else {
-                document.getElementById("lbl-other-allowance").textContent = "Other Allowance / OT";
-                document.getElementById("lbl-pt-deduction").textContent = "PT / Admin Ded";
-                document.getElementById("lbl-tds-tax").textContent = "Income Tax (15%)";
+            const otherAllowLabel = document.getElementById("lbl-other-allowance");
+            const ptLabel = document.getElementById("lbl-pt-deduction");
+            const tdsLabel = document.getElementById("lbl-tds-tax");
+            if (otherAllowLabel) {
+                otherAllowLabel.textContent = emp.isVendorStaff ? "Other Allowance" : "Other Allowance / OT";
+            }
+            if (ptLabel) {
+                ptLabel.textContent = emp.isVendorStaff ? "PT" : "PT / Admin Ded";
+            }
+            if (tdsLabel) {
+                tdsLabel.textContent = emp.isVendorStaff ? "TDS (1%)" : "Income Tax (15%)";
             }
 
             recalculateSlipTotals();
@@ -1760,22 +2138,26 @@
 
         function resetFormCells() {
             const cellIds = [
-                "val-basic-pay", "val-esi", "val-hra", "val-pf", "val-other-allowance", "val-lwf",
-                "val-stat-bonus", "val-meal-debit", "val-attendance-bonus", "val-refyne-debit",
-                "val-leave-encashment", "val-advance-salary", "val-performance-incentive", "val-pt",
-                "val-extra-payment", "val-ebike-debit", "val-shipment-incentive", "val-advance-weeks",
-                "val-mobile-allowance", "val-shipment-debit", "val-meal-incentive", "val-accommodation",
-                "val-group-incentive", "val-notice-period", "val-night-allowance", "val-cod-loss",
-                "val-holiday-pay", "val-tshirt-recovery", "val-retention-bonus", "val-ewf-deduction",
-                "val-arrear-payment", "val-tds"
+                "val-basic-pay", "val-basic-actual", "val-esi", "val-hra", "val-hra-actual", "val-pf",
+                "val-other-allowance", "val-other-allowance-actual", "val-lwf",
+                "val-stat-bonus", "val-stat-bonus-actual", "val-meal-debit", "val-attendance-bonus", "val-attendance-bonus-actual", "val-refyne-debit",
+                "val-leave-encashment", "val-leave-encashment-actual", "val-advance-salary", "val-performance-incentive", "val-performance-incentive-actual", "val-pt",
+                "val-extra-payment", "val-extra-payment-actual", "val-ebike-debit", "val-shipment-incentive", "val-shipment-incentive-actual", "val-advance-weeks",
+                "val-mobile-allowance", "val-mobile-allowance-actual", "val-shipment-debit", "val-meal-incentive", "val-meal-incentive-actual", "val-accommodation",
+                "val-group-incentive", "val-group-incentive-actual", "val-notice-period", "val-night-allowance", "val-night-allowance-actual", "val-cod-loss",
+                "val-stipend", "val-stipend-actual", "val-tshirt-recovery", "val-retention-bonus", "val-retention-bonus-actual", "val-ewf-deduction",
+                "val-arrear-payment", "val-arrear-payment-actual", "val-tds"
             ];
             cellIds.forEach(id => {
                 const el = document.getElementById(id);
                 if (el) el.textContent = "0";
             });
-            document.getElementById("lbl-other-allowance").textContent = "Other Allowance";
-            document.getElementById("lbl-pt-deduction").textContent = "PT";
-            document.getElementById("lbl-tds-tax").textContent = "TDS";
+            const otherAllowLabel = document.getElementById("lbl-other-allowance");
+            const ptLabel = document.getElementById("lbl-pt-deduction");
+            const tdsLabel = document.getElementById("lbl-tds-tax");
+            if (otherAllowLabel) otherAllowLabel.textContent = "Other Allowance";
+            if (ptLabel) ptLabel.textContent = "PT";
+            if (tdsLabel) tdsLabel.textContent = "TDS";
         }
 
         function renderSelectionList() {
@@ -1967,6 +2349,28 @@
                 renderSelectionList();
                 loadPayslipPreview(activeId);
             });
+
+            // Allow clicking on any preview value cell to edit it in the sidebar
+            const payslipContent = document.getElementById("payslip-content");
+            if (payslipContent) {
+                payslipContent.addEventListener("click", (e) => {
+                    const target = e.target.closest("[id^='val-']");
+                    if (target) {
+                        let fieldName = target.id.replace("val-", "");
+                        if (fieldName === "holiday-pay") {
+                            fieldName = "national-holiday-pay";
+                        }
+                        const inputEl = document.getElementById("comp-" + fieldName);
+                        if (inputEl) {
+                            onEditSlipClicked();
+                            // Scroll input into view and focus it
+                            inputEl.scrollIntoView({ behavior: "smooth", block: "center" });
+                            inputEl.focus();
+                            inputEl.select(); // Highlight value for easy typing
+                        }
+                    }
+                });
+            }
         });
 
         function generateSinglePayslipHTML(emp, settings) {
@@ -2160,7 +2564,7 @@
                                 </tr>
                                 <tr>
                                     <td class="border border-black p-2">STATE</td>
-                                    <td class="border border-black p-2 font-normal uppercase">${emp.state || emp.location || "DELHI"}</td>
+                                    <td class="border border-black p-2 font-normal uppercase">${getEmpState(emp)}</td>
                                     <td class="border border-black p-2">Work Location</td>
                                     <td class="border border-black p-2 font-normal">${emp.location || emp.centre || "Gurgaon"}</td>
                                 </tr>
@@ -2441,6 +2845,657 @@
                 window.print();
             }, 100);
         }
+
+        // Bulk Upload Modal Actions
+        let parsedRows = [];
+        let validationResults = [];
+
+        const columnMapping = {
+            "emp code": "employee_code",
+            "employee code": "employee_code",
+            "employee_code": "employee_code",
+            "id": "employee_code",
+            "employee name": "name",
+            "name": "name",
+            "designation": "designation",
+            "role": "designation",
+            "work location": "work_location",
+            "location": "work_location",
+            "state": "state",
+            "client name": "client_name",
+            "client": "client_name",
+            "month": "month",
+            "working days": "working_days",
+            "working day": "working_days",
+            "payable days": "payable_days",
+            "payable day": "payable_days",
+            "account number": "account_number",
+            "account no": "account_number",
+            "account no.": "account_number",
+            "uan no": "uan_no",
+            "uan": "uan_no",
+            "esic no": "esic_no",
+            "esic": "esic_no",
+            
+            // Earnings Actual
+            "basic actual": "basic_actual",
+            "basic_a": "basic_actual",
+            "hra actual": "hra_actual",
+            "hra_a": "hra_actual",
+            "special allowance actual": "special_allowance_actual",
+            "special_allowance_a": "special_allowance_actual",
+            "stat bonus actual": "stat_bonus_actual",
+            "stat_bonus_a": "stat_bonus_actual",
+            "stipend actual": "stipend_actual",
+            "stipend_a": "stipend_actual",
+            "attendance bonus actual": "attendance_bonus_actual",
+            "leave encashment actual": "leave_encashment_actual",
+            "performance incentive actual": "performance_incentive_actual",
+            "extra payment actual": "extra_payment_actual",
+            "shipment incentive actual": "shipment_incentive_actual",
+            "mobile allowance actual": "mobile_allowance_actual",
+            "meal incentive actual": "meal_incentive_actual",
+            "group incentive actual": "group_incentive_actual",
+            "night allowance actual": "night_allowance_actual",
+            "retention bonus actual": "retention_bonus_actual",
+            "arrear payment actual": "arrear_payment_actual",
+
+            // Earnings Earned
+            "basic earned": "basic_pay",
+            "basic pay": "basic_pay",
+            "hra earned": "hra",
+            "hra": "hra",
+            "special allowance earned": "other_allowance",
+            "special allowance": "other_allowance",
+            "other allowance": "other_allowance",
+            "stat bonus earned": "stat_bonus",
+            "stat bonus": "stat_bonus",
+            "stipend earned": "stipend",
+            "stipend": "stipend",
+            "attendance bonus earned": "attendance_bonus",
+            "attendance bonus": "attendance_bonus",
+            "leave encashment earned": "leave_encashment",
+            "leave encashment": "leave_encashment",
+            "performance incentive earned": "performance_incentive",
+            "performance incentive": "performance_incentive",
+            "extra payment earned": "extra_payment",
+            "extra payment": "extra_payment",
+            "shipment incentive earned": "shipment_incentive",
+            "shipment incentive": "shipment_incentive",
+            "mobile allowance earned": "mobile_allowance",
+            "mobile allowance": "mobile_allowance",
+            "meal incentive earned": "meal_incentive",
+            "meal incentive": "meal_incentive",
+            "group incentive earned": "group_incentive",
+            "group incentive": "group_incentive",
+            "night allowance earned": "night_allowance",
+            "night allowance": "night_allowance",
+            "retention bonus earned": "retention_bonus",
+            "retention bonus": "retention_bonus",
+            "arrear payment earned": "arrear_payment",
+            "arrear payment": "arrear_payment",
+
+            // Deductions
+            "e.s.i.": "esi",
+            "esi": "esi",
+            "p.f.": "pf",
+            "pf": "pf",
+            "lwf": "lwf",
+            "ewf deduction": "ewf_deduction",
+            "ewf": "ewf_deduction",
+            "meal debit": "meal_debit",
+            "refyne debit": "refyne_debit",
+            "advance salary": "advance_salary",
+            "pt": "pt",
+            "e-bike debit": "e_bike_debit",
+            "ebike debit": "e_bike_debit",
+            "advance payments in weeks": "advance_payments_in_weeks",
+            "shipment debit": "shipment_debit",
+            "cod loss": "cod_loss",
+            "notice period deduction": "notice_period_deduction",
+            "tshirt recovery": "tshirt_recovery"
+        };
+
+        function openBulkUploadModal() {
+            resetBulkModalState();
+            const modal = document.getElementById("bulk-upload-modal");
+            if (!modal) return;
+            modal.classList.remove("hidden");
+            modal.classList.add("flex");
+            setTimeout(() => {
+                modal.classList.remove("opacity-0");
+                modal.classList.add("opacity-100");
+                const container = modal.querySelector("div");
+                if (container) {
+                    container.classList.remove("scale-95");
+                    container.classList.add("scale-100");
+                }
+            }, 10);
+        }
+
+        function closeBulkUploadModal() {
+            const modal = document.getElementById("bulk-upload-modal");
+            if (!modal) return;
+            const container = modal.querySelector("div");
+            if (container) {
+                container.classList.remove("scale-100");
+                container.classList.add("scale-95");
+            }
+            modal.classList.remove("opacity-100");
+            modal.classList.add("opacity-0");
+            setTimeout(() => {
+                modal.classList.add("hidden");
+                modal.classList.remove("flex");
+                resetBulkModalState();
+            }, 300);
+        }
+
+        function resetBulkModalState() {
+            parsedRows = [];
+            validationResults = [];
+            
+            document.getElementById("bulk-upload-step-1").classList.remove("hidden");
+            document.getElementById("bulk-progress-container").classList.add("hidden");
+            document.getElementById("bulk-summary-container").classList.add("hidden");
+            
+            updateProgressBar(0, "Ready to read file...");
+
+            const btn = document.getElementById("btn-import-bulk");
+            if (btn) {
+                btn.disabled = true;
+                btn.classList.add("cursor-not-allowed", "bg-slate-200", "text-slate-400");
+                btn.classList.remove("bg-qt-primary", "text-white", "hover:bg-qt-primary/95", "cursor-pointer");
+            }
+
+            const fileInput = document.getElementById("bulk-file-input");
+            if (fileInput) fileInput.value = "";
+        }
+
+        function updateProgressBar(percent, text) {
+            const bar = document.getElementById("bulk-progress-bar");
+            if (bar) bar.style.width = `${percent}%`;
+            const pct = document.getElementById("bulk-progress-percent");
+            if (pct) pct.textContent = `${percent}%`;
+            const textEl = document.querySelector("#bulk-progress-container span");
+            if (textEl && text) textEl.textContent = text;
+        }
+
+        function downloadSalarySlipTemplate() {
+            const headers = [
+                "Emp Code", "Employee Name", "Designation", "Work Location", "State", "Client Name", "Month", "Working Days", "Payable Days", "Account Number", "UAN No", "ESIC No",
+                "Basic Actual", "Basic Earned",
+                "HRA Actual", "HRA Earned",
+                "Special Allowance Actual", "Special Allowance Earned",
+                "Stat Bonus Actual", "Stat Bonus Earned",
+                "Stipend Actual", "Stipend Earned",
+                "Attendance Bonus Actual", "Attendance Bonus Earned",
+                "Leave Encashment Actual", "Leave Encashment Earned",
+                "Performance Incentive Actual", "Performance Incentive Earned",
+                "Extra Payment Actual", "Extra Payment Earned",
+                "Shipment Incentive Actual", "Shipment Incentive Earned",
+                "Mobile Allowance Actual", "Mobile Allowance Earned",
+                "Meal Incentive Actual", "Meal Incentive Earned",
+                "Group Incentive Actual", "Group Incentive Earned",
+                "Night Allowance Actual", "Night Allowance Earned",
+                "Retention Bonus Actual", "Retention Bonus Earned",
+                "Arrear Payment Actual", "Arrear Payment Earned",
+                "E.S.I.", "P.F.", "LWF", "EWF Deduction", "Meal Debit", "Refyne Debit", "Advance Salary", "PT", "E-Bike Debit", "Advance Payments In Weeks", "Shipment Debit", "COD Loss", "Notice Period Deduction", "Tshirt Recovery"
+            ];
+
+            const rows = [];
+            if (state.employees && state.employees.length > 0) {
+                state.employees.forEach(emp => {
+                    const slip = emp.slip || {};
+                    const workingDaysVal = emp.isVendorStaff ? (parseFloat(emp.workingDays) || 0) : ((parseFloat(emp.hoursWorked) || 0) / 8);
+                    rows.push([
+                        emp.id || "",
+                        emp.name || "",
+                        emp.role || "Consultant",
+                        emp.location || emp.centre || "",
+                        emp.state || "DELHI",
+                        emp.clientName || "",
+                        emp.month || "June 2026",
+                        workingDaysVal,
+                        emp.payableDays || "",
+                        emp.accountNumber || "",
+                        emp.uanNo || "",
+                        emp.esicNo || "",
+                        
+                        emp.basicActual !== undefined ? emp.basicActual : (slip.basic_actual || 0),
+                        emp.basicPay !== undefined ? emp.basicPay : (slip.basic_pay || 0),
+                        emp.hraActual !== undefined ? emp.hraActual : (slip.hra_actual || 0),
+                        emp.hra !== undefined ? emp.hra : (slip.hra || 0),
+                        emp.specialAllowanceActual !== undefined ? emp.specialAllowanceActual : (slip.special_allowance_actual || 0),
+                        emp.otherAllowance !== undefined ? emp.otherAllowance : (slip.other_allowance || 0),
+                        emp.statBonusActual !== undefined ? emp.statBonusActual : (slip.stat_bonus_actual || 0),
+                        emp.statBonus !== undefined ? emp.statBonus : (slip.stat_bonus || 0),
+                        emp.stipendActual !== undefined ? emp.stipendActual : (slip.stipend_actual || 0),
+                        emp.stipend !== undefined ? emp.stipend : (slip.stipend || 0),
+                        emp.attendanceBonusActual !== undefined ? emp.attendanceBonusActual : (slip.attendance_bonus_actual || 0),
+                        emp.attendanceBonus !== undefined ? emp.attendanceBonus : (slip.attendance_bonus || 0),
+                        emp.leaveEncashmentActual !== undefined ? emp.leaveEncashmentActual : (slip.leave_encashment_actual || 0),
+                        emp.leaveEncashment !== undefined ? emp.leaveEncashment : (slip.leave_encashment || 0),
+                        emp.performanceIncentiveActual !== undefined ? emp.performanceIncentiveActual : (slip.performance_incentive_actual || 0),
+                        emp.performanceIncentive !== undefined ? emp.performanceIncentive : (slip.performance_incentive || 0),
+                        emp.extraPaymentActual !== undefined ? emp.extraPaymentActual : (slip.extra_payment_actual || 0),
+                        emp.extraPayment !== undefined ? emp.extraPayment : (slip.extra_payment || 0),
+                        emp.shipmentIncentiveActual !== undefined ? emp.shipment_incentive_actual : (slip.shipment_incentive_actual || 0),
+                        emp.shipmentIncentive !== undefined ? emp.shipmentIncentive : (slip.shipment_incentive || 0),
+                        emp.mobileAllowanceActual !== undefined ? emp.mobile_allowance_actual : (slip.mobile_allowance_actual || 0),
+                        emp.mobileAllowance !== undefined ? emp.mobileAllowance : (slip.mobile_allowance || 0),
+                        emp.mealIncentiveActual !== undefined ? emp.meal_incentive_actual : (slip.meal_incentive_actual || 0),
+                        emp.mealIncentive !== undefined ? emp.mealIncentive : (slip.meal_incentive || 0),
+                        emp.groupIncentiveActual !== undefined ? emp.group_incentive_actual : (slip.group_incentive_actual || 0),
+                        emp.groupIncentive !== undefined ? emp.groupIncentive : (slip.group_incentive || 0),
+                        emp.nightAllowanceActual !== undefined ? emp.night_allowance_actual : (slip.night_allowance_actual || 0),
+                        emp.nightAllowance !== undefined ? emp.nightAllowance : (slip.night_allowance || 0),
+                        emp.retentionBonusActual !== undefined ? emp.retentionBonusActual : (slip.retention_bonus_actual || 0),
+                        emp.retentionBonus !== undefined ? emp.retentionBonus : (slip.retention_bonus || 0),
+                        emp.arrearPaymentActual !== undefined ? emp.arrear_payment_actual : (slip.arrear_payment_actual || 0),
+                        emp.arrearPayment !== undefined ? emp.arrearPayment : (slip.arrear_payment || 0),
+                        
+                        emp.esi !== undefined ? emp.esi : (slip.esi || 0),
+                        emp.pf !== undefined ? emp.pf : (slip.pf || 0),
+                        emp.lwf !== undefined ? emp.lwf : (slip.lwf || 0),
+                        emp.ewfDeduction !== undefined ? emp.ewfDeduction : (slip.ewf_deduction || 0),
+                        emp.mealDebit !== undefined ? emp.mealDebit : (slip.meal_debit || 0),
+                        emp.refyneDebit !== undefined ? emp.refyneDebit : (slip.refyne_debit || 0),
+                        emp.advanceSalary !== undefined ? emp.advanceSalary : (slip.advance_salary || 0),
+                        emp.pt !== undefined ? emp.pt : (slip.pt || 0),
+                        emp.eBikeDebit !== undefined ? emp.eBikeDebit : (slip.e_bike_debit || 0),
+                        emp.advanceWeeks !== undefined ? emp.advanceWeeks : (slip.advance_payments_in_weeks || 0),
+                        emp.shipmentDebit !== undefined ? emp.shipmentDebit : (slip.shipment_debit || 0),
+                        emp.codLoss !== undefined ? emp.codLoss : (slip.cod_loss || 0),
+                        emp.noticePeriod !== undefined ? emp.noticePeriod : (slip.notice_period_deduction || 0),
+                        emp.tshirtRecovery !== undefined ? emp.tshirtRecovery : (slip.tshirt_recovery || 0)
+                    ]);
+                });
+            } else {
+                rows.push([
+                    "EMP001", "John Doe", "Consultant", "Gurgaon", "DELHI", "Delhivery Limited", "June 2026", 26, 22, "1234567890", "101450000001", "2019000001",
+                    15000, 15000,
+                    3000, 3000,
+                    2000, 2000,
+                    1000, 1000,
+                    0, 0,
+                    500, 500,
+                    0, 0,
+                    1000, 1000,
+                    0, 0,
+                    0, 0,
+                    0, 0,
+                    0, 0,
+                    0, 0,
+                    0, 0,
+                    0, 0,
+                    0, 0,
+                    0, 0,
+                    100, 200, 50, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
+                ]);
+            }
+
+            const wsData = [headers, ...rows];
+            const wb = XLSX.utils.book_new();
+            const ws = XLSX.utils.aoa_to_sheet(wsData);
+            XLSX.utils.book_append_sheet(wb, ws, "SalarySlips");
+            XLSX.writeFile(wb, `SalarySlip_Template_${(new Date()).toISOString().slice(0,10)}.xlsx`);
+        }
+
+        function handleUploadedFile(file) {
+            if (!file) return;
+            const allowedExtensions = ["xlsx", "csv"];
+            const ext = file.name.split('.').pop().toLowerCase();
+            if (!allowedExtensions.includes(ext)) {
+                Toast.show("Unsupported file type. Please upload an Excel or CSV file.", "danger");
+                return;
+            }
+            
+            document.getElementById("bulk-upload-step-1").classList.add("hidden");
+            document.getElementById("bulk-progress-container").classList.remove("hidden");
+            updateProgressBar(30, "Reading file...");
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                updateProgressBar(60, "Parsing workbook...");
+                try {
+                    const data = new Uint8Array(e.target.result);
+                    const workbook = XLSX.read(data, { type: 'array' });
+                    const sheetName = workbook.SheetNames[0];
+                    const worksheet = workbook.Sheets[sheetName];
+                    const jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1 });
+                    
+                    updateProgressBar(90, "Validating data...");
+                    processParsedSheet(jsonData);
+                } catch (err) {
+                    console.error(err);
+                    Toast.show("Failed to parse the file. Ensure it is a valid spreadsheet.", "danger");
+                    resetBulkModalState();
+                }
+            };
+            reader.onerror = function() {
+                Toast.show("File reading error.", "danger");
+                resetBulkModalState();
+            };
+            reader.readAsArrayBuffer(file);
+        }
+
+        function processParsedSheet(aoa) {
+            if (!aoa || aoa.length < 2) {
+                Toast.show("The sheet is empty or contains no data rows.", "danger");
+                resetBulkModalState();
+                return;
+            }
+
+            const fileHeaders = aoa[0].map(h => String(h || "").trim().toLowerCase());
+            
+            const headerIndices = {};
+            fileHeaders.forEach((fh, idx) => {
+                if (columnMapping[fh]) {
+                    headerIndices[columnMapping[fh]] = idx;
+                }
+            });
+
+            if (headerIndices["employee_code"] === undefined) {
+                Toast.show("Template error: 'Emp Code' column is required.", "danger");
+                resetBulkModalState();
+                return;
+            }
+
+            parsedRows = [];
+            validationResults = [];
+
+            let totalCount = 0;
+            let validCount = 0;
+            let failedCount = 0;
+            let warningCount = 0;
+
+            const validationTableBody = document.getElementById("bulk-validation-rows");
+            if (validationTableBody) validationTableBody.innerHTML = "";
+
+            for (let rIndex = 1; rIndex < aoa.length; rIndex++) {
+                const rowData = aoa[rIndex];
+                if (!rowData || rowData.length === 0 || rowData.every(cell => cell === null || cell === undefined || String(cell).trim() === "")) {
+                    continue; 
+                }
+
+                totalCount++;
+
+                const rowEmpCode = String(rowData[headerIndices["employee_code"]] || "").trim();
+                const rowName = headerIndices["name"] !== undefined ? String(rowData[headerIndices["name"]] || "").trim() : "";
+
+                const validation = {
+                    rowNum: rIndex + 1,
+                    employeeCode: rowEmpCode,
+                    name: rowName,
+                    status: "ready",
+                    errors: [],
+                    warnings: []
+                };
+
+                if (!rowEmpCode) {
+                    validation.status = "failed";
+                    validation.errors.push("Missing Emp Code");
+                }
+
+                const rowPayload = {
+                    employee_code: rowEmpCode,
+                    name: rowName,
+                    status: "ACTIVE"
+                };
+
+                Object.keys(headerIndices).forEach(key => {
+                    const cellIdx = headerIndices[key];
+                    let cellValue = rowData[cellIdx];
+                    if (cellValue === undefined) cellValue = "";
+
+                    if (["employee_code", "name", "designation", "work_location", "state", "client_name", "month", "account_number", "uan_no", "esic_no"].includes(key)) {
+                        rowPayload[key] = String(cellValue).trim();
+                    } else {
+                        let numericVal = parseFloat(cellValue);
+                        if (isNaN(numericVal)) numericVal = 0;
+                        rowPayload[key] = numericVal;
+                    }
+                });
+
+                if (!rowPayload["month"]) {
+                    rowPayload["month"] = "June 2026";
+                    validation.warnings.push("Month not specified, defaulting to June 2026");
+                }
+
+                if (rowPayload["name"]) {
+                    const parts = rowPayload["name"].split(" ", 2);
+                    rowPayload["first_name"] = parts[0];
+                    rowPayload["last_name"] = parts[1] || "";
+                }
+
+                const earningsIds = [
+                    "basic_pay", "hra", "other_allowance", "stat_bonus", "stipend",
+                    "attendance_bonus", "leave_encashment", "performance_incentive", "extra_payment",
+                    "shipment_incentive", "mobile_allowance", "meal_incentive", "group_incentive",
+                    "night_allowance", "retention_bonus", "arrear_payment"
+                ];
+                const deductionsIds = [
+                    "esi", "pf", "lwf", "ewf_deduction", "meal_debit", "refyne_debit",
+                    "advance_salary", "pt", "e_bike_debit", "advance_payments_in_weeks",
+                    "shipment_debit", "accommodation_recovery", "notice_period_deduction", "cod_loss",
+                    "tshirt_recovery"
+                ];
+
+                let earningsTotal = 0;
+                earningsIds.forEach(id => {
+                    earningsTotal += rowPayload[id] || 0;
+                });
+
+                let deductionsTotal = 0;
+                deductionsIds.forEach(id => {
+                    deductionsTotal += rowPayload[id] || 0;
+                });
+
+                const matchedEmp = state.employees.find(e => e.id === rowEmpCode);
+                const actualIsVendor = matchedEmp ? matchedEmp.isVendorStaff : false;
+                rowPayload["is_vendor_staff"] = actualIsVendor;
+
+                if (rowPayload["tds"] === undefined || rowPayload["tds"] === 0) {
+                    let calculatedTds = 0;
+                    if (actualIsVendor) {
+                        calculatedTds = Math.round(earningsTotal * 0.01);
+                    } else {
+                        calculatedTds = Math.round(earningsTotal * 0.15);
+                    }
+                    rowPayload["tds"] = calculatedTds;
+                }
+                deductionsTotal += rowPayload["tds"] || 0;
+
+                rowPayload["candidate_payout"] = earningsTotal;
+                rowPayload["net_pay"] = earningsTotal - deductionsTotal;
+                rowPayload["total_payment"] = rowPayload["net_pay"];
+
+                if (rowPayload["net_pay"] < 0) {
+                    validation.status = "warning";
+                    validation.warnings.push("Negative Net Pay calculated");
+                }
+
+                if (validation.status === "failed") {
+                    failedCount++;
+                } else if (validation.status === "warning") {
+                    warningCount++;
+                    validCount++;
+                } else {
+                    validCount++;
+                }
+
+                validationResults.push(validation);
+                parsedRows.push(rowPayload);
+
+                if (validationTableBody) {
+                    const tr = document.createElement("tr");
+                    tr.className = "hover:bg-slate-50 transition-colors";
+                    
+                    let statusBadge = "";
+                    if (validation.status === "ready") {
+                        statusBadge = `<span class="px-2 py-0.5 rounded-full text-[9px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200/50">Ready</span>`;
+                    } else if (validation.status === "warning") {
+                        statusBadge = `<span class="px-2 py-0.5 rounded-full text-[9px] font-bold bg-amber-50 text-amber-700 border border-amber-200/50">Warning</span>`;
+                    } else {
+                        statusBadge = `<span class="px-2 py-0.5 rounded-full text-[9px] font-bold bg-red-50 text-red-700 border border-red-200/50">Failed</span>`;
+                    }
+
+                    const details = validation.status === "ready" 
+                        ? `<span class="text-emerald-600 font-semibold">Valid slip data (${earningsTotal} earn / ${deductionsTotal} ded)</span>`
+                        : (validation.errors.join(", ") + " " + validation.warnings.join(", ")).trim();
+
+                    tr.innerHTML = `
+                        <td class="p-2.5 text-center text-slate-400 font-bold">${validation.rowNum}</td>
+                        <td class="p-2.5 font-mono text-slate-600">${validation.employeeCode || "—"}</td>
+                        <td class="p-2.5 font-bold text-slate-800">${validation.name || "—"}</td>
+                        <td class="p-2.5">${statusBadge}</td>
+                        <td class="p-2.5 text-slate-500 max-w-[200px] truncate" title="${details}">${details}</td>
+                    `;
+                    validationTableBody.appendChild(tr);
+                }
+            }
+
+            document.getElementById("stat-total-records").textContent = totalCount;
+            document.getElementById("stat-valid-records").textContent = validCount;
+            document.getElementById("stat-failed-records").textContent = failedCount;
+            document.getElementById("stat-warning-records").textContent = warningCount;
+
+            document.getElementById("bulk-progress-container").classList.add("hidden");
+            document.getElementById("bulk-summary-container").classList.remove("hidden");
+
+            const importBtn = document.getElementById("btn-import-bulk");
+            if (importBtn) {
+                if (validCount > 0 && failedCount === 0) {
+                    importBtn.disabled = false;
+                    importBtn.classList.remove("cursor-not-allowed", "bg-slate-200", "text-slate-400");
+                    importBtn.classList.add("bg-qt-primary", "text-white", "hover:bg-qt-primary/90", "cursor-pointer");
+                } else {
+                    importBtn.disabled = true;
+                    importBtn.classList.add("cursor-not-allowed", "bg-slate-200", "text-slate-400");
+                    importBtn.classList.remove("bg-qt-primary", "text-white", "hover:bg-qt-primary/90", "cursor-pointer");
+                }
+            }
+
+            const errorReport = document.getElementById("error-report-container");
+            if (errorReport) {
+                if (failedCount > 0) {
+                    errorReport.classList.remove("hidden");
+                    errorReport.classList.add("flex");
+                } else {
+                    errorReport.classList.add("hidden");
+                    errorReport.classList.remove("flex");
+                }
+            }
+        }
+
+        function downloadSalarySlipErrorReport() {
+            if (!validationResults || validationResults.length === 0) return;
+            const failedOnes = validationResults.filter(v => v.status === "failed");
+            if (failedOnes.length === 0) return;
+
+            const headers = ["Row Number", "Employee Code", "Name", "Errors"];
+            const rows = failedOnes.map(f => [
+                f.rowNum,
+                f.employeeCode || "",
+                f.name || "",
+                f.errors.join("; ")
+            ]);
+
+            const wsData = [headers, ...rows];
+            const wb = XLSX.utils.book_new();
+            const ws = XLSX.utils.aoa_to_sheet(wsData);
+            XLSX.utils.book_append_sheet(wb, ws, "Errors");
+            XLSX.writeFile(wb, `SalarySlip_Import_Errors.xlsx`);
+        }
+
+        async function saveBulkSalarySlips() {
+            const importBtn = document.getElementById("btn-import-bulk");
+            if (importBtn && importBtn.disabled) return;
+
+            if (!parsedRows || parsedRows.length === 0) {
+                Toast.show("No rows to import.", "warning");
+                return;
+            }
+
+            if (importBtn) {
+                importBtn.disabled = true;
+                importBtn.textContent = "Saving...";
+            }
+
+            try {
+                const response = await fetch(window.location.pathname, {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                        "X-Requested-With": "XMLHttpRequest"
+                    },
+                    body: JSON.stringify({ rows: parsedRows })
+                });
+                const data = await response.json().catch(() => ({}));
+                if (!response.ok || !data.ok) {
+                    Toast.show(data.error || "Unable to save bulk salary slips.", "danger");
+                    if (importBtn) {
+                        importBtn.disabled = false;
+                        importBtn.textContent = "Import Data";
+                    }
+                    return;
+                }
+
+                Toast.show(`Successfully imported ${data.count} salary slips.`, "success");
+                closeBulkUploadModal();
+
+                setTimeout(() => {
+                    window.location.reload();
+                }, 1000);
+            } catch (err) {
+                console.error(err);
+                Toast.show("Network error. Unable to import salary slips.", "danger");
+                if (importBtn) {
+                    importBtn.disabled = false;
+                    importBtn.textContent = "Import Data";
+                }
+            }
+        }
+
+        // Initialize drag & drop and file input event listeners
+        setTimeout(() => {
+            const dragDropArea = document.getElementById("drag-drop-area");
+            if (dragDropArea) {
+                ['dragenter', 'dragover'].forEach(eventName => {
+                    dragDropArea.addEventListener(eventName, (e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        dragDropArea.classList.add("border-qt-primary", "bg-qt-light/10");
+                    }, false);
+                });
+
+                ['dragleave', 'drop'].forEach(eventName => {
+                    dragDropArea.addEventListener(eventName, (e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        dragDropArea.classList.remove("border-qt-primary", "bg-qt-light/10");
+                    }, false);
+                });
+
+                dragDropArea.addEventListener('drop', (e) => {
+                    const dt = e.dataTransfer;
+                    const files = dt.files;
+                    if (files && files.length > 0) {
+                        handleUploadedFile(files[0]);
+                    }
+                }, false);
+            }
+
+            const fileInputEl = document.getElementById("bulk-file-input");
+            if (fileInputEl) {
+                fileInputEl.addEventListener("change", (e) => {
+                    const files = e.target.files;
+                    if (files && files.length > 0) {
+                        handleUploadedFile(files[0]);
+                    }
+                });
+            }
+        }, 100);
     </script>
 
     <div id="bulk-select-modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[150] flex items-center justify-center p-4 hidden animate-fade-in">

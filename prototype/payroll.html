@@ -195,21 +195,13 @@
                         <table class="w-full text-left border-collapse">
                             <thead>
                                 <tr class="bg-slate-55/40 border-b border-slate-200 text-[0.6rem] font-bold uppercase text-slate-400 tracking-wider">
-                                    <th class="px-4 py-3">Agent ID</th>
-                                    <th class="px-4 py-3">Candidate Name</th>
-                                    <th class="px-4 py-3">Designation</th>
-                                    <th class="px-4 py-3">Location</th>
+                                    <th class="px-4 py-3">Emp Code</th>
+                                    <th class="px-4 py-3">Name</th>
+                                    <th class="px-4 py-3">Centre Name</th>
+                                    <th class="px-4 py-3">Mob No</th>
                                     <th class="px-4 py-3 text-center">Working Days</th>
-                                    <th class="px-4 py-3 text-right">Total Salary</th>
-                                    <th class="px-4 py-3 text-right">Per Day</th>
-                                    <th class="px-4 py-3 text-right">Incentive</th>
-                                    <th class="px-4 py-3 text-right">Candidate Payout</th>
-                                    <th class="px-4 py-3 text-right">TDS (1%)</th>
-                                    <th class="px-4 py-3 text-right">Net</th>
-                                    <th class="px-4 py-3 text-right">Service Charge</th>
-                                    <th class="px-4 py-3 text-right">Vendor Payout</th>
-                                    <th class="px-4 py-3 text-right">GST (18%)</th>
-                                    <th class="px-4 py-3 text-right">Total Payment</th>
+                                    <th class="px-4 py-3 text-right">Notice Period Deduction</th>
+                                    <th class="px-4 py-3 text-right">Net Payout</th>
                                     <th class="px-4 py-3 text-center">Status</th>
                                     <th class="px-4 py-3">UTR</th>
                                     <th class="px-4 py-3 text-center">Action</th>
@@ -220,10 +212,9 @@
                             </tbody>
                             <tfoot>
                                 <tr class="bg-slate-50 font-bold text-[0.7rem] text-slate-800">
-                                    <td colspan="8" class="px-4 py-4 text-xs font-extrabold text-qt-dark">General Disbursements Totals:</td>
-                                    <td id="pay-total-gross" class="px-4 py-4 text-right font-extrabold">₹0.00</td>
+                                    <td colspan="4" class="px-4 py-4 text-xs font-extrabold text-qt-dark">General Disbursements Totals:</td>
+                                    <td id="pay-total-gross" class="px-4 py-4 text-center font-extrabold">0 days</td>
                                     <td id="pay-total-taxes" class="px-4 py-4 text-right text-red-600 font-extrabold">₹0.00</td>
-                                    <td colspan="4" class="px-4 py-4"></td>
                                     <td id="pay-total-net" class="px-4 py-4 text-right text-qt-primary font-black">₹0.00</td>
                                     <td colspan="3" class="px-4 py-4"></td>
                                 </tr>
@@ -363,34 +354,19 @@
                 
                 <div class="grid grid-cols-2 gap-4">
                     <div class="flex flex-col gap-1.5">
-                        <label for="edit-payroll-name" class="font-semibold text-qt-dark">Candidate Name</label>
+                        <label for="edit-payroll-name" class="font-semibold text-qt-dark">Name</label>
                         <input type="text" id="edit-payroll-name" required class="px-3 py-2.5 rounded-lg border border-slate-200 focus:outline-none focus:border-qt-primary bg-slate-50">
                     </div>
                     <div class="flex flex-col gap-1.5">
-                        <label for="edit-payroll-designation" class="font-semibold text-qt-dark">Designation</label>
-                        <input type="text" id="edit-payroll-designation" required class="px-3 py-2.5 rounded-lg border border-slate-200 focus:outline-none focus:border-qt-primary bg-slate-50">
+                        <label for="edit-payroll-location" class="font-semibold text-qt-dark">Centre Name</label>
+                        <input type="text" id="edit-payroll-location" required class="px-3 py-2.5 rounded-lg border border-slate-200 focus:outline-none focus:border-qt-primary bg-slate-50">
                     </div>
                 </div>
 
                 <div class="grid grid-cols-2 gap-4">
                     <div class="flex flex-col gap-1.5">
-                        <label for="edit-payroll-location" class="font-semibold text-qt-dark">Location</label>
-                        <input type="text" id="edit-payroll-location" required class="px-3 py-2.5 rounded-lg border border-slate-200 focus:outline-none focus:border-qt-primary bg-slate-50">
-                    </div>
-                    <div class="flex flex-col gap-1.5">
-                        <label for="edit-payroll-state" class="font-semibold text-qt-dark">State</label>
-                        <input type="text" id="edit-payroll-state" required class="px-3 py-2.5 rounded-lg border border-slate-200 focus:outline-none focus:border-qt-primary bg-slate-50">
-                    </div>
-                </div>
-
-                <div class="grid grid-cols-3 gap-3">
-                    <div class="flex flex-col gap-1.5">
-                        <label for="edit-payroll-salary" class="font-semibold text-qt-dark">Total Salary (₹)</label>
-                        <input type="number" id="edit-payroll-salary" required class="px-3 py-2.5 rounded-lg border border-slate-200 focus:outline-none focus:border-qt-primary bg-slate-50">
-                    </div>
-                    <div class="flex flex-col gap-1.5">
-                        <label for="edit-payroll-perday" class="font-semibold text-qt-dark">Per Day (₹)</label>
-                        <input type="number" id="edit-payroll-perday" required class="px-3 py-2.5 rounded-lg border border-slate-200 focus:outline-none focus:border-qt-primary bg-slate-50">
+                        <label for="edit-payroll-phone" class="font-semibold text-qt-dark">Mob No</label>
+                        <input type="text" id="edit-payroll-phone" required class="px-3 py-2.5 rounded-lg border border-slate-200 focus:outline-none focus:border-qt-primary bg-slate-50">
                     </div>
                     <div class="flex flex-col gap-1.5">
                         <label for="edit-payroll-days" class="font-semibold text-qt-dark">Working Days</label>
@@ -398,17 +374,20 @@
                     </div>
                 </div>
 
-                <div class="grid grid-cols-3 gap-3">
+                <div class="grid grid-cols-2 gap-4">
                     <div class="flex flex-col gap-1.5">
-                        <label for="edit-payroll-incentive" class="font-semibold text-qt-dark">Incentive (₹)</label>
-                        <input type="number" id="edit-payroll-incentive" class="px-3 py-2.5 rounded-lg border border-slate-200 focus:outline-none focus:border-qt-primary bg-slate-50">
+                        <label for="edit-payroll-notice-deduction" class="font-semibold text-qt-dark">Notice Period Deduction (₹)</label>
+                        <input type="number" id="edit-payroll-notice-deduction" required class="px-3 py-2.5 rounded-lg border border-slate-200 focus:outline-none focus:border-qt-primary bg-slate-50">
                     </div>
                     <div class="flex flex-col gap-1.5">
-                        <label for="edit-payroll-service" class="font-semibold text-qt-dark">Service Charge (₹)</label>
-                        <input type="number" id="edit-payroll-service" class="px-3 py-2.5 rounded-lg border border-slate-200 focus:outline-none focus:border-qt-primary bg-slate-50">
+                        <label for="edit-payroll-net-payout" class="font-semibold text-qt-dark">Net Payout (₹)</label>
+                        <input type="number" id="edit-payroll-net-payout" required class="px-3 py-2.5 rounded-lg border border-slate-200 focus:outline-none focus:border-qt-primary bg-slate-50">
                     </div>
+                </div>
+
+                <div class="grid grid-cols-2 gap-4">
                     <div class="flex flex-col gap-1.5">
-                        <label for="edit-payroll-status" class="font-semibold text-qt-dark">Payment Status</label>
+                        <label for="edit-payroll-status" class="font-semibold text-qt-dark">Status</label>
                         <select id="edit-payroll-status" class="px-3 py-2.5 rounded-lg border border-slate-200 focus:outline-none focus:border-qt-primary bg-slate-50">
                             <option value="Paid">Paid</option>
                             <option value="Pending">Pending</option>
@@ -416,36 +395,10 @@
                             <option value="Hold">Hold</option>
                         </select>
                     </div>
-                </div>
-
-                <div class="grid grid-cols-2 gap-4">
                     <div class="flex flex-col gap-1.5">
-                        <label for="edit-payroll-utr" class="font-semibold text-qt-dark">UTR Code</label>
+                        <label for="edit-payroll-utr" class="font-semibold text-qt-dark">UTR</label>
                         <input type="text" id="edit-payroll-utr" class="px-3 py-2.5 rounded-lg border border-slate-200 focus:outline-none focus:border-qt-primary bg-slate-50">
                     </div>
-                    <div class="flex flex-col gap-1.5">
-                        <label for="edit-payroll-email" class="font-semibold text-qt-dark">Gmail ID</label>
-                        <input type="email" id="edit-payroll-email" required class="px-3 py-2.5 rounded-lg border border-slate-200 focus:outline-none focus:border-qt-primary bg-slate-50">
-                    </div>
-                </div>
-
-                <div class="grid grid-cols-2 gap-4">
-                    <div class="flex flex-col gap-1.5">
-                        <label for="edit-payroll-phone" class="font-semibold text-qt-dark">Mobile Number</label>
-                        <input type="text" id="edit-payroll-phone" required class="px-3 py-2.5 rounded-lg border border-slate-200 focus:outline-none focus:border-qt-primary bg-slate-50">
-                    </div>
-                    <div class="flex flex-col gap-1.5">
-                        <label for="edit-payroll-active" class="font-semibold text-qt-dark">Active Status</label>
-                        <select id="edit-payroll-active" class="px-3 py-2.5 rounded-lg border border-slate-200 focus:outline-none focus:border-qt-primary bg-slate-50">
-                            <option value="Active">Active</option>
-                            <option value="Inactive">Inactive</option>
-                        </select>
-                    </div>
-                </div>
-
-                <div class="flex flex-col gap-1.5">
-                    <label for="edit-payroll-remark" class="font-semibold text-qt-dark">Remark</label>
-                    <input type="text" id="edit-payroll-remark" class="px-3 py-2.5 rounded-lg border border-slate-200 focus:outline-none focus:border-qt-primary bg-slate-50">
                 </div>
 
                 <div class="flex gap-3 justify-end border-t border-slate-100 pt-4 mt-6">
@@ -565,60 +518,26 @@
                 const empIndex = state.employees.findIndex(emp => emp.id === id);
                 if (empIndex > -1) {
                     const name = document.getElementById("edit-payroll-name").value.trim();
-                    const department = document.getElementById("edit-payroll-designation").value.trim();
                     const location = document.getElementById("edit-payroll-location").value.trim();
-                    const stateVal = document.getElementById("edit-payroll-state").value.trim();
-                    const baseSalary = parseFloat(document.getElementById("edit-payroll-salary").value) || 0;
-                    const perDayPayment = parseFloat(document.getElementById("edit-payroll-perday").value) || 0;
                     const workingDays = parseFloat(document.getElementById("edit-payroll-days").value) || 0;
-                    const incentive = parseFloat(document.getElementById("edit-payroll-incentive").value) || 0;
-                    const serviceCharge = parseFloat(document.getElementById("edit-payroll-service").value) || 0;
+                    const noticePeriodDeduction = parseFloat(document.getElementById("edit-payroll-notice-deduction").value) || 0;
+                    const netPayout = parseFloat(document.getElementById("edit-payroll-net-payout").value) || 0;
                     const paymentStatus = document.getElementById("edit-payroll-status").value;
                     const utr = document.getElementById("edit-payroll-utr").value.trim();
-                    const email = document.getElementById("edit-payroll-email").value.trim();
                     const phone = document.getElementById("edit-payroll-phone").value.trim();
-                    const activeStatus = document.getElementById("edit-payroll-active").value;
-                    const remark = document.getElementById("edit-payroll-remark").value.trim();
-
-                    const workingDaysNum = parseFloat(workingDays) || 0;
-                    const computedPayout = workingDaysNum * perDayPayment + incentive;
-                    const tds = computedPayout * 0.01;
-                    const net = computedPayout - tds;
-                    const vendorPayout = computedPayout + serviceCharge;
-                    const gst = vendorPayout * 0.18;
-                    const computedTotalPayment = vendorPayout + gst;
 
                     state.employees[empIndex] = {
                         ...state.employees[empIndex],
                         name,
-                        department,
-                        email,
                         phone,
-                        status: activeStatus,
-                        baseSalary,
-                        hourlyRate: perDayPayment,
-                        allowance: incentive,
-                        deductions: tds,
-                        hoursWorked: workingDaysNum * 8,
-                        timesheetStatus: activeStatus === "Active" ? "Uploaded" : "Pending",
-
-                        isVendorStaff: true,
-                        location,
-                        state: stateVal,
                         workingDays,
-                        perDayPayment,
-                        incentive,
-                        candidatePayout: computedPayout,
-                        tds,
-                        net,
+                        noticePeriodDeduction,
+                        netPay: netPayout,
+                        net_pay: netPayout,
+                        net: netPayout,
                         paymentStatus,
-                        activeStatus,
                         utr,
-                        remark,
-                        serviceCharge,
-                        vendorPayout,
-                        gst,
-                        totalPayment: computedTotalPayment
+                        location
                     };
 
                     saveStateToStorage();
@@ -645,39 +564,25 @@
             const container = document.getElementById("payroll-table-body");
             if (!container) return;
 
-            let totalGross = 0;
-            let totalTaxes = 0;
-            let totalNet = 0;
+            let totalGross = 0; // mapped to display Working Days sum
+            let totalTaxes = 0; // mapped to display Notice Period Deduction sum
+            let totalNet = 0;   // mapped to display Net Payout sum
 
             container.innerHTML = state.employees.map(e => {
-                // Determine vendor/corporate mappings
-                const workingDays = e.isVendorStaff ? (parseFloat(e.workingDays) || 0) : ((parseFloat(e.hoursWorked) || 0) / 8);
-                const perDayPayment = e.isVendorStaff ? (parseFloat(e.perDayPayment) || 0) : (parseFloat(e.hourlyRate) || 0);
-                const incentive = e.isVendorStaff ? (parseFloat(e.incentive) || 0) : (parseFloat(e.allowance) || 0);
-                const serviceCharge = e.isVendorStaff ? (parseFloat(e.serviceCharge) || 0) : 0;
-
-                const candidatePayout = workingDays * perDayPayment + incentive;
-                const tds = e.isVendorStaff ? (parseFloat(e.tds) || (candidatePayout * 0.01)) : (parseFloat(e.deductions) || (candidatePayout * 0.01));
-                const net = candidatePayout - tds;
-                const vendorPayout = candidatePayout + serviceCharge;
-                const gst = vendorPayout * 0.18;
-                const totalPayment = vendorPayout + gst;
-
-                const statusVal = e.isVendorStaff ? (e.paymentStatus || e.status) : (e.paymentStatus || "Pending");
+                const phoneVal = e.phone || "—";
+                const locationVal = e.location || e.centre || "—";
+                const workingDays = parseFloat(e.workingDays) || 0;
+                const noticePeriodDeduction = parseFloat(e.noticePeriodDeduction) || 0;
+                const netPayout = parseFloat(e.netPay || e.net_pay || e.net || 0);
+                const statusVal = e.paymentStatus || e.status || "Pending";
                 const utrVal = e.utr || "—";
-                const locationVal = e.location || e.centre || e.department || "—";
-                const designationVal = e.department || "—";
-                const totalSalaryVal = e.baseSalary || 0;
 
                 if (e.status === "Active") {
-                    totalGross += candidatePayout;
-                    totalTaxes += tds;
-                    totalNet += totalPayment;
+                    totalGross += workingDays;
+                    totalTaxes += noticePeriodDeduction;
+                    totalNet += netPayout;
                 }
 
-                const sheetClass = e.timesheetStatus === "Uploaded" ? "bg-green-100 text-green-800" : "bg-amber-100 text-amber-800";
-                const rowStyle = e.status !== "Active" ? "opacity: 0.5; background-color: #f8fafc;" : "";
-                
                 let paymentStatusClass = "bg-slate-100 text-slate-800";
                 const statLower = String(statusVal || "").toLowerCase();
                 if (statLower === "paid") {
@@ -690,23 +595,17 @@
                     paymentStatusClass = "bg-amber-100 text-amber-800";
                 }
 
+                const rowStyle = e.status !== "Active" ? "opacity: 0.5; background-color: #f8fafc;" : "";
+
                 return `
                     <tr style="${rowStyle}" class="border-b border-slate-100 hover:bg-slate-50/50 transition-colors">
                         <td class="px-4 py-3 font-bold text-qt-primary">${e.id}</td>
                         <td class="px-4 py-3 font-bold text-qt-dark">${e.name}</td>
-                        <td class="px-4 py-3 text-slate-500">${designationVal}</td>
                         <td class="px-4 py-3 text-slate-500">${locationVal}</td>
+                        <td class="px-4 py-3 text-slate-500">${phoneVal}</td>
                         <td class="px-4 py-3 text-center font-bold text-qt-dark">${workingDays} days</td>
-                        <td class="px-4 py-3 text-right font-bold text-slate-600">₹${totalSalaryVal.toLocaleString([], { minimumFractionDigits: 2 })}</td>
-                        <td class="px-4 py-3 text-right font-bold text-slate-600">₹${perDayPayment.toLocaleString([], { minimumFractionDigits: 2 })}</td>
-                        <td class="px-4 py-3 text-right font-bold text-green-600">₹${incentive.toLocaleString([], { minimumFractionDigits: 2 })}</td>
-                        <td class="px-4 py-3 text-right font-bold text-slate-800">₹${candidatePayout.toLocaleString([], { minimumFractionDigits: 2 })}</td>
-                        <td class="px-4 py-3 text-right font-bold text-red-650">₹${tds.toLocaleString([], { minimumFractionDigits: 2 })}</td>
-                        <td class="px-4 py-3 text-right font-bold text-qt-dark">₹${net.toLocaleString([], { minimumFractionDigits: 2 })}</td>
-                        <td class="px-4 py-3 text-right font-bold text-slate-500">₹${serviceCharge.toLocaleString([], { minimumFractionDigits: 2 })}</td>
-                        <td class="px-4 py-3 text-right font-bold text-slate-800">₹${vendorPayout.toLocaleString([], { minimumFractionDigits: 2 })}</td>
-                        <td class="px-4 py-3 text-right font-bold text-red-600">₹${gst.toLocaleString([], { minimumFractionDigits: 2 })}</td>
-                        <td class="px-4 py-3 text-right font-black text-qt-primary">₹${totalPayment.toLocaleString([], { minimumFractionDigits: 2 })}</td>
+                        <td class="px-4 py-3 text-right font-bold text-slate-600">₹${noticePeriodDeduction.toLocaleString([], { minimumFractionDigits: 2 })}</td>
+                        <td class="px-4 py-3 text-right font-black text-qt-primary">₹${netPayout.toLocaleString([], { minimumFractionDigits: 2 })}</td>
                         <td class="px-4 py-3 text-center"><span class="px-2.5 py-0.5 rounded font-bold text-[0.6rem] uppercase tracking-wider ${paymentStatusClass}">${statusVal}</span></td>
                         <td class="px-4 py-3 text-slate-550 font-mono">${utrVal}</td>
                         <td class="px-4 py-3 text-center" onclick="event.stopPropagation();">
@@ -720,7 +619,7 @@
                 `;
             }).join("");
 
-            document.getElementById("pay-total-gross").textContent = `₹${totalGross.toLocaleString([], { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+            document.getElementById("pay-total-gross").textContent = `${totalGross} days`;
             document.getElementById("pay-total-taxes").textContent = `₹${totalTaxes.toLocaleString([], { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
             document.getElementById("pay-total-net").textContent = `₹${totalNet.toLocaleString([], { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
         }
@@ -1003,32 +902,16 @@
             sendNext();
         }
 
-         // Bulk Importer logic for Payroll
-        let parsedRows = [];
-        let errorReportData = [];
-
-        function downloadPayrollTemplate() {
+         function downloadPayrollTemplate() {
             const data = [
                 [
-                    "CANDIDATE NAME", "AGENT ID", "LOCATION", "STATE", "WORKING DAYS", 
-                    "DESIGNATION", "TOTAL SALARY", "PER DAY PAYMENT", "INCENTIVE", "CANDIDATE PAYOUT", 
-                    "TDS (1%)", "NET", "ACCOUNT NUMBER", "IFSC CODE", "BANK", 
-                    "UTR", "STATUS", "GMAIL ID", "MOB NO", "ACTIVE STATUS", 
-                    "REMARK", "SERVICE CHARGE", "VENDOR PAYOUT", "GST (18%)", "TOTAL PAYMENT"
+                    "Emp Code", "Name", "Centre Name", "Mob No", "Working Days", "Notice Period Deduction", "Net Payout", "Status", "UTR"
                 ],
                 [
-                    "Rahul Sharma", "AG001", "Gurgaon", "Haryana", 26, 
-                    "Telecaller", 26000, 1000, 2000, 28000, 
-                    280, 27720, "123456789012", "HDFC0001234", "HDFC Bank", 
-                    "UTR123456", "Paid", "rahul@gmail.com", "9876543210", "Active", 
-                    "Monthly Payment", 1500, 29500, 5310, 34810
+                    "AG001", "Rahul Sharma", "Gurgaon", "9876543210", 26, 1000, 27000, "Paid", "UTR123456"
                 ],
                 [
-                    "Priya Verma", "AG002", "Delhi", "Delhi", 25, 
-                    "Recruiter", 30000, 1200, 1500, 31500, 
-                    315, 31185, "123456789013", "ICIC0004567", "ICICI Bank", 
-                    "UTR123457", "Pending", "priya@gmail.com", "9876543211", "Active", 
-                    "Pending Approval", 1800, 33300, 5994, 39294
+                    "AG002", "Priya Verma", "Delhi", "9876543211", 25, 0, 31500, "Pending", "UTR123457"
                 ]
             ];
 
@@ -1098,11 +981,8 @@
 
                     // Validate headers exactly
                     const REQUIRED_HEADERS = [
-                        "CANDIDATE NAME", "AGENT ID", "LOCATION", "STATE", "WORKING DAYS", 
-                        "DESIGNATION", "TOTAL SALARY", "PER DAY PAYMENT", "INCENTIVE", "CANDIDATE PAYOUT", 
-                        "TDS (1%)", "NET", "ACCOUNT NUMBER", "IFSC CODE", "BANK", 
-                        "UTR", "STATUS", "GMAIL ID", "MOB NO", "ACTIVE STATUS", 
-                        "REMARK", "SERVICE CHARGE", "VENDOR PAYOUT", "GST (18%)", "TOTAL PAYMENT"
+                        "EMP CODE", "NAME", "CENTRE NAME", "MOB NO", "WORKING DAYS", 
+                        "NOTICE PERIOD DEDUCTION", "NET PAYOUT", "STATUS", "UTR"
                     ];
                     const headers = rows[0].map(h => String(h || "").trim().toUpperCase());
                     let headersValid = true;
@@ -1110,8 +990,8 @@
                         headersValid = false;
                     } else {
                         for (let i = 0; i < REQUIRED_HEADERS.length; i++) {
-                            const cleanHeader = headers[i].replace(/\s+/g, '').replace(/\(1%\)/, '1%').replace(/\(18%\)/, '18%');
-                            const cleanRequired = REQUIRED_HEADERS[i].replace(/\s+/g, '').replace(/\(1%\)/, '1%').replace(/\(18%\)/, '18%');
+                            const cleanHeader = headers[i].replace(/\s+/g, '');
+                            const cleanRequired = REQUIRED_HEADERS[i].replace(/\s+/g, '');
                             if (cleanHeader !== cleanRequired) {
                                 headersValid = false;
                                 break;
@@ -1153,234 +1033,76 @@
                 const rowNum = index + 2;
                 
                 // Map columns
-                const name = String(row[0] || "").trim();
-                const agentId = String(row[1] || "").trim();
+                const agentId = String(row[0] || "").trim();
+                const name = String(row[1] || "").trim();
                 const location = String(row[2] || "").trim();
-                const stateVal = String(row[3] || "").trim();
+                const mobNo = String(row[3] || "").trim();
                 const workingDaysVal = row[4];
-                const designation = String(row[5] || "").trim();
-                const totalSalaryVal = row[6];
-                const perDayPaymentVal = row[7];
-                const incentiveVal = row[8];
-                const candidatePayoutVal = row[9];
-                const tdsVal = row[10];
-                const netVal = row[11];
-                const accNum = String(row[12] || "").trim();
-                let ifsc = String(row[13] || "").trim();
-                const bank = String(row[14] || "").trim();
-                const utr = String(row[15] || "").trim();
-                const status = String(row[16] || "").trim();
-                const gmailId = String(row[17] || "").trim();
-                const mobNo = String(row[18] || "").trim();
-                const activeStatus = String(row[19] || "").trim();
-                const remark = String(row[20] || "").trim();
-                const serviceChargeVal = row[21];
-                const vendorPayoutVal = row[22];
-                const gstVal = row[23];
-                const totalPaymentVal = row[24];
+                const noticePeriodDeductionVal = row[5];
+                const netPayoutVal = row[6];
+                const status = String(row[7] || "").trim();
+                const utr = String(row[8] || "").trim();
 
                 let errors = [];
                 let warnings = [];
 
-                // 1. Candidate Name Required
-                if (!name) errors.push("CANDIDATE NAME is required.");
-
-                // 2. Agent ID Required & Unique
+                // 1. Agent ID Required & Unique
                 if (!agentId) {
-                    errors.push("AGENT ID is required.");
+                    errors.push("Emp Code is required.");
                 } else {
                     const agentIdLower = agentId.toLowerCase();
                     if (existingAgentIds.has(agentIdLower)) {
-                        errors.push(`AGENT ID '${agentId}' already exists in system.`);
+                        errors.push(`Emp Code '${agentId}' already exists in system.`);
                     }
                     if (uploadedAgentIds.has(agentIdLower)) {
-                        errors.push(`Duplicate AGENT ID '${agentId}' in the upload sheet.`);
+                        errors.push(`Duplicate Emp Code '${agentId}' in the upload sheet.`);
                     }
                     uploadedAgentIds.add(agentIdLower);
                 }
 
-                // 3. Location Required
-                if (!location) errors.push("LOCATION is required.");
+                // 2. Name Required
+                if (!name) errors.push("Name is required.");
 
-                // 4. State Required
-                if (!stateVal) errors.push("STATE is required.");
+                // 3. Centre Name Required
+                if (!location) errors.push("Centre Name is required.");
+
+                // 4. Mob No Required & 10 digits
+                if (!mobNo) {
+                    errors.push("Mob No is required.");
+                } else if (!/^\d{10}$/.test(mobNo)) {
+                    errors.push("Mob No must be a valid 10-digit number.");
+                }
 
                 // 5. Working Days Required, Numeric
                 const workingDays = parseFloat(workingDaysVal);
                 if (workingDaysVal === undefined || workingDaysVal === null || workingDaysVal === "") {
-                    errors.push("WORKING DAYS is required.");
-                } else if (isNaN(workingDays)) {
-                    errors.push("WORKING DAYS must be numeric.");
+                    errors.push("Working Days is required.");
+                } else if (isNaN(workingDays) || workingDays < 0) {
+                    errors.push("Working Days must be a non-negative number.");
                 }
 
-                // 6. Designation Required
-                if (!designation) errors.push("DESIGNATION is required.");
-
-                // 7. Total Salary Required, Numeric
-                const totalSalary = parseFloat(totalSalaryVal);
-                if (totalSalaryVal === undefined || totalSalaryVal === null || totalSalaryVal === "") {
-                    errors.push("TOTAL SALARY is required.");
-                } else if (isNaN(totalSalary)) {
-                    errors.push("TOTAL SALARY must be numeric.");
+                // 6. Notice Period Deduction Required, Numeric
+                const noticePeriodDeduction = parseFloat(noticePeriodDeductionVal);
+                if (noticePeriodDeductionVal === undefined || noticePeriodDeductionVal === null || noticePeriodDeductionVal === "") {
+                    errors.push("Notice Period Deduction is required.");
+                } else if (isNaN(noticePeriodDeduction) || noticePeriodDeduction < 0) {
+                    errors.push("Notice Period Deduction must be a non-negative number.");
                 }
 
-                // 8. Per Day Payment Required, Numeric
-                const perDayPayment = parseFloat(perDayPaymentVal);
-                if (perDayPaymentVal === undefined || perDayPaymentVal === null || perDayPaymentVal === "") {
-                    errors.push("PER DAY PAYMENT is required.");
-                } else if (isNaN(perDayPayment)) {
-                    errors.push("PER DAY PAYMENT must be numeric.");
+                // 7. Net Payout Required, Numeric
+                const netPayout = parseFloat(netPayoutVal);
+                if (netPayoutVal === undefined || netPayoutVal === null || netPayoutVal === "") {
+                    errors.push("Net Payout is required.");
+                } else if (isNaN(netPayout) || netPayout < 0) {
+                    errors.push("Net Payout must be a non-negative number.");
                 }
 
-                // 9. Incentive Optional, Numeric
-                let incentive = 0;
-                if (incentiveVal !== undefined && incentiveVal !== null && incentiveVal !== "") {
-                    incentive = parseFloat(incentiveVal);
-                    if (isNaN(incentive)) errors.push("INCENTIVE must be numeric.");
-                }
-
-                // 10. Candidate Payout Required, Numeric
-                const candidatePayout = parseFloat(candidatePayoutVal);
-                if (candidatePayoutVal === undefined || candidatePayoutVal === null || candidatePayoutVal === "") {
-                    errors.push("CANDIDATE PAYOUT is required.");
-                } else if (isNaN(candidatePayout)) {
-                    errors.push("CANDIDATE PAYOUT must be numeric.");
-                }
-
-                // 11. TDS (1%) Optional, Numeric
-                let tds = 0;
-                if (tdsVal !== undefined && tdsVal !== null && tdsVal !== "") {
-                    tds = parseFloat(tdsVal);
-                    if (isNaN(tds)) errors.push("TDS (1%) must be numeric.");
-                }
-
-                // 12. NET Optional, Numeric
-                let net = 0;
-                if (netVal !== undefined && netVal !== null && netVal !== "") {
-                    net = parseFloat(netVal);
-                    if (isNaN(net)) errors.push("NET must be numeric.");
-                }
-
-                // 13. Account Number Required
-                if (!accNum) errors.push("ACCOUNT NUMBER is required.");
-
-                // 14. IFSC Code Required & Format
-                const ifscRegex = /^[A-Z]{4}0[A-Z0-9]{6}$/i;
-                if (!ifsc) {
-                    errors.push("IFSC CODE is required.");
-                } else if (!ifscRegex.test(ifsc)) {
-                    errors.push("Invalid IFSC CODE format.");
-                } else if (/[a-z]/.test(ifsc)) {
-                    warnings.push("IFSC code contained lowercase letters and was auto-capitalized.");
-                    ifsc = ifsc.toUpperCase();
-                }
-
-                // 15. Bank Name Required
-                if (!bank) errors.push("BANK is required.");
-
-                // 16. Status Allowed Values: Paid, Pending, Processing, Hold
-                const allowedStatuses = ["paid", "pending", "processing", "hold"];
+                // 8. Status Allowed Values: Paid, Pending, Processing, Hold
+                const allowedStatuses = ["paid", "pending", "processing", "hold", "unpaid"];
                 if (!status) {
-                    errors.push("STATUS is required.");
+                    errors.push("Status is required.");
                 } else if (!allowedStatuses.includes(status.toLowerCase())) {
-                    errors.push("STATUS must be Paid, Pending, Processing, or Hold.");
-                }
-
-                // 17. Gmail ID Required & Valid Email format
-                const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-                if (!gmailId) {
-                    errors.push("GMAIL ID is required.");
-                } else if (!emailRegex.test(gmailId)) {
-                    errors.push("Invalid GMAIL ID email format.");
-                }
-
-                // 18. Mob No Required & 10 digits
-                if (!mobNo) {
-                    errors.push("MOB NO is required.");
-                } else if (!/^\d{10}$/.test(mobNo)) {
-                    errors.push("MOB NO must be a valid 10-digit number.");
-                }
-
-                // 19. Active Status Allowed Values: Active, Inactive
-                const allowedActive = ["active", "inactive"];
-                if (!activeStatus) {
-                    errors.push("ACTIVE STATUS is required.");
-                } else if (!allowedActive.includes(activeStatus.toLowerCase())) {
-                    errors.push("ACTIVE STATUS must be Active or Inactive.");
-                }
-
-                // 20. Service Charge Optional, Numeric
-                let serviceCharge = 0;
-                if (serviceChargeVal !== undefined && serviceChargeVal !== null && serviceChargeVal !== "") {
-                    serviceCharge = parseFloat(serviceChargeVal);
-                    if (isNaN(serviceCharge)) errors.push("SERVICE CHARGE must be numeric.");
-                }
-
-                // 21. Vendor Payout Optional, Numeric
-                let vendorPayout = 0;
-                if (vendorPayoutVal !== undefined && vendorPayoutVal !== null && vendorPayoutVal !== "") {
-                    vendorPayout = parseFloat(vendorPayoutVal);
-                    if (isNaN(vendorPayout)) errors.push("VENDOR PAYOUT must be numeric.");
-                }
-
-                // 22. GST (18%) Optional, Numeric
-                let gst = 0;
-                if (gstVal !== undefined && gstVal !== null && gstVal !== "") {
-                    gst = parseFloat(gstVal);
-                    if (isNaN(gst)) errors.push("GST (18%) must be numeric.");
-                }
-
-                // 23. Total Payment Optional, Numeric
-                let totalPayment = 0;
-                if (totalPaymentVal !== undefined && totalPaymentVal !== null && totalPaymentVal !== "") {
-                    totalPayment = parseFloat(totalPaymentVal);
-                    if (isNaN(totalPayment)) errors.push("TOTAL PAYMENT must be numeric.");
-                }
-
-                // Perform warning calculations if basic numeric fields are valid
-                if (errors.length === 0) {
-                    // Auto-calculation validations
-                    const calculatedPayout = workingDays * perDayPayment + incentive;
-                    if (Math.abs(calculatedPayout - candidatePayout) > 1) {
-                        warnings.push(`CANDIDATE PAYOUT (₹${candidatePayout}) differs from computed (₹${calculatedPayout}).`);
-                    }
-
-                    const computedTds = candidatePayout * 0.01;
-                    if (tdsVal !== undefined && tdsVal !== null && tdsVal !== "") {
-                        if (Math.abs(tds - computedTds) > 1) {
-                            warnings.push(`TDS (₹${tds}) differs from computed 1% (₹${computedTds.toFixed(2)}).`);
-                        }
-                    }
-
-                    const computedNet = candidatePayout - computedTds;
-                    if (netVal !== undefined && netVal !== null && netVal !== "") {
-                        if (Math.abs(net - computedNet) > 1) {
-                            warnings.push(`NET (₹${net}) differs from computed (₹${computedNet.toFixed(2)}).`);
-                        }
-                    }
-
-                    const computedVendorPayout = candidatePayout + serviceCharge;
-                    if (vendorPayoutVal !== undefined && vendorPayoutVal !== null && vendorPayoutVal !== "") {
-                        if (Math.abs(vendorPayout - computedVendorPayout) > 1) {
-                            warnings.push(`VENDOR PAYOUT (₹${vendorPayout}) differs from computed (₹${computedVendorPayout}).`);
-                        }
-                    }
-
-                    const activeVendorPayout = vendorPayoutVal !== undefined && vendorPayoutVal !== null && vendorPayoutVal !== "" ? vendorPayout : computedVendorPayout;
-                    const computedGst = activeVendorPayout * 0.18;
-                    if (gstVal !== undefined && gstVal !== null && gstVal !== "") {
-                        if (Math.abs(gst - computedGst) > 1) {
-                            warnings.push(`GST (₹${gst}) differs from computed 18% (₹${computedGst.toFixed(2)}).`);
-                        }
-                    }
-
-                    const activeGst = gstVal !== undefined && gstVal !== null && gstVal !== "" ? gst : computedGst;
-                    const computedTotal = activeVendorPayout + activeGst;
-                    if (totalPaymentVal !== undefined && totalPaymentVal !== null && totalPaymentVal !== "") {
-                        if (Math.abs(totalPayment - computedTotal) > 1) {
-                            warnings.push(`TOTAL PAYMENT (₹${totalPayment}) differs from computed (₹${computedTotal.toFixed(2)}).`);
-                        }
-                    }
+                    errors.push("Status must be Paid, Pending, Processing, or Hold.");
                 }
 
                 const isValid = errors.length === 0;
@@ -1392,51 +1114,39 @@
                         validCount++;
                     }
 
-                    const workingDays = parseFloat(workingDaysVal) || 0;
-                    const computedPayout = workingDays * perDayPayment + incentive;
-                    const tds = computedPayout * 0.01;
-                    const net = computedPayout - tds;
-                    const serviceCharge = parseFloat(serviceChargeVal) || 0;
-                    const vendorPayout = computedPayout + serviceCharge;
-                    const gst = vendorPayout * 0.18;
-                    const computedTotalPayment = vendorPayout + gst;
-
                     parsedRows.push({
                         id: agentId,
                         name: name,
-                        email: gmailId,
+                        email: `${agentId.toLowerCase()}@qtconsultancy.in`,
                         phone: mobNo,
-                        department: designation,
+                        department: "Consultant",
                         role: "Consultant",
-                        status: activeStatus.toLowerCase() === "active" ? "Active" : "Inactive",
-                        baseSalary: totalSalary,
-                        hourlyRate: perDayPayment,
-                        allowance: incentive,
-                        deductions: tds,
-                        hoursWorked: workingDays * 8, // map days to hours (8 hrs/day)
-                        timesheetStatus: activeStatus.toLowerCase() === "active" ? "Uploaded" : "Pending",
-                        
-                        // Vendor staff specific flags & metrics
+                        status: "Active",
+                        baseSalary: netPayout,
+                        perDayPayment: 0,
+                        incentive: 0,
+                        tds: 0,
+                        net: netPayout,
+                        netPay: netPayout,
+                        net_pay: netPayout,
+                        workingDays: workingDays,
+                        noticePeriodDeduction: noticePeriodDeduction,
+                        timesheetStatus: "Uploaded",
                         isVendorStaff: true,
                         location: location,
-                        state: stateVal,
-                        workingDays: workingDays,
-                        perDayPayment: perDayPayment,
-                        incentive: incentive,
-                        candidatePayout: candidatePayout || computedPayout,
-                        tds: tds,
-                        net: net,
-                        accountNumber: accNum,
-                        ifscCode: ifsc,
-                        bankName: bank,
+                        state: "",
+                        candidatePayout: netPayout,
+                        accountNumber: "",
+                        ifscCode: "",
+                        bankName: "",
                         utr: utr,
                         paymentStatus: status.charAt(0).toUpperCase() + status.slice(1).toLowerCase(),
-                        activeStatus: activeStatus.charAt(0).toUpperCase() + activeStatus.slice(1).toLowerCase(),
-                        remark: remark,
-                        serviceCharge: serviceCharge,
-                        vendorPayout: vendorPayout,
-                        gst: gst,
-                        totalPayment: totalPayment || computedTotalPayment
+                        activeStatus: "Active",
+                        remark: "",
+                        serviceCharge: 0,
+                        vendorPayout: netPayout,
+                        gst: 0,
+                        totalPayment: netPayout
                     });
                 } else {
                     failedCount++;
@@ -1554,20 +1264,13 @@
             document.getElementById("edit-payroll-id").value = emp.id;
             document.getElementById("edit-payroll-title-id").textContent = emp.id;
             document.getElementById("edit-payroll-name").value = emp.name || "";
-            document.getElementById("edit-payroll-designation").value = emp.department || "";
             document.getElementById("edit-payroll-location").value = emp.location || emp.centre || "";
-            document.getElementById("edit-payroll-state").value = emp.state || "";
-            document.getElementById("edit-payroll-salary").value = emp.baseSalary || emp.totalSalary || 0;
-            document.getElementById("edit-payroll-perday").value = emp.perDayPayment || emp.hourlyRate || 0;
-            document.getElementById("edit-payroll-days").value = emp.workingDays || ((emp.hoursWorked || 0) / 8) || 0;
-            document.getElementById("edit-payroll-incentive").value = emp.incentive || emp.allowance || 0;
-            document.getElementById("edit-payroll-service").value = emp.serviceCharge || 0;
+            document.getElementById("edit-payroll-phone").value = emp.phone || "";
+            document.getElementById("edit-payroll-days").value = emp.workingDays || 0;
+            document.getElementById("edit-payroll-notice-deduction").value = emp.noticePeriodDeduction || 0;
+            document.getElementById("edit-payroll-net-payout").value = emp.net || emp.netPay || emp.net_pay || 0;
             document.getElementById("edit-payroll-status").value = emp.paymentStatus || emp.status || "Pending";
             document.getElementById("edit-payroll-utr").value = emp.utr || "";
-            document.getElementById("edit-payroll-email").value = emp.email || "";
-            document.getElementById("edit-payroll-phone").value = emp.phone || "";
-            document.getElementById("edit-payroll-active").value = emp.status || "Active";
-            document.getElementById("edit-payroll-remark").value = emp.remark || "";
 
             const modal = document.getElementById("edit-payroll-modal");
             const modalContainer = modal.querySelector("div");

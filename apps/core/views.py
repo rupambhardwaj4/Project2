@@ -16,7 +16,7 @@ def _serialize_employee(emp):
         "id": emp.employee_code,
         "name": f"{emp.first_name} {emp.last_name}".strip(),
         "email": emp.email,
-        "phone": getattr(emp.user, "phone", "") or "",
+        "phone": emp.phone or getattr(emp.user, "phone", "") or "",
         "centre": emp.department or "",
         "department": emp.department or "",
         "month": emp.month or "June 2026",
@@ -37,6 +37,12 @@ def _serialize_employee(emp):
         "paymentStatus": emp.payment_status or emp.status.title(),
         "workLocation": emp.work_location or "",
         "isVendorStaff": emp.is_vendor_staff,
+        "clientName": emp.client_name or "",
+        "payableDays": float(emp.payable_days or 0),
+        "uanNo": emp.uan_no or "",
+        "esicNo": emp.esic_no or "",
+        "state": emp.state or "",
+        "stipend": float(emp.stipend or 0),
         "slip": {
             "basic_pay": float(emp.basic_pay or 0),
             "hra": float(emp.hra or 0),
@@ -78,6 +84,28 @@ def _serialize_employee(emp):
             "invoice_number": emp.invoice_number or "",
             "invoice_topic": emp.invoice_topic or "",
             "invoice_status": emp.invoice_status or "",
+            "client_name": emp.client_name or "",
+            "payable_days": float(emp.payable_days or 0),
+            "uan_no": emp.uan_no or "",
+            "esic_no": emp.esic_no or "",
+            "state": emp.state or "",
+            "stipend": float(emp.stipend or 0),
+            "basic_actual": float(emp.basic_actual or 0),
+            "hra_actual": float(emp.hra_actual or 0),
+            "special_allowance_actual": float(emp.special_allowance_actual or 0),
+            "stat_bonus_actual": float(emp.stat_bonus_actual or 0),
+            "stipend_actual": float(emp.stipend_actual or 0),
+            "attendance_bonus_actual": float(emp.attendance_bonus_actual or 0),
+            "leave_encashment_actual": float(emp.leave_encashment_actual or 0),
+            "performance_incentive_actual": float(emp.performance_incentive_actual or 0),
+            "extra_payment_actual": float(emp.extra_payment_actual or 0),
+            "shipment_incentive_actual": float(emp.shipment_incentive_actual or 0),
+            "mobile_allowance_actual": float(emp.mobile_allowance_actual or 0),
+            "meal_incentive_actual": float(emp.meal_incentive_actual or 0),
+            "group_incentive_actual": float(emp.group_incentive_actual or 0),
+            "night_allowance_actual": float(emp.night_allowance_actual or 0),
+            "retention_bonus_actual": float(emp.retention_bonus_actual or 0),
+            "arrear_payment_actual": float(emp.arrear_payment_actual or 0),
         },
     }
 
@@ -199,6 +227,108 @@ def settings_page(request):
     })
 
 
+def _save_individual_slip(payload):
+    employee_code = str(_pick(payload, "employee_code", "employeeCode", "id")).strip()
+    if not employee_code:
+        return None, "Employee code is required."
+
+    try:
+        emp = Employee.objects.get(employee_code=employee_code)
+    except Employee.DoesNotExist:
+        emp = Employee(employee_code=employee_code)
+
+    # Parse profile details
+    first_name = (payload.get("first_name") or "").strip()
+    last_name = (payload.get("last_name") or "").strip()
+    if "name" in payload and not (first_name or last_name):
+        full_name = (payload.get("name") or "").strip()
+        parts = full_name.split(" ", 1)
+        first_name = parts[0]
+        last_name = parts[1] if len(parts) > 1 else ""
+
+    if first_name:
+        emp.first_name = first_name
+    if last_name:
+        emp.last_name = last_name
+
+    # Enforce non-empty fields for DB constraints on new employees
+    if not emp.first_name:
+        emp.first_name = "New"
+    if not emp.last_name:
+        emp.last_name = "Employee"
+    if not emp.email:
+        emp.email = (payload.get("email") or "").strip() or f"{employee_code.lower()}@qtconsultancy.in"
+
+    if "department" in payload:
+        emp.department = (payload.get("department") or "").strip()
+    if "designation" in payload:
+        emp.designation = (payload.get("designation") or "").strip()
+    if "status" in payload:
+        emp.status = (payload.get("status") or "ACTIVE").strip()
+    if "is_vendor_staff" in payload:
+        emp.is_vendor_staff = bool(payload.get("is_vendor_staff"))
+    if "hourly_rate" in payload:
+        try:
+            emp.hourly_rate = Decimal(str(payload.get("hourly_rate") or 0))
+        except Exception:
+            pass
+
+    payroll_fields = [
+        "month", "work_location", "account_number", "ifsc_code", "bank_name",
+        "payment_status", "utr", "invoice_number", "invoice_topic", "invoice_status",
+        "client_name", "uan_no", "esic_no", "state",
+    ]
+    decimal_fields = [
+        "base_salary", "working_days", "basic_pay", "hra", "other_allowance", "stat_bonus",
+        "attendance_bonus", "leave_encashment", "performance_incentive", "extra_payment",
+        "shipment_incentive", "mobile_allowance", "meal_incentive", "group_incentive",
+        "night_allowance", "national_holiday_pay", "retention_bonus", "arrear_payment",
+        "esi", "pf", "lwf", "meal_debit", "refyne_debit", "advance_salary", "pt",
+        "e_bike_debit", "advance_payments_in_weeks", "shipment_debit",
+        "accommodation_recovery", "notice_period_deduction", "cod_loss", "tshirt_recovery",
+        "ewf_deduction", "tds", "candidate_payout", "service_charge", "gst_amount",
+        "net_pay", "total_payment",
+        "payable_days", "stipend",
+        "basic_actual", "hra_actual", "special_allowance_actual", "stat_bonus_actual",
+        "stipend_actual", "attendance_bonus_actual", "leave_encashment_actual",
+        "performance_incentive_actual", "extra_payment_actual", "shipment_incentive_actual",
+        "mobile_allowance_actual", "meal_incentive_actual", "group_incentive_actual",
+        "night_allowance_actual", "retention_bonus_actual", "arrear_payment_actual",
+    ]
+
+    for field in payroll_fields:
+        if field in payload:
+            setattr(emp, field, (payload.get(field) or "").strip() if isinstance(payload.get(field), str) else payload.get(field))
+    for field in decimal_fields:
+        if field in payload:
+            try:
+                setattr(emp, field, Decimal(str(payload.get(field) or 0)))
+            except Exception:
+                setattr(emp, field, Decimal("0"))
+
+    alias_map = {
+        "candidate_payout": ["candidate_payout", "candidatePayout", "gross_pay", "grossPay"],
+        "net_pay": ["net_pay", "netPay", "net"],
+        "tds": ["tds", "taxAmount", "tax_amount"],
+        "service_charge": ["service_charge", "serviceCharge"],
+        "gst_amount": ["gst_amount", "gstAmount", "gst"],
+    }
+    for field, aliases in alias_map.items():
+        value = None
+        for alias in aliases:
+            if alias in payload and payload.get(alias) not in (None, ""):
+                value = payload.get(alias)
+                break
+        if value is not None:
+            try:
+                setattr(emp, field, Decimal(str(value)))
+            except Exception:
+                setattr(emp, field, Decimal("0"))
+
+    emp.save()
+    return emp, None
+
+
 @login_required
 @csrf_exempt
 def salary_slip(request):
@@ -208,98 +338,19 @@ def salary_slip(request):
         except json.JSONDecodeError:
             return JsonResponse({"ok": False, "error": "Invalid JSON payload."}, status=400)
 
-        employee_code = str(_pick(payload, "employee_code", "employeeCode", "id")).strip()
-        if not employee_code:
-            return JsonResponse({"ok": False, "error": "Employee code is required."}, status=400)
-
-        try:
-            emp = Employee.objects.get(employee_code=employee_code)
-        except Employee.DoesNotExist:
-            emp = Employee(employee_code=employee_code)
-
-        # Parse profile details
-        first_name = payload.get("first_name", "").strip()
-        last_name = payload.get("last_name", "").strip()
-        if "name" in payload and not (first_name or last_name):
-            full_name = payload.get("name", "").strip()
-            parts = full_name.split(" ", 1)
-            first_name = parts[0]
-            last_name = parts[1] if len(parts) > 1 else ""
-
-        if first_name:
-            emp.first_name = first_name
-        if last_name:
-            emp.last_name = last_name
-
-        # Enforce non-empty fields for DB constraints on new employees
-        if not emp.first_name:
-            emp.first_name = "New"
-        if not emp.last_name:
-            emp.last_name = "Employee"
-        if not emp.email:
-            emp.email = payload.get("email", "").strip() or f"{employee_code.lower()}@qtconsultancy.in"
-
-        if "department" in payload:
-            emp.department = payload.get("department", "").strip()
-        if "designation" in payload:
-            emp.designation = payload.get("designation", "").strip()
-        if "status" in payload:
-            emp.status = payload.get("status", "ACTIVE").strip()
-        if "is_vendor_staff" in payload:
-            emp.is_vendor_staff = bool(payload.get("is_vendor_staff"))
-        if "hourly_rate" in payload:
-            try:
-                emp.hourly_rate = Decimal(str(payload.get("hourly_rate") or 0))
-            except Exception:
-                pass
-
-        payroll_fields = [
-            "month", "work_location", "account_number", "ifsc_code", "bank_name",
-            "payment_status", "utr", "invoice_number", "invoice_topic", "invoice_status",
-        ]
-        decimal_fields = [
-            "base_salary", "working_days", "basic_pay", "hra", "other_allowance", "stat_bonus",
-            "attendance_bonus", "leave_encashment", "performance_incentive", "extra_payment",
-            "shipment_incentive", "mobile_allowance", "meal_incentive", "group_incentive",
-            "night_allowance", "national_holiday_pay", "retention_bonus", "arrear_payment",
-            "esi", "pf", "lwf", "meal_debit", "refyne_debit", "advance_salary", "pt",
-            "e_bike_debit", "advance_payments_in_weeks", "shipment_debit",
-            "accommodation_recovery", "notice_period_deduction", "cod_loss", "tshirt_recovery",
-            "ewf_deduction", "tds", "candidate_payout", "service_charge", "gst_amount",
-            "net_pay", "total_payment",
-        ]
-
-        for field in payroll_fields:
-            if field in payload:
-                setattr(emp, field, (payload.get(field) or "").strip() if isinstance(payload.get(field), str) else payload.get(field))
-        for field in decimal_fields:
-            if field in payload:
-                try:
-                    setattr(emp, field, Decimal(str(payload.get(field) or 0)))
-                except Exception:
-                    setattr(emp, field, Decimal("0"))
-
-        alias_map = {
-            "candidate_payout": ["candidate_payout", "candidatePayout", "gross_pay", "grossPay"],
-            "net_pay": ["net_pay", "netPay", "net"],
-            "tds": ["tds", "taxAmount", "tax_amount"],
-            "service_charge": ["service_charge", "serviceCharge"],
-            "gst_amount": ["gst_amount", "gstAmount", "gst"],
-        }
-        for field, aliases in alias_map.items():
-            value = None
-            for alias in aliases:
-                if alias in payload and payload.get(alias) not in (None, ""):
-                    value = payload.get(alias)
-                    break
-            if value is not None:
-                try:
-                    setattr(emp, field, Decimal(str(value)))
-                except Exception:
-                    setattr(emp, field, Decimal("0"))
-
-        emp.save()
-        return JsonResponse({"ok": True, "employee_code": emp.employee_code, "employee": _serialize_employee(emp)})
+        if "rows" in payload:
+            saved_employees = []
+            for row in payload["rows"]:
+                emp, err = _save_individual_slip(row)
+                if err:
+                    return JsonResponse({"ok": False, "error": f"Error saving employee: {err}"}, status=400)
+                saved_employees.append(emp)
+            return JsonResponse({"ok": True, "count": len(saved_employees)})
+        else:
+            emp, err = _save_individual_slip(payload)
+            if err:
+                return JsonResponse({"ok": False, "error": err}, status=400)
+            return JsonResponse({"ok": True, "employee_code": emp.employee_code, "employee": _serialize_employee(emp)})
 
     selected_code = (request.GET.get("id") or "").strip()
     selected_employee = None
@@ -322,3 +373,4 @@ def salary_slip(request):
         "selected_employee_data": employee_payload or {},
         "all_employees_data": all_employees_data,
     })
+

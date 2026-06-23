@@ -15,6 +15,7 @@ class Employee(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     is_vendor_staff = models.BooleanField(default=False)
     hourly_rate = models.DecimalField(max_digits=12, decimal_places=2, default=0)
+    phone = models.CharField(max_length=32, blank=True)
 
     # Payroll profile fields used by the payroll upload, salary slip, and dashboard.
     month = models.CharField(max_length=32, default="June 2026", blank=True)
@@ -68,5 +69,31 @@ class Employee(models.Model):
     invoice_status = models.CharField(max_length=32, blank=True)
     invoice_date = models.DateField(null=True, blank=True)
 
+    # Added fields for detailed Salary Slip upload
+    client_name = models.CharField(max_length=120, blank=True)
+    payable_days = models.DecimalField(max_digits=6, decimal_places=2, default=0)
+    uan_no = models.CharField(max_length=64, blank=True)
+    esic_no = models.CharField(max_length=64, blank=True)
+    state = models.CharField(max_length=100, blank=True)
+    stipend = models.DecimalField(max_digits=12, decimal_places=2, default=0)
+
+    basic_actual = models.DecimalField(max_digits=12, decimal_places=2, default=0)
+    hra_actual = models.DecimalField(max_digits=12, decimal_places=2, default=0)
+    special_allowance_actual = models.DecimalField(max_digits=12, decimal_places=2, default=0)
+    stat_bonus_actual = models.DecimalField(max_digits=12, decimal_places=2, default=0)
+    stipend_actual = models.DecimalField(max_digits=12, decimal_places=2, default=0)
+    attendance_bonus_actual = models.DecimalField(max_digits=12, decimal_places=2, default=0)
+    leave_encashment_actual = models.DecimalField(max_digits=12, decimal_places=2, default=0)
+    performance_incentive_actual = models.DecimalField(max_digits=12, decimal_places=2, default=0)
+    extra_payment_actual = models.DecimalField(max_digits=12, decimal_places=2, default=0)
+    shipment_incentive_actual = models.DecimalField(max_digits=12, decimal_places=2, default=0)
+    mobile_allowance_actual = models.DecimalField(max_digits=12, decimal_places=2, default=0)
+    meal_incentive_actual = models.DecimalField(max_digits=12, decimal_places=2, default=0)
+    group_incentive_actual = models.DecimalField(max_digits=12, decimal_places=2, default=0)
+    night_allowance_actual = models.DecimalField(max_digits=12, decimal_places=2, default=0)
+    retention_bonus_actual = models.DecimalField(max_digits=12, decimal_places=2, default=0)
+    arrear_payment_actual = models.DecimalField(max_digits=12, decimal_places=2, default=0)
+
     def __str__(self):
         return f"{self.employee_code} - {self.first_name} {self.last_name}"
+

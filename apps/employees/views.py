@@ -41,6 +41,7 @@ def directory(request):
         emp.bank_name = (payload.get("bankName") or emp.bank_name or "").strip()
         emp.payment_status = (payload.get("paymentStatus") or emp.payment_status or "Unpaid").strip()
         emp.utr = (payload.get("utr") or emp.utr or "").strip()
+        emp.phone = (payload.get("phone") or emp.phone or "").strip()
 
         decimal_map = {
             "base_salary": payload.get("baseSalary"),
@@ -98,7 +99,7 @@ def directory(request):
             "id": employee.employee_code,
             "name": f"{employee.first_name} {employee.last_name}".strip(),
             "email": employee.email,
-            "phone": getattr(employee.user, "phone", "") or "",
+            "phone": employee.phone or getattr(employee.user, "phone", "") or "",
             "centre": employee.department or "",
             "department": employee.department or "",
             "month": employee.month or "June 2026",
